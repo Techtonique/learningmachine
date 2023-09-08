@@ -1,0 +1,7 @@
+useDynLib(learningmachine, .registration=TRUE)
+importFrom(Rcpp, evalCpp)
+importFrom("stats", "predict")
+export(BaseRegressor)
+export(BaseClassifier)
+export(RangerRegressor)
+export(RangerClassifier)
