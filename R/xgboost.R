@@ -10,11 +10,13 @@ XgboostRegressor <- R6::R6Class(classname = "XgboostRegressor",
                                    self$type <- type
                                  },
                                  fit = function(X, y, ...) {
-                                   self$set_model(fit_func_ranger(x = X, y = y, ...))
+                                   list_params <- list(...)
+                                   names_params <- names(list_params)
+                                   self$set_model(fit_func_xgboost(x = X, y = y,
+                                                                   ...))
                                  },
-                                 predict = function(X) {
-                                   predict_func_ranger(obj = self$model,
-                                                       newx = X)
+                                 predict = function(X, ...) {
+                                   predict(self$model, X, ...)
                                  }
                                ))
 
@@ -29,7 +31,10 @@ XgboostClassifier <- R6::R6Class(classname = "XgboostClassifier",
                                     self$type <- type
                                   },
                                   fit = function(X, y, ...) {
-                                    self$set_model(fit_func_xgboost(x = X, y = y, ...))
+                                    list_params <- list(...)
+                                    names_params <- names(list_params)
+                                    self$set_model(fit_func_xgboost(x = X, y = y,
+                                                                    ...))
                                   },
                                   predict = function(X, ...) {
                                     predict(self$model, X, ...)
