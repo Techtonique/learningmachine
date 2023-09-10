@@ -1,5 +1,10 @@
+# Check if package is available -----
+is_package_available <- function(pkg_name)
+{
+  return(pkg_name %in% rownames(installed.packages()))
+}
 
-# Check is whole number
+# Check is whole number ------
 is_wholenumber <- function(x, tol = .Machine$double.eps^0.5)
 {
   abs(x - round(x)) < tol

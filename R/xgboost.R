@@ -10,6 +10,23 @@ XgboostRegressor <- R6::R6Class(classname = "XgboostRegressor",
                                    self$type <- type
                                  },
                                  fit = function(X, y, ...) {
+                                   if(is_package_available("xgboost") == FALSE)
+                                     install.packages("xgboost")
+                                   list_params <- list(...)
+                                   stopifnot(!is.null(list_params$params))
+                                   stopifnot(!is.null(list_params$params$objective))
+                                   stopifnot(sum(grepl(list_params$params$objective,
+                                                       c("reg:squarederror",
+                                                         "reg:squaredlogerror",
+                                                         "reg:pseudohubererror",
+                                                         "count:poisson",
+                                                         "survival:cox",
+                                                         "survival:aft",
+                                                         "rank:pairwise",
+                                                         "rank:ndcg",
+                                                         "rank:map",
+                                                         "reg:gamma",
+                                                         "reg:tweedie"))) >= 1)
                                    self$set_model(fit_func_xgboost(x = X, y = y,
                                                                    ...))
                                  },
@@ -29,6 +46,18 @@ XgboostClassifier <- R6::R6Class(classname = "XgboostClassifier",
                                     self$type <- type
                                   },
                                   fit = function(X, y, ...) {
+                                    if(is_package_available("xgboost") == FALSE)
+                                      install.packages("xgboost")
+                                    list_params <- list(...)
+                                    stopifnot(!is.null(list_params$params))
+                                    stopifnot(!is.null(list_params$params$objective))
+                                    stopifnot(sum(grepl(list_params$params$objective,
+                                                        c("reg:logistic",
+                                                          "binary:logistic",
+                                                          "binary:logitraw",
+                                                          "binary:hinge",
+                                                          "multi:softmax",
+                                                          "multi:softprob"))) >= 1)
                                     self$set_model(fit_func_xgboost(x = X, y = y,
                                                                     ...))
                                   },

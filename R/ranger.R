@@ -10,6 +10,8 @@ RangerRegressor <- R6::R6Class(classname = "RangerRegressor",
                                    self$type <- type
                                  },
                                  fit = function(X, y, ...) {
+                                   if(is_package_available("ranger") == FALSE)
+                                     install.packages("ranger")
                                    self$set_model(fit_func_ranger(x = X, y = y, ...))
                                  },
                                  predict = function(X) {
@@ -29,6 +31,8 @@ RangerClassifier <- R6::R6Class(classname = "RangerClassifier",
                                    self$type <- type
                                  },
                                  fit = function(X, y, ...) {
+                                   if(is_package_available("ranger") == FALSE)
+                                     install.packages("ranger")
                                    self$set_model(fit_func_ranger(x = X, y = y, ...))
                                  },
                                  predict = function(X, type = "response") {
