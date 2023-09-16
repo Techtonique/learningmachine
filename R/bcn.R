@@ -10,6 +10,10 @@ BcnRegressor <- R6::R6Class(classname = "BcnRegressor",
                                     self$type <- type
                                   },
                                   fit = function(X, y, ...) {
+                                    
+                                    if(is_package_available("dfoptim") == FALSE)
+                                      utils::install.packages("dfoptim")
+                                      
                                     if(is_package_available("bcn") == FALSE)
                                       try(install.packages("bcn",
                                                            repos = c(techtonique = "https://techtonique.r-universe.dev")),
@@ -36,6 +40,10 @@ BcnClassifier <- R6::R6Class(classname = "BcnClassifier",
                                      self$type <- type
                                    },
                                    fit = function(X, y, ...) {
+                                     
+                                     if(is_package_available("dfoptim") == FALSE)
+                                       utils::install.packages("dfoptim")
+                                     
                                      if(is_package_available("bcn") == FALSE)
                                        try(install.packages("bcn",
                                                             repos = c(techtonique = "https://techtonique.r-universe.dev")),
