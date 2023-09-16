@@ -1,7 +1,7 @@
 # Check if package is available -----
 is_package_available <- function(pkg_name)
 {
-  return(pkg_name %in% rownames(installed.packages()))
+  return(pkg_name %in% rownames(utils::installed.packages()))
 }
 
 # Check is whole number ------
@@ -37,7 +37,7 @@ split_data <- function(y, p = 0.5, seed = 123)
       cuts <- 2
     if (cuts > 5)
       cuts <- 5
-    breaks <- unique(quantile(y, probs = seq(0, 1, length = cuts)))
+    breaks <- unique(stats::quantile(y, probs = seq(0, 1, length = cuts)))
     y <- cut(y, breaks, include.lowest = TRUE)
   }
   if (k < length(y)) {
