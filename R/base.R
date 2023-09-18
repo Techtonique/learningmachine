@@ -38,6 +38,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                  self$set_model(stats::.lm.fit(x = self$X_train,
                                                                y = self$y_train,
                                                                ...))
+                                 return(base::invisible(self))
                                },
                                predict = function(X, level = NULL,
                                                   method = c("splitconformal",

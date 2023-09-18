@@ -29,6 +29,7 @@ XgboostRegressor <- R6::R6Class(classname = "XgboostRegressor",
                                                          "reg:tweedie"))) >= 1)
                                    self$set_model(fit_func_xgboost(x = X, y = y,
                                                                    ...))
+                                   return(base::invisible(self))
                                  },
                                  predict = function(X, ...) {
                                    predict(self$model, X, ...)
@@ -60,6 +61,7 @@ XgboostClassifier <- R6::R6Class(classname = "XgboostClassifier",
                                                           "multi:softprob"))) >= 1)
                                     self$set_model(fit_func_xgboost(x = X, y = y,
                                                                     ...))
+                                    return(base::invisible(self))
                                   },
                                   predict = function(X, ...) {
                                     predict(self$model, X, ...)

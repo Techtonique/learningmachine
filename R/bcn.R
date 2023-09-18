@@ -23,6 +23,8 @@ BcnRegressor <- R6::R6Class(classname = "BcnRegressor",
                                     stopifnot(is.numeric(y))
                                     
                                     self$set_model(bcn::bcn(x = X, y = y, ...))
+                                    
+                                    return(base::invisible(self))
                                   },
                                   predict = function(X, ...) {
                                     predict(self$model, X, ...)
@@ -53,6 +55,8 @@ BcnClassifier <- R6::R6Class(classname = "BcnClassifier",
                                      stopifnot(is.factor(y) || is.integer(y))
                                      
                                      self$set_model(bcn::bcn(x = X, y = y, ...))
+                                     
+                                     return(base::invisible(self))
                                    },
                                    predict = function(X, ...) {
                                      predict(self$model, X, ...)

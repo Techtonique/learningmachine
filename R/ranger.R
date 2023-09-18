@@ -13,6 +13,7 @@ RangerRegressor <- R6::R6Class(classname = "RangerRegressor",
                                    if(is_package_available("ranger") == FALSE)
                                      install.packages("ranger")
                                    self$set_model(fit_func_ranger(x = X, y = y, ...))
+                                   return(base::invisible(self))
                                  },
                                  predict = function(X) {
                                    predict_func_ranger(obj = self$model,
@@ -34,6 +35,7 @@ RangerClassifier <- R6::R6Class(classname = "RangerClassifier",
                                    if(is_package_available("ranger") == FALSE)
                                      install.packages("ranger")
                                    self$set_model(fit_func_ranger(x = X, y = y, ...))
+                                   return(base::invisible(self))
                                  },
                                  predict = function(X, type = "response") {
                                    predict_func_ranger(self$model, newx = X,

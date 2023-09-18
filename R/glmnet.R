@@ -20,6 +20,7 @@ GlmnetRegressor <- R6::R6Class(classname = "GlmnetRegressor",
                                                                         "mgaussian"))
                                     self$set_model(glmnet::glmnet(x = X, y = y,
                                                                     ...))
+                                    return(base::invisible(self))
                                   },
                                   predict = function(X, ...) {
                                     predict(self$model, X, ...)
@@ -45,6 +46,8 @@ GlmnetClassifier <- R6::R6Class(classname = "GlmnetClassifier",
                                                                          "multinomial"))
                                      self$set_model(glmnet::glmnet(x = X, y = y,
                                                                      ...))
+                                     
+                                     return(base::invisible(self))
                                    },
                                    predict = function(X, ...) {
                                      predict(self$model, X, ...)
