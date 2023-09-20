@@ -1,3 +1,9 @@
+# Expit function -----
+expit <- function(x)
+{
+  1/(1 + exp(-x))
+}
+
 # Check if package is available -----
 is_package_available <- function(pkg_name)
 {
@@ -10,7 +16,71 @@ is_wholenumber <- function(x, tol = .Machine$double.eps^0.5)
   abs(x - round(x)) < tol
 }
 
+# scaling matrices -----
+my_scale <- function(x, xm = NULL, xsd = NULL)
+{
+  rep_1_n <- rep.int(1, dim(x)[1])
+  
+  # centering and scaling, returning the means and sd's
+  if (is.null(xm) && is.null(xsd))
+  {
+    xm <- colMeans(x)
+    xsd <- my_sd(x)
+    return(list(
+      res = (x - tcrossprod(rep_1_n, xm)) / tcrossprod(rep_1_n, xsd),
+      xm = xm,
+      xsd = xsd
+    ))
+  }
+  
+  # centering and scaling
+  if (is.numeric(xm) && is.numeric(xsd))
+  {
+    return((x - tcrossprod(rep_1_n, xm)) / tcrossprod(rep_1_n, xsd))
+  }
+  
+  # centering only
+  if (is.numeric(xm) && is.null(xsd))
+  {
+    return(x - tcrossprod(rep_1_n, xm))
+  }
+  
+  # scaling only
+  if (is.null(xm) && is.numeric(xsd))
+  {
+    return(x / tcrossprod(rep_1_n, xsd))
+  }
+}
+my_scale <- compiler::cmpfun(my_scale)
 
+# calculate std's of columns -----
+my_sd <- function(x)
+{
+  n <- dim(x)[1]
+  return(drop(rep(1 / (n - 1), n) %*% (x - tcrossprod(
+    rep.int(1, n), colMeans(x)
+  )) ^ 2) ^ 0.5)
+}
+my_sd <- compiler::cmpfun(my_sd)
+
+# one-hot encoding -----
+one_hot <- function(y)
+{
+  class_names <- as.character(levels(y))
+  y <- as.numeric(y)
+  n_obs <- length(y)
+  n_classes <- length(unique(y))
+  res <- matrix(0, nrow=n_obs, ncol=n_classes)
+  colnames(res) <- class_names
+  
+  for (i in 1:n_obs)
+  {
+    res[i, y[i]] = 1 
+  }
+  
+  return (res)
+}
+  
 # Quantile split conformal prediction -----
 quantile_scp <- function(abs_residuals, alpha)
 {

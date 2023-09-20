@@ -21,6 +21,8 @@ RangerRegressor <- R6::R6Class(classname = "RangerRegressor",
                                  }
                                ))
 
+# predict_proba
+
 # 2 - RangerClassifier -------------------------------------------------------------------
 
 RangerClassifier <- R6::R6Class(classname = "RangerClassifier",

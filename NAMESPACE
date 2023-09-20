@@ -13,3 +13,7 @@ export(RangerRegressor)
 export(RangerClassifier)
 export(XgboostRegressor)
 export(XgboostClassifier)
+
+export(fit_matern32_regression)
+export(fit_matern32_classification)
+export(predict_matern32)

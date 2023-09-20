@@ -54,6 +54,8 @@ GlmnetClassifier <- R6::R6Class(classname = "GlmnetClassifier",
                                    }
                                  ))
 
+# predict_proba
+
 # 3 - utils -------------------------------------------------------------------
 
 

@@ -68,6 +68,8 @@ XgboostClassifier <- R6::R6Class(classname = "XgboostClassifier",
                                   }
                                 ))
 
+# predict_proba
+
 # 3 - utils -------------------------------------------------------------------
 
 fit_func_xgboost <- function(x, y, ...)

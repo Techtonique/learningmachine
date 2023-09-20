@@ -63,5 +63,7 @@ BcnClassifier <- R6::R6Class(classname = "BcnClassifier",
                                    }
                                  ))
 
+# predict_proba
+
 # 3 - utils -------------------------------------------------------------------
 
