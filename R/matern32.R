@@ -1153,3 +1153,63 @@ predict_matern32 <- function(fit_obj, newx, ci = NULL)
   }
   
 }
+
+# penguins_ <- as.data.frame(palmerpenguins::penguins)
+# # replacing NA's by the median
+# 
+# replacement <- median(palmerpenguins::penguins$bill_length_mm, na.rm = TRUE)
+# penguins_$bill_length_mm[is.na(palmerpenguins::penguins$bill_length_mm)] <- replacement
+# 
+# replacement <- median(palmerpenguins::penguins$bill_depth_mm, na.rm = TRUE)
+# penguins_$bill_depth_mm[is.na(palmerpenguins::penguins$bill_depth_mm)] <- replacement
+# 
+# replacement <- median(palmerpenguins::penguins$flipper_length_mm, na.rm = TRUE)
+# penguins_$flipper_length_mm[is.na(palmerpenguins::penguins$flipper_length_mm)] <- replacement
+# 
+# replacement <- median(palmerpenguins::penguins$body_mass_g, na.rm = TRUE)
+# penguins_$body_mass_g[is.na(palmerpenguins::penguins$body_mass_g)] <- replacement
+# 
+# # replacing NA's by the most frequent occurence
+# penguins_$sex[is.na(palmerpenguins::penguins$sex)] <- "male" # most frequent
+# 
+# print(sum(is.na(penguins_)))
+# 
+# # one-hot encoding
+# penguins_mat <- model.matrix(species ~., data=penguins_)[,-1]
+# penguins_mat <- cbind(palmerpenguins::penguins$species, penguins_mat)
+# penguins_mat <- as.data.frame(penguins_mat)
+# colnames(penguins_mat)[1] <- "species"
+# 
+# 
+# 
+# y <- as.factor(as.integer(penguins_mat$species))
+# X <- as.matrix(penguins_mat[,2:ncol(penguins_mat)])
+# 
+# n <- nrow(X)
+# p <- ncol(X)
+# 
+# set.seed(123)
+# index_train <- sample(1:n, size=floor(0.8*n))
+# 
+# X_train <- X[index_train, c("islandDream", "islandTorgersen", "flipper_length_mm")]
+# y_train <- y[index_train]
+# X_test <- X[-index_train, c("islandDream", "islandTorgersen", "flipper_length_mm") ]
+# y_test <- y[-index_train]
+# 
+# fit_obj <- learningmachine::fit_matern32_classification(x = X_train, y = y_train, lambda = 0.1)
+#  
+#  preds <- learningmachine::predict_matern32(fit_obj, X_test) 
+#  
+#  (raw_probs <- 1/(1 + exp(-preds)))
+#  
+#  (probs <- raw_probs/apply(raw_probs, 1, sum))
+#  
+#  (classes <- apply(probs, 1, which.max))
+#  
+#  print(as.numeric(y_test))
+#  
+#  mean(classes == as.numeric(y_test))
+# 
+# 
+# 
+# 
