@@ -11,7 +11,8 @@ XgboostRegressor <- R6::R6Class(classname = "XgboostRegressor",
                                  },
                                  fit = function(X, y, ...) {
                                    if(is_package_available("xgboost") == FALSE)
-                                     install.packages("xgboost")
+                                     install.packages("xgboost",
+                                                      repos = c(CRAN = "https://cloud.r-project.org"))
                                    list_params <- list(...)
                                    stopifnot(!is.null(list_params$params))
                                    stopifnot(!is.null(list_params$params$objective))
@@ -27,6 +28,7 @@ XgboostRegressor <- R6::R6Class(classname = "XgboostRegressor",
                                                          "rank:map",
                                                          "reg:gamma",
                                                          "reg:tweedie"))) >= 1)
+                                   self$set_engine(fit_func_xgboost)
                                    self$set_model(fit_func_xgboost(x = X, y = y,
                                                                    ...))
                                    return(base::invisible(self))
@@ -48,7 +50,8 @@ XgboostClassifier <- R6::R6Class(classname = "XgboostClassifier",
                                   },
                                   fit = function(X, y, ...) {
                                     if(is_package_available("xgboost") == FALSE)
-                                      install.packages("xgboost")
+                                      install.packages("xgboost",
+                                                       repos = c(CRAN = "https://cloud.r-project.org"))
                                     list_params <- list(...)
                                     stopifnot(!is.null(list_params$params))
                                     stopifnot(!is.null(list_params$params$objective))
@@ -59,6 +62,7 @@ XgboostClassifier <- R6::R6Class(classname = "XgboostClassifier",
                                                           "binary:hinge",
                                                           "multi:softmax",
                                                           "multi:softprob"))) >= 1)
+                                    self$set_engine(fit_func_xgboost)
                                     self$set_model(fit_func_xgboost(x = X, y = y,
                                                                     ...))
                                     return(base::invisible(self))

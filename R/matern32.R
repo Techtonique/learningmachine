@@ -1067,24 +1067,6 @@ fit_matern32_classification <- function(x, y, lambda = 0.1, #10^seq(-5, 4, lengt
 
 # 3 - 2 predict matern32 -------------------------------------------------------------------
 
-#' n <- 100 ; p <- 4
-#' 
-#' set.seed(456)
-#' X <- matrix(rnorm(n * p), n, p) # no intercept!
-#' y <- rnorm(n)
-#' 
-#' lams <- 10^seq(-10, 10, length.out = 50)
-#' 
-#' fit_obj <- fit_matern32(x = X, y = y, lambda = lams)
-#' 
-#' df <- data.frame(predict_matern32(fit_obj, newx = X) - y)
-#' colnames(df) <- paste0(round(lams, 2))
-#' summary(df)
-#' boxplot(df[, c(1, 10, 25, 35, 50)], 
-#' main = "distribution of in sample bias", 
-#' xlab = "lambda", ylab = "y_hat - y")
-#' 
-#' 
 predict_matern32 <- function(fit_obj, newx, ci = NULL)
 {
   if (is.vector(newx))
@@ -1107,7 +1089,7 @@ predict_matern32 <- function(fit_obj, newx, ci = NULL)
       if (inherits(try_return, "try-error"))
       {
         print("here2 -----")
-        return(expit(drop(crossprod(K_star%*%fit_obj$coef)) + fit_obj$Ym))
+        return(drop(crossprod(K_star%*%fit_obj$coef)) + fit_obj$Ym)
       }
     } else {
       
@@ -1123,7 +1105,7 @@ predict_matern32 <- function(fit_obj, newx, ci = NULL)
       if (inherits(try_return, "try-error"))
       {
         print("here4 -----")
-        return(expit(drop(crossprod(K_star%*%fit_obj$coef)) + fit_obj$Ym))
+        return(drop(crossprod(K_star%*%fit_obj$coef)) + fit_obj$Ym)
       }
     }
     
@@ -1188,8 +1170,7 @@ predict_matern32 <- function(fit_obj, newx, ci = NULL)
 # n <- nrow(X)
 # p <- ncol(X)
 # 
-# set.seed(123)
-# index_train <- sample(1:n, size=floor(0.8*n))
+# set.seed(123); index_train <- sample(1:n, size=floor(0.8*n))
 # 
 # X_train <- X[index_train, c("islandDream", "islandTorgersen", "flipper_length_mm")]
 # y_train <- y[index_train]
@@ -1198,7 +1179,7 @@ predict_matern32 <- function(fit_obj, newx, ci = NULL)
 # 
 # fit_obj <- learningmachine::fit_matern32_classification(x = X_train, y = y_train, lambda = 0.1)
 #  
-#  preds <- learningmachine::predict_matern32(fit_obj, X_test) 
+# preds <- learningmachine::predict_matern32(fit_obj, X_test) 
 #  
 #  (raw_probs <- 1/(1 + exp(-preds)))
 #  
@@ -1206,10 +1187,37 @@ predict_matern32 <- function(fit_obj, newx, ci = NULL)
 #  
 #  (classes <- apply(probs, 1, which.max))
 #  
-#  print(as.numeric(y_test))
-#  
 #  mean(classes == as.numeric(y_test))
 # 
-# 
-# 
-# 
+
+
+
+#' 
+#' 
+#' set.seed(123)
+#' (index_train <- base::sample.int(n = nrow(X), size = floor(0.7*nrow(X)), replace = FALSE))
+#' X_train <- X[index_train, ]
+#' y_train <- y[index_train]
+#' X_test <- X[-index_train, ]
+#' y_test <- y[-index_train]
+#' dim(X_train)
+#' dim(X_test)
+#'
+#' (lams <- 10^seq(-10, 10, length.out = 50))
+#'
+#' fit_obj <- fit_matern32_regression(x = X_train, y = y_train, lambda = lams)
+#' 
+#' par(mfrow=c(1, 2))
+#' plot(log(fit_obj$lambda), fit_obj$GCV, type = 'l', main = "GCV", ylab = "GCV")
+#' matplot(log(fit_obj$lambda), t(fit_obj$coef), type = 'l', main = "coefficients = f(lambda)", xlab = "log(lambda)", ylab = "coefs")
+#' abline(h = 0, lty = 2, lwd = 2, col = "red")
+#' 
+#' preds <- learningmachine::predict_matern32(fit_obj = fit_obj, newx = X_test)
+#' RMSEs <- sqrt(colMeans((preds - y_test)^2))
+#' plot(log(lams), log(RMSEs), type = 'l')
+#' print(lams[which.min(log(RMSEs))])
+#' print(RMSEs[which.min(log(RMSEs))])
+#' res <- apply(preds - y_test, 2, summary)
+#' matplot(res, type = 'l')
+#' abline(h = 0, lty = 2, col = "red")
+

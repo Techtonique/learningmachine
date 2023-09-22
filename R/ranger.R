@@ -33,7 +33,7 @@ RangerRegressor <- R6::R6Class(classname = "RangerRegressor",
                                    self$X_train <- X
                                    self$y_train <- y
                                    self$params <- list(...)
-                                   self$set_model(fit_func_ranger(x = X, y = y, ...))
+                                   self$set_model(fit_func_ranger(x = self$X_train, y = self$y_train, ...))
                                    self$set_engine(list(fit = fit_func_ranger, 
                                                         predict = predict_func_ranger))
                                    return(base::invisible(self))

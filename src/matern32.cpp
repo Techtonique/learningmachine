@@ -1,5 +1,4 @@
 #include <Rcpp.h>
-#include <Math.h>
 using namespace Rcpp;
 
 // https://gallery.rcpp.org/articles/parallel-distance-matrix/

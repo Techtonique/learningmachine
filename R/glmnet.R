@@ -11,13 +11,15 @@ GlmnetRegressor <- R6::R6Class(classname = "GlmnetRegressor",
                                   },
                                   fit = function(X, y, ...) {
                                     if(is_package_available("glmnet") == FALSE)
-                                      install.packages("glmnet")
+                                      install.packages("glmnet",
+                                                       repos = c(CRAN = "https://cloud.r-project.org"))
                                     list_params <- list(...)
                                     stopifnot(!is.null(list_params$family))
                                     stopifnot(list_params$family %in% c("gaussian",
                                                                         "poisson",
                                                                         "cox",
                                                                         "mgaussian"))
+                                    self$set_engine(glmnet::glmnet)
                                     self$set_model(glmnet::glmnet(x = X, y = y,
                                                                     ...))
                                     return(base::invisible(self))
@@ -39,11 +41,13 @@ GlmnetClassifier <- R6::R6Class(classname = "GlmnetClassifier",
                                    },
                                    fit = function(X, y, ...) {
                                      if(is_package_available("glmnet") == FALSE)
-                                       install.packages("glmnet")
+                                       install.packages("glmnet",
+                                                        repos = c(CRAN = "https://cloud.r-project.org"))
                                      list_params <- list(...)
                                      stopifnot(!is.null(list_params$family))
                                      stopifnot(list_params$family %in% c("binomial",
                                                                          "multinomial"))
+                                     self$set_engine(glmnet::glmnet)
                                      self$set_model(glmnet::glmnet(x = X, y = y,
                                                                      ...))
                                      

@@ -20,8 +20,7 @@ fit_matern32_classification(
 )
 }
 \description{
-set.seed(123)
-(index_train <- base::sample.int(n = nrow(X), size = floor(0.7*nrow(X)), replace = FALSE))
+set.seed(1325); (index_train <- base::sample.int(n = nrow(X), size = floor(0.7*nrow(X)), replace = FALSE))
 X_train <- X[index_train, ]
 y_train <- y[index_train]
 X_test <- X[-index_train, ]
@@ -32,5 +31,15 @@ dim(X_test)
 \details{
 fit_obj <- fit_matern32_classification(x = X_train, y = y_train, lambda = 0.1)
 
-preds <- predict_matern32(fit_obj, X_test)
+preds <- predict_matern32(fit_obj, X_test) 
+
+(raw_probs <- 1/(1 + exp(-preds)))
+
+(probs <- raw_probs/apply(raw_probs, 1, sum))
+
+(classes <- apply(probs, 1, which.max))
+
+print(as.numeric(y_test))
+
+mean(classes == as.numeric(y_test))
 }
