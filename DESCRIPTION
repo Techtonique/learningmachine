@@ -19,6 +19,7 @@ Suggests: glmnet,
           MASS,
           pkgbuild,
           ranger,
+          rmarkdown,
           roxygen2,
           xgboost
 VignetteBuilder: knitr
