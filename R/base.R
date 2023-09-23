@@ -69,7 +69,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                  if (is.null(level)) # no prediction interval
                                  {
                                    
-                                  return(self$engine$predict(self$model, X))
+                                   return(self$engine$predict(self$model, X))
                                    
                                  } else { # prediction interval
                                    
@@ -96,10 +96,10 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                      abs_residuals <- abs(y_calibration_sc - y_pred_calibration)
                                      quantile_absolute_residuals <- quantile_scp(abs_residuals, 
                                                                                  alpha = (1 - level / 100))
-
-                                    preds <- self$engine$predict(self$model, X, ...)
                                      
-                                    return(list(preds = preds,
+                                     preds <- self$engine$predict(self$model, X, ...)
+                                     
+                                     return(list(preds = preds,
                                                  lower = preds - quantile_absolute_residuals,
                                                  upper = preds + quantile_absolute_residuals))
                                    }
@@ -116,6 +116,8 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
 # 2 - BaseClassifier -----------------------------------------------------------
 
 BaseClassifier <- R6::R6Class(classname = "BaseClassifier",
+                              private = list(encoded_factors = NULL,
+                                             class_names = NULL),
                               public = list(
                                 name = "BaseClassifier",
                                 type = "classification",
@@ -130,11 +132,15 @@ BaseClassifier <- R6::R6Class(classname = "BaseClassifier",
                                                       X_train = NULL,
                                                       y_train = NULL,
                                                       engine = NULL, 
-                                                      params = NULL) {
+                                                      params = NULL
+                                                      ) {
                                   self$name <- name
                                   self$type <- type
                                   self$model <- model
+                                  self$X_train <- X_train
+                                  self$y_train <- y_train
                                   self$engine <- engine
+                                  self$params <- params
                                 },
                                 get_name = function() {
                                   return(self$name)
@@ -153,4 +159,38 @@ BaseClassifier <- R6::R6Class(classname = "BaseClassifier",
                                 },
                                 get_engine = function() {
                                   self$engine
-                                }))
+                                },
+                                get_params = function() {
+                                  self$params
+                                },
+                                fit = function(X, y, ...) {
+                                  stopifnot(is.factor(y))
+                                  private$encoded_factors <- encode_factors(y)
+                                  private$class_names <- as.character(levels(unique(y)))
+                                  Y <- one_hot(y)
+                                  self$X_train <- X
+                                  self$y_train <- Y
+                                  self$params <- list(...)
+                                  self$set_model(stats::.lm.fit(x = self$X_train,
+                                                                y = self$y_train,
+                                                                ...))
+                                  self$set_engine(list(fit = stats::.lm.fit, 
+                                                       predict = function(obj, X) drop(X%*%obj$coefficients)))
+                                  return(base::invisible(self))
+                                },
+                                predict_proba = function(X, ...) {
+                                  if (is.null(self$model) || is.null(self$engine))
+                                    stop(paste0(self$name, " must be fitted first"))
+                                  raw_preds <- expit(self$engine$predict(self$model, X))
+                                  probs <- raw_preds/rowSums(raw_preds)
+                                  colnames(probs) <- private$class_names
+                                  return(probs)
+                                },
+                                predict = function(X, ...) {
+                                  probs <- self$predict_proba(X, ...)
+                                  numeric_factor <- apply(probs, 1, which.max)
+                                  res <- decode_factors(numeric_factor, private$encoded_factors)
+                                  names(res) <- NULL
+                                  return(res)
+                                }
+                              ))

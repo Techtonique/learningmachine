@@ -1,3 +1,27 @@
+# Correspondance factors -----
+encode_factors <- function(y) 
+{
+  stopifnot(is.factor(y))
+  levels_y <- levels(unique(y))
+  n_levels <- length(levels_y)
+  numeric_levels <- unique(as.integer(y))
+  res <- lapply(1:n_levels, 
+                function(i) levels_y[i])
+  names(res) <- numeric_levels
+  return(list(numeric_factor = as.numeric(y),
+              encoded_factors = res))
+}
+
+decode_factors <- function(numeric_factor, encoded_factors) 
+{
+  encoded_factors <- encoded_factors$encoded_factors
+  n_levels <- length(unique(numeric_factor))
+  stopifnot(n_levels == length(encoded_factors))
+  res <- sapply(numeric_factor, 
+                FUN = function(i) encoded_factors[[i]])
+  factor(res, levels = as.character(unlist(encoded_factors)))
+}
+
 # Expit function -----
 expit <- function(x)
 {
