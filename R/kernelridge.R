@@ -1,42 +1,118 @@
 
+# 1 - KernelRidgeRegressor -------------------------------------------------------------------
+
+
+# 1 - KernelRidgeRegressor -------------------------------------------------------------------
+
+KernelRidgeRegressor <- R6::R6Class(classname = "KernelRidgeRegressor",
+                                    inherit = learningmachine::BaseRegressor,
+                                    public = list(
+                                      name = "KernelRidgeRegressor",
+                                      type = "regression",
+                                      model = NULL,
+                                      X_train = NULL,
+                                      y_train = NULL,
+                                      engine = NULL, 
+                                      params = NULL,
+                                      initialize = function(name = "KernelRidgeRegressor",
+                                                            type = "regression",
+                                                            model = NULL,
+                                                            X_train = NULL,
+                                                            y_train = NULL,
+                                                            engine = NULL, 
+                                                            params = NULL){
+                                        self$name <- name
+                                        self$type <- type
+                                        self$model <- model
+                                        self$X_train <- X_train
+                                        self$y_train <- y_train
+                                        self$engine <- engine
+                                        self$params <- params
+                                      },
+                                      fit = function(X, y, ...) {
+                                        
+                                        stopifnot(is.numeric(y))
+                                        
+                                        self$X_train <- X
+                                        self$y_train <- y
+                                        self$params <- list(...)
+                                        self$set_model(fit_matern32_regression(x = self$X_train, 
+                                                                               y = self$y_train, 
+                                                                               ...))
+                                        self$set_engine(list(fit = fit_matern32_regression, 
+                                                             predict = predict_matern32))
+                                        return(base::invisible(self))
+                                      },
+                                      predict = function(X, level = NULL,
+                                                         method = c("splitconformal",
+                                                                    "other"),
+                                                         ...) {
+                                        method <- match.arg(method)
+                                        super$predict(X = X, level = level,
+                                                      method = method)
+                                      }
+                                    ))
+
+# 2 - KernelRidgeClassifier -------------------------------------------------------------------
+
+KernelRidgeClassifier <- R6::R6Class(classname = "KernelRidgeClassifier",
+                                     inherit = learningmachine::BaseClassifier,
+                                     public = list(
+                                       name = "KernelRidgeClassifier",
+                                       type = "classification",
+                                       model = NULL,
+                                       X_train = NULL,
+                                       y_train = NULL,
+                                       engine = NULL, 
+                                       params = NULL,
+                                       initialize = function(name = "KernelRidgeClassifier",
+                                                             type = "classification",
+                                                             model = NULL,
+                                                             X_train = NULL,
+                                                             y_train = NULL,
+                                                             engine = NULL, 
+                                                             params = NULL){
+                                         self$name <- name
+                                         self$type <- type
+                                         self$model <- model
+                                         self$X_train <- X_train
+                                         self$y_train <- y_train
+                                         self$engine <- engine
+                                         self$params <- params
+                                       },
+                                       fit = function(X, y, ...) {
+                                         
+                                         stopifnot(is.factor(y))
+                                         private$encoded_factors <- encode_factors(y)
+                                         private$class_names <- as.character(levels(unique(y)))
+                                         self$X_train <- X
+                                         self$y_train <- y
+                                         self$params <- list(...)
+                                         self$set_model(fit_matern32_classification(x = self$X_train, 
+                                                                                    y = self$y_train, 
+                                                                                    ...))
+                                         self$set_engine(list(
+                                           fit = fit_matern32_classification,
+                                           predict = function(obj, X, ...){ 
+                                             preds <- predict_matern32(obj, X, ...)
+                                             raw_probs <- 1/(1 + exp(-preds))
+                                             return(raw_probs/apply(raw_probs, 1, sum))
+                                           }
+                                         ))
+                                         return(base::invisible(self))
+                                       },
+                                       predict_proba = function(X, ...) {
+                                         super$predict_proba(X, ...)
+                                       },
+                                       predict = function(X, ...) {
+                                         super$predict(X, ...)
+                                       }
+                                     ))
+
 # 3 - utils -------------------------------------------------------------------
 
 # 3 - 1 fit matern32 -------------------------------------------------------------------
 
-#' 
-#' library(MASS)
-#'
-#' X <- as.matrix(Boston[,-ncol(Boston)])
-#' y <- Boston$medv
-#' 
-#' set.seed(123)
-#' (index_train <- base::sample.int(n = nrow(X), size = floor(0.7*nrow(X)), replace = FALSE))
-#' X_train <- X[index_train, ]
-#' y_train <- y[index_train]
-#' X_test <- X[-index_train, ]
-#' y_test <- y[-index_train]
-#' dim(X_train)
-#' dim(X_test)
-#'
-#' (lams <- 10^seq(-10, 10, length.out = 50))
-#'
-#' fit_obj <- fit_matern32_regression(x = X_train, y = y_train, lambda = lams)
-#' 
-#' par(mfrow=c(1, 2))
-#' plot(log(fit_obj$lambda), fit_obj$GCV, type = 'l', main = "GCV", ylab = "GCV")
-#' matplot(log(fit_obj$lambda), t(fit_obj$coef), type = 'l', main = "coefficients = f(lambda)", xlab = "log(lambda)", ylab = "coefs")
-#' abline(h = 0, lty = 2, lwd = 2, col = "red")
-#' 
-#' preds <- learningmachine::predict_matern32(fit_obj = fit_obj, newx = X_test)
-#' RMSEs <- sqrt(colMeans((preds - y_test)^2))
-#' plot(log(lams), log(RMSEs), type = 'l')
-#' print(lams[which.min(log(RMSEs))])
-#' print(RMSEs[which.min(log(RMSEs))])
-#' res <- apply(preds - y_test, 2, summary)
-#' matplot(res, type = 'l')
-#' abline(h = 0, lty = 2, col = "red")
-#'  
-#'  
 fit_matern32_regression <- function(x, y, lambda = 10^seq(-10, 10, length.out = 100),#10^seq(-5, 4, length.out = 100),
                                     l = NULL, method = c("chol", "solve", "svd", "eigen"),
                                     with_kmeans = FALSE, centers = NULL, 
@@ -542,37 +618,12 @@ fit_matern32_regression <- function(x, y, lambda = 10^seq(-10, 10, length.out = 
   }
 }
 
-#' X <- as.matrix(iris[,-ncol(iris)])
-#' y <- iris$Species
-#' 
-#' set.seed(1325); (index_train <- base::sample.int(n = nrow(X), size = floor(0.7*nrow(X)), replace = FALSE))
-#' X_train <- X[index_train, ]
-#' y_train <- y[index_train]
-#' X_test <- X[-index_train, ]
-#' y_test <- y[-index_train]
-#' dim(X_train)
-#' dim(X_test)
-#'
-#' fit_obj <- fit_matern32_classification(x = X_train, y = y_train, lambda = 0.1)
-#' 
-#' preds <- predict_matern32(fit_obj, X_test) 
-#' 
-#' (raw_probs <- 1/(1 + exp(-preds)))
-#' 
-#' (probs <- raw_probs/apply(raw_probs, 1, sum))
-#' 
-#' (classes <- apply(probs, 1, which.max))
-#' 
-#' print(as.numeric(y_test))
-#' 
-#' mean(classes == as.numeric(y_test))
-#' 
 fit_matern32_classification <- function(x, y, lambda = 0.1, #10^seq(-5, 4, length.out = 100),
                                         l = NULL, method = c("chol", "solve", "svd", "eigen"),
                                         with_kmeans = FALSE, centers = NULL, 
                                         centering = FALSE, seed = 123, cl = NULL, ...)
 {
-
+  
   stopifnot(length(lambda) == 1L) # no multiple values of lambda
   
   method <- match.arg(method)
@@ -1094,8 +1145,8 @@ predict_matern32 <- function(fit_obj, newx, ci = NULL)
     } else {
       
       K_star <- matern32_kxstar_cpp(newx = as.matrix(my_scale(x = newx,
-                                                                        xm = as.vector(fit_obj$xm),
-                                                                        xsd = as.vector(fit_obj$scales))), 
+                                                              xm = as.vector(fit_obj$xm),
+                                                              xsd = as.vector(fit_obj$scales))), 
                                     x = as.matrix(fit_obj$scaled_x), 
                                     l = as.vector(fit_obj$l))
       
@@ -1115,8 +1166,8 @@ predict_matern32 <- function(fit_obj, newx, ci = NULL)
     if (fit_obj$with_kmeans)
     {
       K_star <- matern32_kxstar_cpp(newx = as.matrix(my_scale(x = newx,
-                                                                        xm = as.vector(fit_obj$xm),
-                                                                        xsd = as.vector(fit_obj$scales))), 
+                                                              xm = as.vector(fit_obj$xm),
+                                                              xsd = as.vector(fit_obj$scales))), 
                                     x = fit_obj$scaled_x_clust, 
                                     l = fit_obj$l)
       
@@ -1124,8 +1175,8 @@ predict_matern32 <- function(fit_obj, newx, ci = NULL)
       return(drop(crossprod(K_star%*%fit_obj$coef)))
     } else {
       K_star <- matern32_kxstar_cpp(newx = as.matrix(my_scale(x = newx,
-                                                                        xm = as.vector(fit_obj$xm),
-                                                                        xsd = as.vector(fit_obj$scales))), 
+                                                              xm = as.vector(fit_obj$xm),
+                                                              xsd = as.vector(fit_obj$scales))), 
                                     x = fit_obj$scaled_x, 
                                     l = fit_obj$l)
       #print("here6 -----")
@@ -1191,33 +1242,33 @@ predict_matern32 <- function(fit_obj, newx, ci = NULL)
 # 
 
 
-
-#' 
-#' 
-#' set.seed(123)
-#' (index_train <- base::sample.int(n = nrow(X), size = floor(0.7*nrow(X)), replace = FALSE))
-#' X_train <- X[index_train, ]
-#' y_train <- y[index_train]
-#' X_test <- X[-index_train, ]
-#' y_test <- y[-index_train]
-#' dim(X_train)
-#' dim(X_test)
-#'
-#' (lams <- 10^seq(-10, 10, length.out = 50))
-#'
-#' fit_obj <- fit_matern32_regression(x = X_train, y = y_train, lambda = lams)
-#' 
-#' par(mfrow=c(1, 2))
-#' plot(log(fit_obj$lambda), fit_obj$GCV, type = 'l', main = "GCV", ylab = "GCV")
-#' matplot(log(fit_obj$lambda), t(fit_obj$coef), type = 'l', main = "coefficients = f(lambda)", xlab = "log(lambda)", ylab = "coefs")
-#' abline(h = 0, lty = 2, lwd = 2, col = "red")
-#' 
-#' preds <- learningmachine::predict_matern32(fit_obj = fit_obj, newx = X_test)
-#' RMSEs <- sqrt(colMeans((preds - y_test)^2))
-#' plot(log(lams), log(RMSEs), type = 'l')
-#' print(lams[which.min(log(RMSEs))])
-#' print(RMSEs[which.min(log(RMSEs))])
-#' res <- apply(preds - y_test, 2, summary)
-#' matplot(res, type = 'l')
-#' abline(h = 0, lty = 2, col = "red")
-
+# 
+# 
+# 
+# set.seed(123)
+# (index_train <- base::sample.int(n = nrow(X), size = floor(0.7*nrow(X)), replace = FALSE))
+# X_train <- X[index_train, ]
+# y_train <- y[index_train]
+# X_test <- X[-index_train, ]
+# y_test <- y[-index_train]
+# dim(X_train)
+# dim(X_test)
+# 
+# (lams <- 10^seq(-10, 10, length.out = 50))
+# 
+# fit_obj <- fit_matern32_regression(x = X_train, y = y_train, lambda = lams)
+# 
+# par(mfrow=c(1, 2))
+# plot(log(fit_obj$lambda), fit_obj$GCV, type = 'l', main = "GCV", ylab = "GCV")
+# matplot(log(fit_obj$lambda), t(fit_obj$coef), type = 'l', main = "coefficients = f(lambda)", xlab = "log(lambda)", ylab = "coefs")
+# abline(h = 0, lty = 2, lwd = 2, col = "red")
+# 
+# preds <- learningmachine::predict_matern32(fit_obj = fit_obj, newx = X_test)
+# RMSEs <- sqrt(colMeans((preds - y_test)^2))
+# plot(log(lams), log(RMSEs), type = 'l')
+# print(lams[which.min(log(RMSEs))])
+# print(RMSEs[which.min(log(RMSEs))])
+# res <- apply(preds - y_test, 2, summary)
+# matplot(res, type = 'l')
+# abline(h = 0, lty = 2, col = "red")
+# 
