@@ -115,8 +115,11 @@ obj$fit(X_train, y_train, nrounds = 10L,
 
 ```
 
-```{r}
-summary(obj$predict(X_test) - y_test)
+Nope
+
+```{r echo=TRUE}
+try(summary(obj$predict(X_test) - y_test), 
+    silent = FALSE)
 ```
 
 # 1 - 3 `BCN` regression 
@@ -141,6 +144,24 @@ col_sample = 0.5, activation = "tanh", type_optim = "nlminb",
 show_progress = FALSE)
 
 print(sqrt(mean((obj$predict(X_test) - y_test)**2)))
+```
+
+Nope
+
+```{r fig.width=7.2}
+res <- obj$predict(X = X_test, level = 95)
+
+plot(c(y_train, res$preds), type='l',
+     main="",
+     ylab="",
+     ylim = c(min(c(res$upper, res$lower)),
+              max(c(res$upper, res$lower))))
+lines(c(y_train, res$upper), col="gray60")
+lines(c(y_train, res$lower), col="gray60")
+lines(c(y_train, res$preds), col = "red")
+lines(c(y_train, y_test), col = "blue")
+
+mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 ```
 
 # 1 - 4 `KRR` regression
