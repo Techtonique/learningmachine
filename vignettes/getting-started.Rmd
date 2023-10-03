@@ -245,6 +245,9 @@ mean(obj$predict(X_test) == y_test)
 
 ```
 
+```{r}
+print(head(obj$predict_proba(X_test)))
+```
 
 # 2 - 2 `xgboost` classification
 
@@ -287,10 +290,13 @@ obj$fit(X_train, y_train, nrounds = 10L,
 
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 mean(obj$predict(X_test) == y_test)
 ```
 
+```{r eval=FALSE, include=FALSE}
+print(head(obj$predict_proba(X_test)))
+```
 
 # 2 - 3 `BCN` classification
 
