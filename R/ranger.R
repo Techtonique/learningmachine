@@ -33,8 +33,10 @@ RangerRegressor <- R6::R6Class(classname = "RangerRegressor",
                                    self$X_train <- X
                                    self$y_train <- y
                                    self$params <- list(...)
-                                   self$set_model(fit_func_ranger(x = self$X_train, y = self$y_train, ...))
-                                   self$set_engine(list(fit = fit_func_ranger, 
+                                   self$set_model(fit_func_ranger_regression(x = self$X_train, 
+                                                                             y = self$y_train, 
+                                                                             ...))
+                                   self$set_engine(list(fit = fit_func_ranger_regression, 
                                                         predict = predict_func_ranger))
                                    return(base::invisible(self))
                                  },
@@ -62,25 +64,43 @@ RangerClassifier <- R6::R6Class(classname = "RangerClassifier",
                                     self$engine <- engine
                                   },
                                   fit = function(X, y, ...) {
-                                    if(is_package_available("ranger") == FALSE)
+                                    if (is_package_available("ranger") == FALSE)
                                       install.packages("ranger",
                                                        repos = c(CRAN = "https://cloud.r-project.org"))
-                                    self$set_engine(fit_func_ranger)
-                                    self$set_model(fit_func_ranger(x = X, y = y, ...))
+                                    stopifnot(is.factor(y))
+                                    private$encoded_factors <- encode_factors(y)
+                                    private$class_names <- as.character(levels(unique(y)))
+                                    self$X_train <- X
+                                    self$y_train <- y
+                                    self$params <- list(...)
+                                    self$set_model(fit_func_ranger_classification(x = self$X_train,
+                                                                   y = self$y_train, ...))
+                                    self$set_engine(list(
+                                      fit = fit_func_ranger_classification,
+                                      predict = function(obj, X) predict_func_ranger(obj, X, type = "response")
+                                    ))
                                     return(base::invisible(self))
                                   },
-                                  predict = function(X, type = "response") {
-                                    predict_func_ranger(self$model, newx = X,
-                                                        type = type)
+                                  predict_proba = function(X, ...) {
+                                    super$predict_proba(X = X, ...)
+                                  },
+                                  predict = function(X, ...) {
+                                    super$predict(X = X, ...)
                                   }
                                 ))
 
 # 3 - utils -------------------------------------------------------------------
 
-fit_func_ranger <- function(x, y, ...)
+fit_func_ranger_regression <- function(x, y, ...)
 {
   df <- data.frame(y=y, x) # naming of columns is mandatory for `predict`
   ranger::ranger(y ~ ., data=df, ...)
+}
+
+fit_func_ranger_classification <- function(x, y, ...)
+{
+  df <- data.frame(y=y, x) # naming of columns is mandatory for `predict`
+  ranger::ranger(y ~ ., data=df, probability = TRUE, ...)
 }
 
 predict_func_ranger <- function(obj, newx, ...)
