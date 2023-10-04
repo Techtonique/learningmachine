@@ -14,7 +14,8 @@ Imports: Rcpp (>= 1.0.10), R6
 LinkingTo: Rcpp
 RoxygenNote: 7.2.3
 Encoding: UTF-8
-Suggests: glmnet,
+Suggests: caret,
+          glmnet,
           knitr,
           MASS,
           pkgbuild,
