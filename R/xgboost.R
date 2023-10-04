@@ -62,13 +62,38 @@ XgboostClassifier <- R6::R6Class(classname = "XgboostClassifier",
                                                           "binary:hinge",
                                                           "multi:softmax",
                                                           "multi:softprob"))) >= 1)
-                                    self$set_engine(fit_func_xgboost)
-                                    self$set_model(fit_func_xgboost(x = X, y = y,
+                                    # following 3 instructions, in that order /!\
+                                    private$encoded_factors <- encode_factors(as.factor(y))
+                                    private$class_names <- as.character(levels(unique(as.factor(y))))
+                                    y <- as.numeric(y) - 1
+                                    self$X_train <- X
+                                    self$y_train <- y
+                                    self$params <- list(...)
+                                    self$set_model(fit_func_xgboost(x = self$X_train,
+                                                                    y = self$y_train,
                                                                     ...))
+                                    self$set_engine(list(
+                                      fit = fit_func_xgboost,
+                                      predict = function(obj, X) {
+                                        # cat("preds", "\n")
+                                        # print(predict(obj, X))
+                                        # print(predict(obj, X, reshape = TRUE))
+                                        # cat("\n")
+                                        return(predict(obj, X, reshape = TRUE))
+                                        #preds <- predict(obj, X)
+                                        #res <-
+                                        #  matrix(preds,
+                                        #         ncol = length(private$class_names),
+                                        #         byrow = TRUE)
+                                      }
+                                    ))
                                     return(base::invisible(self))
                                   },
+                                  predict_proba = function(X, ...) {
+                                    super$predict_proba(X = X, ...)
+                                  },
                                   predict = function(X, ...) {
-                                    predict(self$model, X, ...)
+                                    super$predict(X = X, ...)
                                   }
                                 ))
 
