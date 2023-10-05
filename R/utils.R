@@ -1,32 +1,52 @@
 # Correspondance factors -----
-encode_factors <- function(y) 
+encode_factors <- function(y)
 {
   stopifnot(is.factor(y))
   levels_y <- levels(unique(y))
   n_levels <- length(levels_y)
   numeric_levels <- unique(as.integer(y))
-  res <- lapply(1:n_levels, 
-                function(i) levels_y[i])
+  res <- lapply(1:n_levels,
+                function(i)
+                  levels_y[i])
   names(res) <- numeric_levels
   return(list(numeric_factor = as.numeric(y),
               encoded_factors = res))
 }
 
-decode_factors <- function(numeric_factor, encoded_factors) 
+decode_factors <- function(numeric_factor, encoded_factors)
 {
   encoded_factors <- encoded_factors$encoded_factors
   n_levels <- length(unique(numeric_factor))
   stopifnot(n_levels == length(encoded_factors))
-  res <- sapply(numeric_factor, 
-                FUN = function(i) encoded_factors[[i]])
+  res <- sapply(
+    numeric_factor,
+    FUN = function(i)
+      encoded_factors[[i]]
+  )
   factor(res, levels = as.character(unlist(encoded_factors)))
 }
 
 # Expit function -----
 expit <- function(x)
 {
-  1/(1 + exp(-x))
+  1 / (1 + exp(-x))
 }
+
+# get jackknife residuals -----
+get_jackknife_residuals <- function(X, y, idx,
+                                    fit_func,
+                                    predict_func) {
+  stopifnot(length(idx) == (nrow(X) - 1))
+  X_train <- X[idx,]
+  y_train <- y[idx]
+  X_test <- X[-idx,]
+  y_test <- y[-idx]
+  stopifnot(is.null(dim(X_test)))
+  fit_obj <- fit_func(X_train, y_train)
+  preds <- predict_func(fit_obj, rbind(X_test, X_test))
+  return(abs(preds[1] - y_test)) 
+}
+
 
 # Check if package is available -----
 is_package_available <- function(pkg_name)
@@ -35,7 +55,7 @@ is_package_available <- function(pkg_name)
 }
 
 # Check is whole number ------
-is_wholenumber <- function(x, tol = .Machine$double.eps^0.5)
+is_wholenumber <- function(x, tol = .Machine$double.eps ^ 0.5)
 {
   abs(x - round(x)) < tol
 }
@@ -94,22 +114,22 @@ one_hot <- function(y)
   y <- as.numeric(y)
   n_obs <- length(y)
   n_classes <- length(unique(y))
-  res <- matrix(0, nrow=n_obs, ncol=n_classes)
+  res <- matrix(0, nrow = n_obs, ncol = n_classes)
   colnames(res) <- class_names
   
   for (i in 1:n_obs)
   {
-    res[i, y[i]] = 1 
+    res[i, y[i]] = 1
   }
   
   return (res)
 }
-  
+
 # Quantile split conformal prediction -----
 quantile_scp <- function(abs_residuals, alpha)
 {
   n_cal_points <- length(abs_residuals)
-  k <- ceiling((0.5*n_cal_points + 1)*(1 - alpha))
+  k <- ceiling((0.5 * n_cal_points + 1) * (1 - alpha))
   return(rank(abs_residuals)[k])
 }
 
@@ -119,19 +139,20 @@ split_data <- function(y, p = 0.5, seed = 123)
   # from caret::createFolds
   set.seed(seed)
   stopifnot((p > 0) && (p < 1))
-  k <- floor(1/p)
+  k <- floor(1 / p)
   return_list <- TRUE
   returnTrain <- FALSE
-
+  
   if (inherits(y, "Surv"))
     y <- y[, "time"]
   if (is.numeric(y)) {
-    cuts <- floor(length(y)/k)
+    cuts <- floor(length(y) / k)
     if (cuts < 2)
       cuts <- 2
     if (cuts > 5)
       cuts <- 5
-    breaks <- unique(stats::quantile(y, probs = seq(0, 1, length = cuts)))
+    breaks <-
+      unique(stats::quantile(y, probs = seq(0, 1, length = cuts)))
     y <- cut(y, breaks, include.lowest = TRUE)
   }
   if (k < length(y)) {
@@ -139,13 +160,14 @@ split_data <- function(y, p = 0.5, seed = 123)
     numInClass <- table(y)
     foldVector <- vector(mode = "integer", length(y))
     for (i in 1:length(numInClass)) {
-      min_reps <- numInClass[i]%/%k
+      min_reps <- numInClass[i] %/% k
       if (min_reps > 0) {
-        spares <- numInClass[i]%%k
+        spares <- numInClass[i] %% k
         seqVector <- rep(1:k, min_reps)
         if (spares > 0)
           seqVector <- c(seqVector, sample(1:k, spares))
-        foldVector[which(y == names(numInClass)[i])] <- sample(seqVector)
+        foldVector[which(y == names(numInClass)[i])] <-
+          sample(seqVector)
       }
       else {
         foldVector[which(y == names(numInClass)[i])] <- sample(1:k,
@@ -156,11 +178,11 @@ split_data <- function(y, p = 0.5, seed = 123)
   else {
     foldVector <- seq(along = y)
   }
-
+  
   out <- split(seq(along = y), foldVector)
-
+  
   return(out[[1]])
-
+  
 }
 
 # Stratify stuff -----
@@ -229,4 +251,3 @@ split_data <- function(y, p = 0.5, seed = 123)
 # }
 #
 #
-

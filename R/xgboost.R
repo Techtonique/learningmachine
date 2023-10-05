@@ -28,13 +28,26 @@ XgboostRegressor <- R6::R6Class(classname = "XgboostRegressor",
                                                          "rank:map",
                                                          "reg:gamma",
                                                          "reg:tweedie"))) >= 1)
-                                   self$set_engine(fit_func_xgboost)
-                                   self$set_model(fit_func_xgboost(x = X, y = y,
+                                   self$X_train <- X
+                                   self$y_train <- y
+                                   self$params <- list(...)
+                                   self$set_model(fit_func_xgboost(x = self$X_train, 
+                                                                   y = self$y_train,
                                                                    ...))
+                                   self$set_engine(list(
+                                     fit = function(x, y) fit_func_xgboost(x, y, ...),
+                                     predict = predict
+                                   ))
                                    return(base::invisible(self))
                                  },
-                                 predict = function(X, ...) {
-                                   predict(self$model, X, ...)
+                                 predict = function(X, level = NULL,
+                                                    method = c("splitconformal",
+                                                               "jackknifeplus",
+                                                               "other"),
+                                                    ...) {
+                                   method <- match.arg(method)
+                                   super$predict(X = X, level = level,
+                                                 method = method)
                                  }
                                ))
 
@@ -73,18 +86,9 @@ XgboostClassifier <- R6::R6Class(classname = "XgboostClassifier",
                                                                     y = self$y_train,
                                                                     ...))
                                     self$set_engine(list(
-                                      fit = fit_func_xgboost,
+                                      fit = function(x, y) fit_func_xgboost(x, y, ...),
                                       predict = function(obj, X) {
-                                        # cat("preds", "\n")
-                                        # print(predict(obj, X))
-                                        # print(predict(obj, X, reshape = TRUE))
-                                        # cat("\n")
                                         return(predict(obj, X, reshape = TRUE))
-                                        #preds <- predict(obj, X)
-                                        #res <-
-                                        #  matrix(preds,
-                                        #         ncol = length(private$class_names),
-                                        #         byrow = TRUE)
                                       }
                                     ))
                                     return(base::invisible(self))

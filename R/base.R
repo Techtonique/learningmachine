@@ -60,6 +60,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                },
                                predict = function(X, level = NULL,
                                                   method = c("splitconformal",
+                                                             "jackknifeplus",
                                                              "other"),
                                                   ...) {
                                  
@@ -77,11 +78,39 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                    stopifnot(level > 49 && level < 100)
                                    method <- match.arg(method)
                                    
-                                   if (identical(method, "splitconformal"))
+                                   if (identical(method, "jackknifeplus"))
                                    {
                                      stopifnot(!is.null(self$X_train))
                                      stopifnot(!is.null(self$y_train))
+                                     n_train <- nrow(self$X_train)
+                                     fit_objs_loocv <- base::vector("list", n_train)
+                                     residuals_loocv <- rep(0, n_train)
                                      
+                                     pb <- txtProgressBar(min = 1, max = n_train, style = 3)
+                                     for (i in 1:n_train) {
+                                       left_out_indices <- setdiff(1:n_train, i)
+                                       residuals_loocv[i] <-
+                                         get_jackknife_residuals(X = self$X_train, 
+                                                                 y = self$y_train, 
+                                                                 idx = left_out_indices, 
+                                                                 fit_func = self$engine$fit,
+                                                                 predict_func = self$engine$predict)
+                                       setTxtProgressBar(pb, i)
+                                     }
+                                     close(pb)
+                                     
+                                     quantile_absolute_residuals <- quantile(residuals_loocv, 
+                                                                             level/100)
+                                     
+                                     preds <- self$engine$predict(self$model, X, ...)
+                                    
+                                     return(list(preds = preds,
+                                                 lower = preds - quantile_absolute_residuals,
+                                                 upper = preds + quantile_absolute_residuals))
+                                   }
+                                   
+                                   if (identical(method, "splitconformal"))
+                                   {
                                      idx_train_calibration <- split_data(self$y_train,
                                                                          p = 0.5,
                                                                          seed = 123)
@@ -90,13 +119,11 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                      y_train_sc <- self$y_train[idx_train_calibration]
                                      X_calibration_sc <- self$X_train[-idx_train_calibration, ]
                                      y_calibration_sc <- self$y_train[-idx_train_calibration]
-                                     
-                                     fit_obj_train_sc <- self$engine$fit(x = X_train_sc, y = y_train_sc)
+                                     fit_obj_train_sc <- self$engine$fit(X_train_sc, y_train_sc)
                                      y_pred_calibration <- self$engine$predict(self$model, X_calibration_sc)
                                      abs_residuals <- abs(y_calibration_sc - y_pred_calibration)
                                      quantile_absolute_residuals <- quantile_scp(abs_residuals, 
-                                                                                 alpha = (1 - level / 100))
-                                     
+                                                                                alpha = (1 - level / 100))
                                      preds <- self$engine$predict(self$model, X, ...)
                                      
                                      return(list(preds = preds,

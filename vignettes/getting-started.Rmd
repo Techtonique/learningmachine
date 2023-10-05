@@ -57,13 +57,31 @@ print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
 
 
 ```{r fig.width=7.2}
-res <- obj$predict(X = X_test, level = 95)
+res <- obj$predict(X = X_test, level = 95, method = "splitconformal")
 
 plot(c(y_train, res$preds), type='l',
      main="",
      ylab="",
-     ylim = c(min(c(res$upper, res$lower)),
-              max(c(res$upper, res$lower))))
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
+lines(c(y_train, res$upper), col="gray60")
+lines(c(y_train, res$lower), col="gray60")
+lines(c(y_train, res$preds), col = "red")
+lines(c(y_train, y_test), col = "blue")
+
+mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
+```
+
+
+```{r fig.width=7.2}
+res <- obj$predict(X = X_test, level = 95, 
+                   method = "jackknifeplus")
+
+plot(c(y_train, res$preds), type='l',
+     main="",
+     ylab="",
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
 lines(c(y_train, res$upper), col="gray60")
 lines(c(y_train, res$lower), col="gray60")
 lines(c(y_train, res$preds), col = "red")
@@ -92,13 +110,29 @@ print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
 ```
 
 ```{r fig.width=7.2}
-res <- obj$predict(X = X_test, level = 95)
+res <- obj$predict(X = X_test, level = 95, method = "splitconformal")
 
 plot(c(y_train, res$preds), type='l',
      main="",
      ylab="",
-     ylim = c(min(c(res$upper, res$lower)),
-              max(c(res$upper, res$lower))))
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
+lines(c(y_train, res$upper), col="gray60")
+lines(c(y_train, res$lower), col="gray60")
+lines(c(y_train, res$preds), col = "red")
+lines(c(y_train, y_test), col = "blue")
+
+mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
+```
+
+```{r fig.width=7.2}
+res <- obj$predict(X = X_test, level = 95, method = "jackknifeplus")
+
+plot(c(y_train, res$preds), type='l',
+     main="",
+     ylab="",
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
 lines(c(y_train, res$upper), col="gray60")
 lines(c(y_train, res$lower), col="gray60")
 lines(c(y_train, res$preds), col = "red")
@@ -127,8 +161,41 @@ obj$fit(X_train, y_train, nrounds = 10L,
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
+
+```{r echo=TRUE, fig.width=7.2}
+res <- obj$predict(X = X_test, level = 95, method = "splitconformal")
+
+plot(c(y_train, res$preds), type='l',
+     main="",
+     ylab="",
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
+lines(c(y_train, res$upper), col="gray60")
+lines(c(y_train, res$lower), col="gray60")
+lines(c(y_train, res$preds), col = "red")
+lines(c(y_train, y_test), col = "blue")
+
+mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
+```
+
 ```{r}
 print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
+```
+
+```{r echo=TRUE, fig.width=7.2}
+res <- obj$predict(X = X_test, level = 95, method = "jackknifeplus")
+
+plot(c(y_train, res$preds), type='l',
+     main="",
+     ylab="",
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
+lines(c(y_train, res$upper), col="gray60")
+lines(c(y_train, res$lower), col="gray60")
+lines(c(y_train, res$preds), col = "red")
+lines(c(y_train, y_test), col = "blue")
+
+mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 ```
 
 # 1 - 3 `BCN`, `xgboost`, `KRR` & `ranger` regression 
@@ -255,13 +322,29 @@ print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
 ```
 
 ```{r fig.width=7.2}
-res <- obj$predict(X = X_test, level = 95)
+res <- obj$predict(X = X_test, level = 95, method = "splitconformal")
 
 plot(c(y_train, res$preds), type='l',
      main="",
      ylab="",
-     ylim = c(min(c(res$upper, res$lower)),
-              max(c(res$upper, res$lower))))
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
+lines(c(y_train, res$upper), col="gray60")
+lines(c(y_train, res$lower), col="gray60")
+lines(c(y_train, res$preds), col = "red")
+lines(c(y_train, y_test), col = "blue")
+
+mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
+```
+
+```{r fig.width=7.2}
+res <- obj$predict(X = X_test, level = 95, method = "jackknifeplus")
+
+plot(c(y_train, res$preds), type='l',
+     main="",
+     ylab="",
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
 lines(c(y_train, res$upper), col="gray60")
 lines(c(y_train, res$lower), col="gray60")
 lines(c(y_train, res$preds), col = "red")

@@ -42,12 +42,13 @@ BcnRegressor <- R6::R6Class(classname = "BcnRegressor",
                                 self$y_train <- y
                                 self$params <- list(...)
                                 self$set_model(bcn::bcn(x = self$X_train, y = self$y_train, ...))
-                                self$set_engine(list(fit = bcn::bcn, 
+                                self$set_engine(list(fit = function(x, y) bcn::bcn(x, y, ...), 
                                                      predict = bcn::predict.bcn))
                                 return(base::invisible(self))
                               },
                               predict = function(X, level = NULL,
                                                  method = c("splitconformal",
+                                                            "jackknifeplus",
                                                             "other"),
                                                  ...) {
                                 method <- match.arg(method)
@@ -101,7 +102,7 @@ BcnClassifier <- R6::R6Class(classname = "BcnClassifier",
                                 self$params <- list(...)
                                 self$set_model(bcn::bcn(x = self$X_train, y = self$y_train, ...))
                                 self$set_engine(list(
-                                  fit = bcn::bcn,
+                                  fit = function(x, y) bcn::bcn(x, y, ...),
                                   predict = function(obj, X)
                                     bcn::predict.bcn(obj, X, type = "probs")
                                 ))
