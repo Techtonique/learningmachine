@@ -1,5 +1,6 @@
 useDynLib(learningmachine, .registration=TRUE)
 importFrom(Rcpp, evalCpp)
+importFrom("stats", "median")
 importFrom("stats", "predict")
 importFrom("stats", "quantile")
 importFrom("utils", "installed.packages")
