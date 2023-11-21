@@ -19,7 +19,7 @@ GlmnetRegressor <- R6::R6Class(
       self$y_train <- y
       self$params <- list(...)
       stopifnot(!is.null(self$params$family))
-      stopifnot(list_params$family %in% c("gaussian",
+      stopifnot(self$params$family %in% c("gaussian",
                                           "poisson",
                                           "cox",
                                           "mgaussian"))
