@@ -11,13 +11,15 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                y_train = NULL,
                                engine = NULL, 
                                params = NULL,
+                               seed = 123,
                                initialize = function(name = "BaseRegressor",
                                                      type = "regression",
                                                      model = NULL,
                                                      X_train = NULL,
                                                      y_train = NULL,
                                                      engine = NULL, 
-                                                     params = NULL) {
+                                                     params = NULL,
+                                                     seed = 123) {
                                  self$name <- name
                                  self$type <- type
                                  self$model <- model
@@ -25,6 +27,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                  self$y_train <- y_train
                                  self$engine <- engine
                                  self$params <- params
+                                 self$seed <- seed                                  
                                },
                                get_name = function() {
                                  self$name
@@ -46,6 +49,9 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                },
                                get_params = function() {
                                  self$params
+                               },                               
+                               set_seed = function(seed) {
+                                 self$seed <- seed
                                },
                                fit = function(X, y, ...) {
                                  self$X_train <- X
@@ -61,7 +67,9 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                predict = function(X, level = NULL,
                                                   method = c("splitconformal",
                                                              "jackknifeplus",
-                                                             "other"),
+                                                             "bootsplitconformal",
+                                                             "kdesplitconformal"),
+                                                  B = 10,  
                                                   ...) {
                                  
                                  if (is.null(self$model) || is.null(self$engine))
@@ -72,7 +80,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                    
                                    return(self$engine$predict(self$model, X))
                                    
-                                 } else { # prediction interval
+                                 } else { # prediction intervals
                                    
                                    stopifnot(is_wholenumber(level))
                                    stopifnot(level > 49 && level < 100)
@@ -109,32 +117,45 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                                  upper = preds + quantile_absolute_residuals))
                                    }
                                    
-                                   if (identical(method, "splitconformal"))
+                                   if (method %in% c("splitconformal", "bootsplitconformal"))
                                    {
                                      idx_train_calibration <- split_data(self$y_train,
                                                                          p = 0.5,
-                                                                         seed = 123)
-                                     
+                                                                         seed = self$seed)                                    
                                      X_train_sc <- self$X_train[idx_train_calibration, ]
                                      y_train_sc <- self$y_train[idx_train_calibration]
                                      X_calibration_sc <- self$X_train[-idx_train_calibration, ]
                                      y_calibration_sc <- self$y_train[-idx_train_calibration]
                                      fit_obj_train_sc <- self$engine$fit(X_train_sc, y_train_sc)
                                      y_pred_calibration <- self$engine$predict(self$model, X_calibration_sc)
-                                     abs_residuals <- abs(y_calibration_sc - y_pred_calibration)
-                                     quantile_absolute_residuals <- quantile_scp(abs_residuals, 
-                                                                                alpha = (1 - level / 100))
+                                     abs_residuals <- abs(y_calibration_sc - y_pred_calibration)                                     
                                      preds <- self$engine$predict(self$model, X, ...)
-                                     
+
+                                    if (identical(method, "splitconformal"))
+                                    {                                      
+                                      quantile_absolute_residuals <- quantile_scp(abs_residuals, 
+                                                                                alpha = (1 - level / 100))
                                      return(list(preds = preds,
                                                  lower = preds - quantile_absolute_residuals,
                                                  upper = preds + quantile_absolute_residuals))
-                                   }
-                                   
-                                   if (identical(method, "other"))
-                                   {
+                                    }
+
+                                     if (identical(method, "bootsplitconformal"))
+                                    {
+                                      stopifnot(!is.null(B) && is.numeric(B))                                      
+                                      resampled_preds <- sapply(1:floor(B), function(i) {set.seed(self$seed+i*100); preds + base::sample(abs_residuals, 
+                                      size=length(preds), replace=TRUE)})
+                                      stopifnot((dim(resampled_preds)[1] == length(preds)) && (dim(resampled_preds)[2] == self$B))
+                                      preds_upper <- apply(resampled_preds, 1, function(x) quantile(x, probs = 1 - (1 - level / 100) / 2))
+                                      preds_lower <- apply(resampled_preds, 1, function(x) quantile(x, probs = (1 - level / 100) / 2))
+                                      
+                                      return(list(preds = preds,
+                                                  sims = resampled_preds,
+                                                  lower = preds_lower,
+                                                  upper = preds_upper))
+                                    }                                                                               
                                      
-                                   }
+                                   }                                                                      
                                    
                                  }
                                }))
