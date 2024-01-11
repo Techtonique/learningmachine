@@ -27,7 +27,7 @@ RangerRegressor <- R6::R6Class(classname = "RangerRegressor", inherit = learning
                 y, ...), predict = predict_func_ranger))
             return(base::invisible(self))
         }, predict = function(X, level = NULL, method = c("splitconformal", "jackknifeplus",
-            "other"), ...) {
+            "kdesplitconformal"), ...) {
             method <- match.arg(method)
             super$predict(X = X, level = level, method = method)
         }))

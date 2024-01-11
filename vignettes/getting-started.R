@@ -7,9 +7,9 @@ X <- as.matrix(mtcars[,-1])
 y <- mtcars$mpg
 
 ## -----------------------------------------------------------------------------
-set.seed(123)
+set.seed(413)
 (index_train <- base::sample.int(n = nrow(X),
-                                 size = floor(0.8*nrow(X)),
+                                 size = floor(0.7*nrow(X)),
                                  replace = FALSE))
 X_train <- X[index_train, ]
 y_train <- y[index_train]
@@ -75,6 +75,21 @@ lines(c(y_train, res$preds), col = "red")
 lines(c(y_train, y_test), col = "blue")
 
 mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
+
+
+res2 <- obj$predict(X = X_test, level = 95, method="kdesplitconformal")
+
+plot(c(y_train, res2$preds), type='l',
+     main="",
+     ylab="",
+     ylim = c(min(c(res2$upper, res2$lower)),
+              max(c(res2$upper, res2$lower))))
+lines(c(y_train, res2$upper), col="gray60")
+lines(c(y_train, res2$lower), col="gray60")
+lines(c(y_train, res2$preds), col = "red")
+lines(c(y_train, y_test), col = "blue")
+
+mean((y_test >= as.numeric(res2$lower)) * (y_test <= as.numeric(res2$upper)))
 
 ## -----------------------------------------------------------------------------
 obj <- learningmachine::XgboostRegressor$new()

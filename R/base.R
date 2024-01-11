@@ -67,9 +67,8 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                predict = function(X, level = NULL,
                                                   method = c("splitconformal",
                                                              "jackknifeplus",
-                                                             "bootsplitconformal",
                                                              "kdesplitconformal"),
-                                                  B = 10,  
+                                                  B = 1000,  
                                                   ...) {
                                  
                                  if (is.null(self$model) || is.null(self$engine))
@@ -117,7 +116,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                                  upper = preds + quantile_absolute_residuals))
                                    }
                                    
-                                   if (method %in% c("splitconformal", "bootsplitconformal"))
+                                   if (method %in% c("splitconformal", "kdesplitconformal"))
                                    {
                                      idx_train_calibration <- split_data(self$y_train,
                                                                          p = 0.5,
@@ -140,19 +139,17 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                                  upper = preds + quantile_absolute_residuals))
                                     }
 
-                                     if (identical(method, "bootsplitconformal"))
+                                     if (identical(method, "kdesplitconformal"))
                                     {
-                                      stopifnot(!is.null(B) && is.numeric(B))                                      
-                                      resampled_preds <- sapply(1:floor(B), function(i) {set.seed(self$seed+i*100); preds + base::sample(abs_residuals, 
-                                      size=length(preds), replace=TRUE)})
-                                      stopifnot((dim(resampled_preds)[1] == length(preds)) && (dim(resampled_preds)[2] == self$B))
-                                      preds_upper <- apply(resampled_preds, 1, function(x) quantile(x, probs = 1 - (1 - level / 100) / 2))
-                                      preds_lower <- apply(resampled_preds, 1, function(x) quantile(x, probs = (1 - level / 100) / 2))
-                                      
+                                      stopifnot(!is.null(B) && is.numeric(B))                                                
+                                      resampled_abs_residuals <- rgaussiandens(abs_residuals, 
+                                                                               n=length(abs_residuals),                                                                               
+                                                                               seed=self$seed)
+                                      quantile_absolute_residuals <- quantile_scp(resampled_abs_residuals, 
+                                                                                alpha = (1 - level / 100))
                                       return(list(preds = preds,
-                                                  sims = resampled_preds,
-                                                  lower = preds_lower,
-                                                  upper = preds_upper))
+                                                  lower = preds - quantile_absolute_residuals,
+                                                  upper = preds + quantile_absolute_residuals))
                                     }                                                                               
                                      
                                    }                                                                      

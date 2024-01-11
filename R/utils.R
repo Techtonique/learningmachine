@@ -1,3 +1,5 @@
+# Usefull functions for learningmachine (alphabetical order)
+
 # Correspondance factors -----
 encode_factors <- function(y) {
     stopifnot(is.factor(y))
@@ -105,6 +107,22 @@ quantile_scp <- function(abs_residuals, alpha) {
     return(rank(abs_residuals)[k])
 }
 
+# Simulate Gaussian density -----
+# Gaussian kernel density simulation
+rgaussiandens <- function(x, n=length(x), p = 1, seed=1324) {  
+  z <- stats::density(x, bw="sj", kernel="gaussian")
+  width <- z$bw                              # Kernel width
+  rkernel <- function(n, seed) {set.seed(seed); rnorm(n, sd=width)}  # Kernel sampler
+  if (p <= 1)
+  {                
+    set.seed(seed)
+    return(sample(x, n, replace=TRUE) + rkernel(n, seed))    # Here's the entire algorithm
+  } else {
+    return(sapply(1:p, 
+    function(i) {set.seed(seed + i - 1); sample(x, n, replace=TRUE) + rkernel(n, seed + i - 1)}))
+  }  
+}
+
 # Split a dataset -----
 split_data <- function(y, p = 0.5, seed = 123) {
     # from caret::createFolds
@@ -148,8 +166,8 @@ split_data <- function(y, p = 0.5, seed = 123) {
     out <- split(seq(along = y), foldVector)
 
     return(out[[1]])
-
 }
+
 
 # Stratify stuff ----- from https://gist.github.com/mrdwab/6424112 stratified
 # <- function(df, group, size, select = NULL, replace = FALSE, bothSets =

@@ -1,9 +1,9 @@
 Package: learningmachine
 Type: Package
-Title: What the Package Does in One 'Title
+Title: Machine Learning Models with uncertainty quantification
      Case' Line
 Version: 0.2.0
-Date: 2023-09-08
+Date: 2024-01-11
 Author: T. Moudiki
 Maintainer: T. Moudiki <thierry.moudiki@gmail.com>
 Description: One paragraph description of

@@ -52,7 +52,7 @@ KernelRidgeRegressor <-
       predict = function(X, level = NULL,
                          method = c("splitconformal",
                                     "jackknifeplus",
-                                    "other"),
+                                    "kdesplitconformal"),
                          ...) {
         method <- match.arg(method)
         super$predict(X = X, level = level,
