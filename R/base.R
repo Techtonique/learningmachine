@@ -68,7 +68,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                                   method = c("splitconformal",
                                                              "jackknifeplus",
                                                              "kdesplitconformal"),
-                                                  B = 1000,  
+                                                  B = 250,  
                                                   ...) {
                                  
                                  if (is.null(self$model) || is.null(self$engine))
@@ -148,6 +148,10 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                       quantile_absolute_residuals <- quantile_scp(resampled_abs_residuals, 
                                                                                 alpha = (1 - level / 100))
                                       return(list(preds = preds,
+                                                  sims = preds + rgaussiandens(abs_residuals, 
+                                                                               n=length(abs_residuals),
+                                                                               p=B,                                                                              
+                                                                               seed=self$seed),
                                                   lower = preds - quantile_absolute_residuals,
                                                   upper = preds + quantile_absolute_residuals))
                                     }                                                                               
