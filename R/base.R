@@ -143,15 +143,15 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                     {
                                       stopifnot(!is.null(B) && B > 1)    
                                       matrix_preds <- replicate(B, preds)
-                                      raw_residuals <- y_calibration_sc - y_pred_calibration
-                                      scaled_residuals <- base::scale(raw_residuals, 
+                                      calibrated_raw_residuals <- y_calibration_sc - y_pred_calibration
+                                      scaled_calibrated_residuals <- base::scale(calibrated_raw_residuals, 
                                                                        center = TRUE, 
                                                                        scale = TRUE)                                    
-                                      simulated_scaled_residuals <- rgaussiandens(scaled_residuals, 
+                                      simulated_scaled_calibrated_residuals <- rgaussiandens(scaled_calibrated_residuals, 
                                                                                n=length(preds),
                                                                                p=B,                                                                               
                                                                                seed=self$seed) 
-                                      sims <- matrix_preds + sqrt(matrix_preds)*simulated_scaled_residuals 
+                                      sims <- matrix_preds + sqrt(matrix_preds)*simulated_scaled_calibrated_residuals 
                                       preds_lower <- apply(sims, 1, function(x) quantile(x, probs = (1 - level / 100) / 2))
                                       preds_upper <- apply(sims, 1, function(x) quantile(x, probs = 1 - (1 - level / 100) / 2))                                      
                                       return(list(preds = preds,
