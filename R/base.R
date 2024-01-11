@@ -141,19 +141,23 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
 
                                      if (identical(method, "kdesplitconformal"))
                                     {
-                                      stopifnot(!is.null(B) && is.numeric(B))                                                
-                                      resampled_abs_residuals <- rgaussiandens(abs_residuals, 
-                                                                               n=length(abs_residuals),                                                                               
-                                                                               seed=self$seed)
-                                      quantile_absolute_residuals <- quantile_scp(resampled_abs_residuals, 
-                                                                                alpha = (1 - level / 100))
+                                      stopifnot(!is.null(B) && B > 1)    
+                                      matrix_preds <- replicate(B, preds)
+                                      raw_residuals <- y_calibration_sc - y_pred_calibration
+                                      scaled_residuals <- base::scale(raw_residuals, 
+                                                                       center = TRUE, 
+                                                                       scale = TRUE)                                    
+                                      simulated_scaled_residuals <- rgaussiandens(scaled_residuals, 
+                                                                               n=length(preds),
+                                                                               p=B,                                                                               
+                                                                               seed=self$seed) 
+                                      sims <- matrix_preds + sqrt(matrix_preds)*simulated_scaled_residuals 
+                                      preds_lower <- apply(sims, 1, function(x) quantile(x, probs = (1 - level / 100) / 2))
+                                      preds_upper <- apply(sims, 1, function(x) quantile(x, probs = 1 - (1 - level / 100) / 2))                                      
                                       return(list(preds = preds,
-                                                  sims = preds + rgaussiandens(abs_residuals, 
-                                                                               n=length(abs_residuals),
-                                                                               p=B,                                                                              
-                                                                               seed=self$seed),
-                                                  lower = preds - quantile_absolute_residuals,
-                                                  upper = preds + quantile_absolute_residuals))
+                                                  sims = sims,
+                                                  lower = preds_lower,
+                                                  upper = preds_upper))
                                     }                                                                               
                                      
                                    }                                                                      
