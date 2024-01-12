@@ -3,13 +3,17 @@ library(learningmachine)
 library(caret)
 
 ## -----------------------------------------------------------------------------
-X <- as.matrix(mtcars[,-1])
-y <- mtcars$mpg
+#X <- as.matrix(mtcars[,-1])
+#y <- mtcars$mpg
+
+X <- MASS::Boston[, -14]
+y <- MASS::Boston$medv  
+
 
 ## -----------------------------------------------------------------------------
 set.seed(413)
 (index_train <- base::sample.int(n = nrow(X),
-                                 size = floor(0.7*nrow(X)),
+                                 size = floor(0.8*nrow(X)),
                                  replace = FALSE))
 X_train <- X[index_train, ]
 y_train <- y[index_train]
@@ -88,6 +92,9 @@ lines(c(y_train, res2$upper), col="gray60")
 lines(c(y_train, res2$lower), col="gray60")
 lines(c(y_train, res2$preds), col = "red")
 lines(c(y_train, y_test), col = "blue")
+
+res$lower
+res2$lower
 
 mean((y_test >= as.numeric(res2$lower)) * (y_test <= as.numeric(res2$upper)))
 

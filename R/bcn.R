@@ -31,7 +31,7 @@ BcnRegressor <- R6::R6Class(classname = "BcnRegressor", inherit = learningmachin
             self$set_engine(list(fit = function(x, y) bcn::bcn(x, y, ...), predict = bcn::predict.bcn))
             return(base::invisible(self))
         }, predict = function(X, level = NULL, method = c("splitconformal", "jackknifeplus",
-            "kdesplitconformal"), ...) {
+            "kdesplitconformal", "kdejackknifeplus"), ...) {
             method <- match.arg(method)
             super$predict(X = X, level = level, method = method)
         }))

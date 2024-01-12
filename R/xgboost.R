@@ -23,7 +23,7 @@ XgboostRegressor <- R6::R6Class(classname = "XgboostRegressor", inherit = learni
         self$set_engine(list(fit = function(x, y) fit_func_xgboost(x, y, ...), predict = predict))
         return(base::invisible(self))
     }, predict = function(X, level = NULL, method = c("splitconformal", "jackknifeplus",
-        "kdesplitconformal"), ...) {
+        "kdesplitconformal", "kdejackknifeplus"), ...) {
         method <- match.arg(method)
         super$predict(X = X, level = level, method = method)
     }))

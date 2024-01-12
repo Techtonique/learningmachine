@@ -67,7 +67,8 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                predict = function(X, level = NULL,
                                                   method = c("splitconformal",
                                                              "jackknifeplus",
-                                                             "kdesplitconformal"),
+                                                             "kdesplitconformal",
+                                                             "kdejackknifeplus"),
                                                   B = 250,  
                                                   ...) {
                                  
@@ -85,35 +86,60 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                    stopifnot(level > 49 && level < 100)
                                    method <- match.arg(method)
                                    
-                                   if (identical(method, "jackknifeplus"))
+                                   if (method %in% c("jackknifeplus", "kdejackknifeplus"))
                                    {
                                      stopifnot(!is.null(self$X_train))
                                      stopifnot(!is.null(self$y_train))
                                      n_train <- nrow(self$X_train)
                                      fit_objs_loocv <- base::vector("list", n_train)
-                                     residuals_loocv <- rep(0, n_train)
+                                     abs_residuals_loocv <- rep(0, n_train)
+                                     raw_residuals_loocv <- rep(0, n_train)
                                      
                                      pb <- txtProgressBar(min = 1, max = n_train, style = 3)
                                      for (i in 1:n_train) {
                                        left_out_indices <- setdiff(1:n_train, i)
-                                       residuals_loocv[i] <-
-                                         get_jackknife_residuals(X = self$X_train, 
-                                                                 y = self$y_train, 
-                                                                 idx = left_out_indices, 
-                                                                 fit_func = self$engine$fit,
-                                                                 predict_func = self$engine$predict)
+                                       obj_jackknife_residuals <- get_jackknife_residuals(X = self$X_train, 
+                                                                                          y = self$y_train, 
+                                                                                          idx = left_out_indices, 
+                                                                                          fit_func = self$engine$fit,
+                                                                                          predict_func = self$engine$predict)
+                                       abs_residuals_loocv[i] <- obj_jackknife_residuals$abs_residuals
+                                       raw_residuals_loocv[i] <- obj_jackknife_residuals$raw_residuals
                                        setTxtProgressBar(pb, i)
                                      }
                                      close(pb)
                                      
-                                     quantile_absolute_residuals <- quantile(residuals_loocv, 
-                                                                             level/100)
+                                     preds <- self$engine$predict(self$model, X, ...) #/!\
                                      
-                                     preds <- self$engine$predict(self$model, X, ...)
-                                    
-                                     return(list(preds = preds,
-                                                 lower = preds - quantile_absolute_residuals,
-                                                 upper = preds + quantile_absolute_residuals))
+                                     if (identical(method, "jackknifeplus"))
+                                     {
+                                       quantile_absolute_residuals <- quantile(abs_residuals_loocv, # abs or raw
+                                                                               level/100)
+                                       return(list(preds = preds,
+                                                   lower = preds - quantile_absolute_residuals,
+                                                   upper = preds + quantile_absolute_residuals))
+                                     }
+                                     
+                                     if (identical(method, "kdejackknifeplus"))
+                                     {
+                                       stopifnot(!is.null(B) && B > 1)    
+                                       matrix_preds <- replicate(B, preds)
+                                       scaled_raw_residuals <- base::scale(raw_residuals_loocv, 
+                                                                           center = TRUE, 
+                                                                           scale = TRUE)  
+                                       sd_raw_residuals <- sd(raw_residuals_loocv)
+                                       simulated_raw_calibrated_residuals <- rgaussiandens(scaled_raw_residuals, 
+                                                                                           n=length(preds),
+                                                                                           p=B,                                                                               
+                                                                                           seed=self$seed) 
+                                       sims <- matrix_preds + sd_raw_residuals*simulated_raw_calibrated_residuals 
+                                       preds_lower <- apply(sims, 1, function(x) quantile(x, probs = (1 - level / 100) / 2))
+                                       preds_upper <- apply(sims, 1, function(x) quantile(x, probs = 1 - (1 - level / 100) / 2))                                      
+                                       return(list(preds = apply(sims, 1, median),
+                                                   sims = sims,
+                                                   lower = preds_lower,
+                                                   upper = preds_upper))
+                                     }
                                    }
                                    
                                    if (method %in% c("splitconformal", "kdesplitconformal"))
@@ -129,36 +155,37 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                      y_pred_calibration <- self$engine$predict(self$model, X_calibration_sc)
                                      abs_residuals <- abs(y_calibration_sc - y_pred_calibration)                                     
                                      preds <- self$engine$predict(self$model, X, ...)
-
-                                    if (identical(method, "splitconformal"))
-                                    {                                      
-                                      quantile_absolute_residuals <- quantile_scp(abs_residuals, 
-                                                                                alpha = (1 - level / 100))
-                                     return(list(preds = preds,
-                                                 lower = preds - quantile_absolute_residuals,
-                                                 upper = preds + quantile_absolute_residuals))
-                                    }
-
+                                     
+                                     if (identical(method, "splitconformal"))
+                                     {                                      
+                                       quantile_absolute_residuals <- quantile_scp(abs_residuals, 
+                                                                                   alpha = (1 - level / 100))
+                                       return(list(preds = preds,
+                                                   lower = preds - quantile_absolute_residuals,
+                                                   upper = preds + quantile_absolute_residuals))
+                                     }
+                                     
                                      if (identical(method, "kdesplitconformal"))
-                                    {
-                                      stopifnot(!is.null(B) && B > 1)    
-                                      matrix_preds <- replicate(B, preds)
-                                      calibrated_raw_residuals <- y_calibration_sc - y_pred_calibration
-                                      scaled_calibrated_residuals <- base::scale(calibrated_raw_residuals, 
-                                                                       center = TRUE, 
-                                                                       scale = TRUE)                                    
-                                      simulated_scaled_calibrated_residuals <- rgaussiandens(scaled_calibrated_residuals, 
-                                                                               n=length(preds),
-                                                                               p=B,                                                                               
-                                                                               seed=self$seed) 
-                                      sims <- matrix_preds + sqrt(matrix_preds)*simulated_scaled_calibrated_residuals 
-                                      preds_lower <- apply(sims, 1, function(x) quantile(x, probs = (1 - level / 100) / 2))
-                                      preds_upper <- apply(sims, 1, function(x) quantile(x, probs = 1 - (1 - level / 100) / 2))                                      
-                                      return(list(preds = preds,
-                                                  sims = sims,
-                                                  lower = preds_lower,
-                                                  upper = preds_upper))
-                                    }                                                                               
+                                     {
+                                       stopifnot(!is.null(B) && B > 1)    
+                                       matrix_preds <- replicate(B, preds)
+                                       calibrated_raw_residuals <- y_calibration_sc - y_pred_calibration
+                                       scaled_calibrated_residuals <- base::scale(calibrated_raw_residuals, 
+                                                                                  center = TRUE, 
+                                                                                  scale = TRUE)    
+                                       sd_calibrated_residuals <- sd(calibrated_raw_residuals)
+                                       simulated_scaled_calibrated_residuals <- rgaussiandens(scaled_calibrated_residuals, 
+                                                                                              n=length(preds),
+                                                                                              p=B,                                                                               
+                                                                                              seed=self$seed) 
+                                       sims <- matrix_preds + sd_calibrated_residuals*simulated_scaled_calibrated_residuals 
+                                       preds_lower <- apply(sims, 1, function(x) quantile(x, probs = (1 - level / 100) / 2))
+                                       preds_upper <- apply(sims, 1, function(x) quantile(x, probs = 1 - (1 - level / 100) / 2))                                      
+                                       return(list(preds = apply(sims, 1, median),
+                                                   sims = sims,
+                                                   lower = preds_lower,
+                                                   upper = preds_upper))
+                                     }                                                                               
                                      
                                    }                                                                      
                                    
@@ -186,7 +213,7 @@ BaseClassifier <- R6::R6Class(classname = "BaseClassifier",
                                                       y_train = NULL,
                                                       engine = NULL, 
                                                       params = NULL
-                                                      ) {
+                                ) {
                                   self$name <- name
                                   self$type <- type
                                   self$model <- model
