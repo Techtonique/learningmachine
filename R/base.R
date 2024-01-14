@@ -240,17 +240,16 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                         }
 
                                           # results
-                                          results <- list()
-
+                                        
                                           # point prediction
                                           try_res <- try(score(res$preds, y_test), silent = FALSE)
-                                          if(inherits(try_res, "try-error")) next else results$point <- try_res                                          
+                                          if(!inherits(try_res, "try-error")) return(try_res)                                         
                                         
                                           # probabilistic prediction (can use res$lower, res$upper, and res$sims if method is kdejackknifeplus or kdesplitconformal)
                                           try_res <- try(score(res, y_test), silent = FALSE)
-                                          if(inherits(try_res, "try-error")) next else results$prob <- try_res                                          
+                                          if(!inherits(try_res, "try-error")) return(try_res)
 
-                                          return(results)
+                                          stop("scoring function has failed, please check")                                                                                
 
                                         } else {
                                           return(score(fit_obj$predict(X_test), y_test))
