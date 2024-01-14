@@ -187,10 +187,73 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                                    upper = preds_upper))
                                      }                                                                               
                                      
-                                   }                                                                      
-                                   
+                                   }                                                                                                         
                                  }
-                               }))
+                               },
+                               fit_predict = function(X, y, 
+                                                      pct_train=0.8,                                                                                                             
+                                                      score=ifelse(is.factor(y), 
+                                                                  yes = function(preds, y_test) mean(preds == y_test), 
+                                                                  no = function(preds, y_test) sqrt(mean((preds - y_test)^2))),
+                                                      level = NULL,
+                                                      method = c("splitconformal",
+                                                             "jackknifeplus",
+                                                             "kdesplitconformal",
+                                                             "kdejackknifeplus"),
+                                                      B = 100,
+                                                      seed=123, 
+                                                      graph=FALSE,                         
+                                                      ...) {
+
+                                        stopifnot(pct_train >= 0.4 && pct_train < 1)
+                                        stopifnot(length(y) == nrow(X))
+                                        
+                                        set.seed(seed)
+                                        train_index <- caret::createDataPartition(y, p=pct_train)$Resample1
+                                        X_train <- as.matrix(X[train_index, ])
+                                        y_train <- y[train_index]
+                                        X_test <- as.matrix(X[-train_index, ])
+                                        y_test <- y[-train_index]
+
+                                        fit_obj <- self$fit(X_train, y_train, ...)
+                                        res <- fit_obj$predict(X_test, level=level, method=method, B=B, ...)
+
+                                        cat("res$preds: ", res$preds, "\n")
+                                        cat("y_test: ", y_test, "\n")
+                                        cat("score: ", score(res$preds, y_test), "\n")
+
+                                        if (graph && !is.factor(y) && !is.null(level)) { 
+                                            y_values <- c(y_train, res$preds)
+                                            y_upper <- c(y_train, res$upper)
+                                            y_lower <- c(y_train, res$lower)
+
+                                            x <- 1:length(y_values)
+                                            xx <- c(x, rev(x))
+                                            yy <- c(y_lower, rev(y_upper))                                          
+                                            plot(x, y_values, type='l',
+                                                main=method,
+                                                xlab="obs. index",
+                                                ylab="values",
+                                                ylim = c(min(c(y_lower, y_upper, y_test)),
+                                                         max(c(y_lower, y_upper, y_test))))
+                                            polygon(xx, yy, col = "gray60", border = "gray60")
+                                            #lines(y_upper, col="gray60")
+                                            #lines(y_lower, col="gray60")
+                                            lines(y_values, col = "red")
+                                            lines(c(y_train, y_test), col = "blue")
+                                            lines(x[-train_index], y_test, col = "blue", lty = 2)
+                                        }
+
+                                        
+                                          # point prediction
+                                          try_res <- try(score(res$preds, y_test), silent = FALSE)
+                                          if(inherits(try_res, "try-error")) stop("check scoring method") else return(try_res)                                          
+                                        
+                                          # probabilistic prediction (can use res$lower, res$upper, and res$sims if method is kdejackknifeplus or kdesplitconformal)
+                                          try_res <- try(score(res, y_test), silent = FALSE)
+                                          if(inherits(try_res, "try-error")) stop("no method for probalistic prediction") else return(try_res)                                          
+                                                                            
+                                                      }))
 
 
 # 2 - BaseClassifier -----------------------------------------------------------
