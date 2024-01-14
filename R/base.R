@@ -221,15 +221,20 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                         {
                                           res <- fit_obj$predict(X_test, level=level, method=method, B=B, ...)
                                         } else {
-                                          res <- fit_obj$predict(X_test, ...)
+                                          res <- fit_obj$predict(X_test)
+                                        }
+                                        if (is.null(level))
+                                        {
+                                          # point prediction
+                                          try_res <- try(score(res$preds, y_test), silent = FALSE)
+                                          if(inherits(try_res, "try-error")) stop("check scoring method") else return(try_res)                                          
                                         }
 
-                                        if (graph && !is.factor(y) && !is.null(level)) { 
+                                        if ((graph == TRUE) && (!is.factor(y)) && (!is.null(level))) { 
                                             y_values <- c(y_train, res$preds)
                                             y_upper <- c(y_train, res$upper)
                                             y_lower <- c(y_train, res$lower)
-
-                                            x <- 1:length(y_values)
+                                            x <- seq_along(y_values)
                                             xx <- c(x, rev(x))
                                             yy <- c(y_lower, rev(y_upper))                                          
                                             plot(x, y_values, type='l',
@@ -239,8 +244,9 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                                 ylim = c(min(c(y_lower, y_upper, y_test)),
                                                          max(c(y_lower, y_upper, y_test))))
                                             polygon(xx, yy, col = "gray80", border = "gray80")                                            
-                                            lines(y_values, col = "red")
-                                            lines(c(y_train, y_test), col = "blue")                                            
+                                            lines(y_values, col = "red", lwd=2)
+                                            lines(c(y_train, y_test), col = "black", lwd=2)                                            
+                                            lines(x[-seq_along(y_train)], y_test, col = "blue", lwd=2)                                            
                                         }
                                         
                                           # point prediction
