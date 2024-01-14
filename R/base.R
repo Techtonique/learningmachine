@@ -217,7 +217,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                         y_test <- y[-train_index]
 
                                         fit_obj <- self$fit(X_train, y_train, ...)
-                                        if (!is.null(level)))
+                                        if (!is.null(level))
                                         {
                                           res <- fit_obj$predict(X_test, level=level, method=method, B=B, ...)
                                         } else {
