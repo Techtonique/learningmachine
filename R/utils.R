@@ -103,122 +103,72 @@ one_hot <- function(y) {
 }
 
 # parallel for loop -----
-parallel_for <- function(nb_iter = 10, cl=parallel::detectCores(), 
-                         show_progress = TRUE)
+parfor <- function(what,
+                  args,
+                  cl = NULL,
+                  combine = c,
+                  errorhandling = c("stop",
+                                    "remove",
+                                    "pass"),
+                  verbose = FALSE,
+                  show_progress = TRUE,
+                  packages = NULL,
+                  ...)
 {
-  cl_SOCK <- parallel::makeCluster(cl, type = "SOCK")
-  doSNOW::registerDoSNOW(cl_SOCK)
-  `%op1%` <-  foreach::`%dopar%`
-  `%op2%` <-  foreach::`%do%`
+  errorhandling <- match.arg(errorhandling)
+
+  n_iter <- length(args)
+  
+  # progress bars
+  if (!is.null(cl)) {
+    cl_SOCK <- parallel::makeCluster(cl, type = "SOCK")
+    doSNOW::registerDoSNOW(cl_SOCK)
+    `%op%` <- foreach::`%dopar%`
+  } else {
+    `%op%` <- foreach::`%do%`
+  }
   
   if (show_progress)
   {
     pb <- txtProgressBar(min = 0,
-                         max = k,
+                         max = n_iter,
                          style = 3)
-    progress <- function(n)
+    progress <- function(n) {
       utils::setTxtProgressBar(pb, n)
+    }
     opts <- list(progress = progress)
   } else {
     opts <- NULL
   }
   
   i <- NULL
-  j <- NULL
   res <- foreach::foreach(
-    i = 1:k,
+    i = 1:n_iter,
     .packages = packages,
-    .combine = rbind,
+    .combine = combine,
     .errorhandling = errorhandling,
     .options.snow = opts,
-    .verbose = verbose,
-    .export = c("create_folds")
-  ) %op1% {
-    foreach::foreach(
-      j = 1:repeats,
-      .packages = packages,
-      .combine = cbind,
-      .verbose = FALSE,
-      .errorhandling = errorhandling,
-      .export = c("fit_params")
-    ) %op2% {
-      train_index <- -list_folds[[j]][[i]]
-      test_index <-
-        -train_index
-      
-      # fit
-      set.seed(seed) # in case the algo is randomized
-      fit_func_train <-
-        function(x, y, ...)
-          fit_func(x = x[train_index,],
-                   y = y[train_index],
-                   ...)
-      
-      fit_obj <-
-        do.call(what = fit_func_train,
-                args = c(list(x = x[train_index,],
-                              y = y[train_index]),
-                         fit_params))
-      
-      # predict
-      preds <- try(predict_func(fit_obj, newdata = x[test_index,]),
-                   silent = TRUE)
-      if (inherits(preds, "try-error"))
-      {
-        preds <- try(predict_func(fit_obj, newx = x[test_index,]),
-                     silent = TRUE)
-        if (inherits(preds, "try-error"))
-        {
-          preds <- rep(NA, length(test_index))
-        }
-      }
-      
-      # measure the error
-      error_measure <-
-        eval_metric(preds, y[test_index])
-      
-      if (show_progress)
-      {
-        setTxtProgressBar(pb, i * j)
-      }
-      
-      if (p == 1) {
-        error_measure
-        
-      } else {
-        # there is a validation set
-        
-        # predict on validation set
-        preds_validation <-
-          try(predict_func(fit_obj,
-                           newdata = x_validation),
-              silent = TRUE)
-        
-        if (inherits(preds_validation, "try-error"))
-        {
-          preds_validation <- try(predict_func(fit_obj,
-                                               newx = x_validation),
-                                  silent = TRUE)
-          
-          if (inherits(preds_validation, "try-error"))
-          {
-            preds_validation <- rep(NA, length(y_validation))
-          }
-        }
-        
-        # measure the validation error
-        c(error_measure,
-          eval_metric(preds_validation, y_validation))
-      }
-      
+    .verbose = verbose
+  ) %op% {
+    if (show_progress)
+    {
+      setTxtProgressBar(pb, i)
     }
-    
+    do.call(what = what,
+            args = c(list(args[i]), ...))
   }
+  
   if (show_progress)
   {
     close(pb)
   }
-  snow::stopCluster(cl_SOCK)
+  
+  if (!is.null(cl))
+  {
+    snow::stopCluster(cl_SOCK)
+  }
+  
+  return(res)
 }
 
 # Quantile split conformal prediction -----
