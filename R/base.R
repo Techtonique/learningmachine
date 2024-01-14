@@ -220,17 +220,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                         if (!is.null(level))
                                         {
                                           res <- fit_obj$predict(X_test, level=level, method=method, B=B, ...)
-                                        } else {
-                                          res <- fit_obj$predict(X_test)
-                                        }
-                                        if (is.null(level))
-                                        {
-                                          # point prediction
-                                          try_res <- try(score(res$preds, y_test), silent = FALSE)
-                                          if(inherits(try_res, "try-error")) stop("check scoring method") else return(try_res)                                          
-                                        }
-
-                                        if ((graph == TRUE) && (!is.factor(y)) && (!is.null(level))) { 
+                                          if ((graph == TRUE) && (!is.factor(y))) { 
                                             y_values <- c(y_train, res$preds)
                                             y_upper <- c(y_train, res$upper)
                                             y_lower <- c(y_train, res$lower)
@@ -248,14 +238,23 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                             lines(c(y_train, y_test), col = "black", lwd=2)                                            
                                             lines(x[-seq_along(y_train)], y_test, col = "blue", lwd=2)                                            
                                         }
-                                        
+
+                                          # results
+                                          results <- list()
+
                                           # point prediction
                                           try_res <- try(score(res$preds, y_test), silent = FALSE)
-                                          if(inherits(try_res, "try-error")) stop("check scoring method") else return(try_res)                                          
+                                          if(inherits(try_res, "try-error")) next else results$point <- try_res                                          
                                         
                                           # probabilistic prediction (can use res$lower, res$upper, and res$sims if method is kdejackknifeplus or kdesplitconformal)
                                           try_res <- try(score(res, y_test), silent = FALSE)
-                                          if(inherits(try_res, "try-error")) stop("no method for probalistic prediction") else return(try_res)                                          
+                                          if(inherits(try_res, "try-error")) next else results$prob <- try_res                                          
+
+                                          return(results)
+
+                                        } else {
+                                          return(score(fit_obj$predict(X_test), y_test))
+                                        }                                                                                
                                                                             
                                                       }))
 
