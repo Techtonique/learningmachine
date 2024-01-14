@@ -239,17 +239,28 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                             lines(x[-seq_along(y_train)], y_test, col = "blue", lwd=2)                                            
                                         }
 
-                                          # results
-                                        
+                                          # results ------
+                                          results <- list()
+                                          results$res <- res
+
                                           # point prediction
                                           try_res <- try(score(res$preds, y_test), silent = FALSE)
-                                          if(!inherits(try_res, "try-error")) return(try_res)                                         
+                                          if(!inherits(try_res, "try-error")) results$score <- try_res                                         
                                         
                                           # probabilistic prediction (can use res$lower, res$upper, and res$sims if method is kdejackknifeplus or kdesplitconformal)
                                           try_res <- try(score(res, y_test), silent = FALSE)
-                                          if(!inherits(try_res, "try-error")) return(try_res)
+                                          if(!inherits(try_res, "try-error")) results$score <- try_res 
 
-                                          stop("scoring function has failed, please check")                                                                                
+                                          if (!is.null(level))
+                                          {                                            
+                                            results$level <- level
+                                            results$method <- method
+                                            results$B <- B
+                                            results$coverage <- mean(y_test >= res$lower & y_test <= res$upper)
+                                            results$length <- mean(res$upper - res$lower)                                            
+                                          }                                        
+
+                                          return(results)                                                                                
 
                                         } else {
                                           return(score(fit_obj$predict(X_test), y_test))
