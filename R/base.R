@@ -207,6 +207,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
 
                                         stopifnot(pct_train >= 0.4 && pct_train < 1)
                                         stopifnot(length(y) == nrow(X))
+                                        method <- match.arg(method)
                                         
                                         set.seed(seed)
                                         train_index <- caret::createDataPartition(y, p=pct_train)$Resample1
@@ -216,11 +217,12 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                         y_test <- y[-train_index]
 
                                         fit_obj <- self$fit(X_train, y_train, ...)
-                                        res <- fit_obj$predict(X_test, level=level, method=method, B=B, ...)
-
-                                        cat("res$preds: ", res$preds, "\n")
-                                        cat("y_test: ", y_test, "\n")
-                                        cat("score: ", score(res$preds, y_test), "\n")
+                                        if (!is.null(level)))
+                                        {
+                                          res <- fit_obj$predict(X_test, level=level, method=method, B=B, ...)
+                                        } else {
+                                          res <- fit_obj$predict(X_test, ...)
+                                        }
 
                                         if (graph && !is.factor(y) && !is.null(level)) { 
                                             y_values <- c(y_train, res$preds)
@@ -236,14 +238,10 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                                 ylab="values",
                                                 ylim = c(min(c(y_lower, y_upper, y_test)),
                                                          max(c(y_lower, y_upper, y_test))))
-                                            polygon(xx, yy, col = "gray60", border = "gray60")
-                                            #lines(y_upper, col="gray60")
-                                            #lines(y_lower, col="gray60")
+                                            polygon(xx, yy, col = "gray80", border = "gray80")                                            
                                             lines(y_values, col = "red")
-                                            lines(c(y_train, y_test), col = "blue")
-                                            lines(x[-train_index], y_test, col = "blue", lty = 2)
+                                            lines(c(y_train, y_test), col = "blue")                                            
                                         }
-
                                         
                                           # point prediction
                                           try_res <- try(score(res$preds, y_test), silent = FALSE)
