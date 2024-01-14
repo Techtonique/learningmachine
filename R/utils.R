@@ -113,6 +113,7 @@ parfor <- function(what,
                   verbose = FALSE,
                   show_progress = TRUE,
                   packages = NULL,
+                  export = NULL,
                   ...)
 {
   errorhandling <- match.arg(errorhandling)
@@ -148,7 +149,8 @@ parfor <- function(what,
     .combine = combine,
     .errorhandling = errorhandling,
     .options.snow = opts,
-    .verbose = verbose
+    .verbose = verbose,
+    .export = export
   ) %op% {
     if (show_progress)
     {

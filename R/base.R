@@ -11,6 +11,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                y_train = NULL,
                                engine = NULL, 
                                params = NULL,
+                               cl = NULL,
                                seed = 123,
                                initialize = function(name = "BaseRegressor",
                                                      type = "regression",
@@ -19,6 +20,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                                      y_train = NULL,
                                                      engine = NULL, 
                                                      params = NULL,
+                                                     cl = NULL,
                                                      seed = 123) {
                                  self$name <- name
                                  self$type <- type
@@ -27,6 +29,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                  self$y_train <- y_train
                                  self$engine <- engine
                                  self$params <- params
+                                 self$cl <- cl
                                  self$seed <- seed                                  
                                },
                                get_name = function() {
@@ -49,7 +52,13 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                },
                                get_params = function() {
                                  self$params
-                               },                               
+                               },
+                               get_cl = function() {
+                                 self$cl
+                               },
+                               set_cl = function(cl) {
+                                 self$cl <- cl
+                               },
                                set_seed = function(seed) {
                                  self$seed <- seed
                                },
@@ -95,6 +104,9 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                      abs_residuals_loocv <- rep(0, n_train)
                                      raw_residuals_loocv <- rep(0, n_train)
                                      
+                                     # sequential execution of the jackknife procedure
+                                     if (self$cl <= 1 || is.null(self$cl))
+                                     {                                       
                                      pb <- txtProgressBar(min = 1, max = n_train, style = 3)
                                      for (i in 1:n_train) {
                                        left_out_indices <- setdiff(1:n_train, i)
@@ -107,9 +119,38 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                        raw_residuals_loocv[i] <- obj_jackknife_residuals$raw_residuals
                                        setTxtProgressBar(pb, i)
                                      }
+
                                      close(pb)
+
+                                     } else { # parallel execution of the jackknife procedure
+
+                                        loofunc <- function(indx) {
+                                          left_out_indices <- base::setdiff(1:n_train, indx)
+                                          obj_jackknife_residuals <- get_jackknife_residuals(X = self$X_train, 
+                                                                                             y = self$y_train, 
+                                                                                             idx = left_out_indices, 
+                                                                                             fit_func = self$engine$fit,
+                                                                                             predict_func = self$engine$predict)
+                                          abs_residuals_loocv[indx] <- obj_jackknife_residuals$abs_residuals
+                                          raw_residuals_loocv[indx] <- obj_jackknife_residuals$raw_residuals                                          
+                                        }
+
+                                         if (!("doSNOW" %in% utils::installed.packages()[,1]))
+                                         {
+                                          utils::install.packages("doSNOW", repos="https://cran.rstudio.com/")
+                                         }
+
+                                        res <- parfor(what = loofunc,
+                                               args = seq_len(n_train),
+                                               cl = self$cl,
+                                               combine = c,
+                                               errorhandling = "stop",
+                                               verbose = FALSE,
+                                               show_progress = TRUE,
+                                               packages = NULL)
+                                     }                                     
                                      
-                                     preds <- self$engine$predict(self$model, X, ...) #/!\
+                                     preds <- self$engine$predict(self$model, X, ...) #/!\ keep
                                      
                                      if (identical(method, "jackknifeplus"))
                                      {
@@ -202,8 +243,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                                              "kdejackknifeplus"),
                                                       B = 100,
                                                       seed=123, 
-                                                      graph=FALSE,                         
-                                                      ...) {
+                                                      graph=FALSE) {
 
                                         stopifnot(pct_train >= 0.4 && pct_train < 1)
                                         stopifnot(length(y) == nrow(X))
@@ -216,10 +256,10 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                         X_test <- as.matrix(X[-train_index, ])
                                         y_test <- y[-train_index]
 
-                                        fit_obj <- self$fit(X_train, y_train, ...)
+                                        fit_obj <- self$fit(X_train, y_train)
                                         if (!is.null(level))
                                         {
-                                          res <- fit_obj$predict(X_test, level=level, method=method, B=B, ...)
+                                          res <- fit_obj$predict(X_test, level=level, method=method, B=B)
                                           if ((graph == TRUE) && (!is.factor(y))) { 
                                             y_values <- c(y_train, res$preds)
                                             y_upper <- c(y_train, res$upper)

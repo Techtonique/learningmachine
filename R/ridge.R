@@ -15,16 +15,16 @@ AutoRidgeRegressor <- R6::R6Class(classname = "AutoRidgeRegressor", inherit = le
             self$y_train <- y_train
             self$engine <- engine
             self$params <- params
-        }, fit = function(X, y, ...) {            
+        }, fit = function(X, y) {            
             self$X_train <- X
             self$y_train <- y
-            self$params <- list(...)
-            self$set_model(fit_ridge_regression(x = self$X_train, y = self$y_train, ...))
-            self$set_engine(list(fit = function(x, y) fit_ridge_regression(x, y, ...), 
+            self$params <- NULL #list(...)
+            self$set_model(fit_ridge_regression(x = self$X_train, y = self$y_train))
+            self$set_engine(list(fit = function(x, y) fit_ridge_regression(x, y), 
             predict = predict_ridge_regression))
             return(base::invisible(self))
         }, predict = function(X, level = NULL, method = c("splitconformal", "jackknifeplus",
-            "kdesplitconformal", "kdejackknifeplus"), ...) {
+            "kdesplitconformal", "kdejackknifeplus"), B=100) {
             method <- match.arg(method)
             super$predict(X = X, level = level, method = method)
         }))
@@ -49,7 +49,7 @@ AutoRidgeClassifier <- R6::R6Class(classname = "AutoRidgeClassifier", inherit = 
         self$params <- list(...)        
         
         fit_objs <- lapply(1:ncol(Y), function(j) {
-            fit_ridge_regression(x = self$X_train, y = Y[, j], ...)
+            fit_ridge_regression(x = self$X_train, y = Y[, j])
         })            
         
         self$set_model(fit_objs)
