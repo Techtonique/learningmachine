@@ -141,27 +141,23 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                         residuals_df <- parfor(what = loofunc,
                                                args = seq_len(n_train),
                                                cl = self$cl,
-                                               combine = rbind,
+                                               combine = c,
                                                errorhandling = "stop",
                                                verbose = FALSE,
                                                show_progress = TRUE,
-                                               packages = NULL)                                        
+                                               packages = NULL) 
+                                        residuals_df <- matrix(residuals_df, nrow = n_train, ncol = 2, 
+                                        byrow = TRUE)                                       
                                         residuals_df <- as.data.frame(residuals_df)
-                                        colnames(residuals_df) <- c("abs_residuals", "raw_residuals")
-
-                                        debug_print(residuals_df)                                        
+                                        colnames(residuals_df) <- c("abs_residuals", "raw_residuals")                                                                            
                                      }                                     
                                      
                                      preds <- self$engine$predict(self$model, X, ...) #/!\ keep
 
-                                     debug_print(raw_residuals_loocv)
-                                     debug_print(abs_residuals_loocv)
-                                     
                                      if (identical(method, "jackknifeplus"))
                                      {
                                        quantile_absolute_residuals <- quantile_scp(residuals_df[,"abs_residuals"], 
-                                                                               alpha = (1 - level / 100))
-                                       debug_print(quantile_absolute_residuals)
+                                                                               alpha = (1 - level / 100))                                       
                                        return(list(preds = preds,
                                                    lower = preds - quantile_absolute_residuals,
                                                    upper = preds + quantile_absolute_residuals))
@@ -169,13 +165,11 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                      
                                      if (identical(method, "kdejackknifeplus"))
                                      {
-                                       stopifnot(!is.null(B) && B > 1)     
-                                       debug_print(raw_residuals_loocv)                                      
+                                       stopifnot(!is.null(B) && B > 1)                                  
                                        scaled_raw_residuals <- base::scale(residuals_df[,"raw_residuals"], 
                                                                            center = TRUE, 
                                                                            scale = TRUE)  
-                                       sd_raw_residuals <- sd(raw_residuals_loocv)
-                                       debug_print(scaled_raw_residuals)
+                                       sd_raw_residuals <- sd(raw_residuals_loocv)                                       
                                        simulated_raw_calibrated_residuals <- rgaussiandens(scaled_raw_residuals, 
                                                                                            n=length(preds),
                                                                                            p=B,                                                                               
