@@ -192,7 +192,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                    if (method %in% c("splitconformal", "kdesplitconformal"))
                                    {
                                      idx_train_calibration <- split_data(self$y_train,
-                                                                         p = 0.6, # 0.5 or 0.8
+                                                                         p = 0.5, # 0.5 or 0.8
                                                                          seed = self$seed)                                    
                                      X_train_sc <- self$X_train[idx_train_calibration, ]
                                      y_train_sc <- self$y_train[idx_train_calibration]
