@@ -138,10 +138,11 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                           utils::install.packages("doSNOW", repos="https://cran.rstudio.com/")
                                          }
 
+                                        residuals_df <- rep(0, n_train*2)
                                         residuals_df <- parfor(what = loofunc,
                                                args = seq_len(n_train),
                                                cl = self$cl,
-                                               combine = c,
+                                               combine = 'c',
                                                errorhandling = "stop",
                                                verbose = FALSE,
                                                show_progress = TRUE,
