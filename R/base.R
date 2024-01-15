@@ -103,7 +103,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                      raw_residuals_loocv <- rep(0, n_train)
                                      
                                      # sequential execution of the jackknife procedure
-                                     if (self$cl = 0 ||self$cl = 1 || is.null(self$cl))
+                                     if (self$cl == 0 || self$cl == 1 || is.null(self$cl))
                                      {                                       
                                      pb <- txtProgressBar(min = 1, max = n_train, style = 3)
                                      for (i in 1:n_train) {
@@ -119,14 +119,6 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                      }
 
                                      close(pb)
-
-                                     cat("raw_residuals_loocv", "\n")
-                                     print(raw_residuals_loocv)
-                                     cat("\n")
-
-                                     cat("abs_residuals_loocv", "\n")
-                                     print(abs_residuals_loocv)
-                                     cat("\n")
 
                                      } else { # self$cl > 1 # parallel execution of the jackknife procedure
 
@@ -157,9 +149,6 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                      }                                     
                                      
                                      preds <- self$engine$predict(self$model, X, ...) #/!\ keep
-                                     cat("preds", "\n")
-                                     print(preds)
-                                     cat("\n")
                                      
                                      if (identical(method, "jackknifeplus"))
                                      {
@@ -176,13 +165,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                        scaled_raw_residuals <- base::scale(raw_residuals_loocv, 
                                                                            center = TRUE, 
                                                                            scale = TRUE)  
-                                       cat("scaled_raw_residuals", "\n")
-                                       print(scaled_raw_residuals)
-                                       cat("\n")
                                        sd_raw_residuals <- sd(raw_residuals_loocv)
-                                       cat("sd_raw_residuals", "\n")
-                                       print(sd_raw_residuals)
-                                       cat("\n")
                                        simulated_raw_calibrated_residuals <- rgaussiandens(scaled_raw_residuals, 
                                                                                            n=length(preds),
                                                                                            p=B,                                                                               

@@ -10,9 +10,9 @@
 ```R
 # refactor
 devtools::check(".", vignettes=FALSE)
-#cmd1 <- "Rscript -e utils::remove.packages('learningmachine')"
+#cmd1 <- "Rscript -e try(utils::remove.packages(learningmachine), silent=TRUE)"
 cmd2 <- "Rscript -e devtools::install('.')"
 cmd3 <- "Rscript -e devtools::load_all('.')"
-system2(c("R", cmd2, cmd3, "\n"))
+system2(c("R", cmd2, cmd3))
 ```
 
