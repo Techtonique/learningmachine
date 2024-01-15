@@ -2,8 +2,8 @@
 
 # prehistoric stuff -----
 debug_print <- function(x) {    
+    cat("\n")
     print(paste0(deparse(substitute(x)), "'s value:"))
-    cat(x, "\n")
     cat("\n")
 }
 
