@@ -1,4 +1,20 @@
-# Usefull functions for learningmachine (alphabetical order)
+# Useful functions for learningmachine (alphabetical order)
+
+# prehistoric stuff -----
+debug_print <- function(x) {
+    print(paste0(deparse(substitute(x)), "'s value:"))
+    cat(x, "\n")
+    cat("\n")
+}
+
+# decode factors -----
+decode_factors <- function(numeric_factor, encoded_factors) {
+    encoded_factors <- encoded_factors$encoded_factors
+    n_levels <- length(unique(numeric_factor))
+    stopifnot(n_levels == length(encoded_factors))
+    res <- sapply(numeric_factor, FUN = function(i) encoded_factors[[i]])
+    factor(res, levels = as.character(unlist(encoded_factors)))
+}
 
 # Correspondance factors -----
 encode_factors <- function(y) {
@@ -9,14 +25,6 @@ encode_factors <- function(y) {
     res <- lapply(1:n_levels, function(i) levels_y[i])
     names(res) <- numeric_levels
     return(list(numeric_factor = as.numeric(y), encoded_factors = res))
-}
-
-decode_factors <- function(numeric_factor, encoded_factors) {
-    encoded_factors <- encoded_factors$encoded_factors
-    n_levels <- length(unique(numeric_factor))
-    stopifnot(n_levels == length(encoded_factors))
-    res <- sapply(numeric_factor, FUN = function(i) encoded_factors[[i]])
-    factor(res, levels = as.character(unlist(encoded_factors)))
 }
 
 # Expit function -----
@@ -131,7 +139,7 @@ parfor <- function(what,
   
   if (show_progress)
   {
-    pb <- txtProgressBar(min = 0,
+    pb <- utils::txtProgressBar(min = 0,
                          max = n_iter,
                          style = 3)
     progress <- function(n) {
@@ -154,7 +162,7 @@ parfor <- function(what,
   ) %op% {
     if (show_progress)
     {
-      setTxtProgressBar(pb, i)
+      utils::setTxtProgressBar(pb, i)
     }
     do.call(what = what,
             args = c(list(args[i]), ...))

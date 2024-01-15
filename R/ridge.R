@@ -64,31 +64,6 @@ AutoRidgeClassifier <- R6::R6Class(classname = "AutoRidgeClassifier", inherit = 
 
 # 3 - utils -------------------------------------------------------------------
 
-#' Fit Ridge regression
-#'
-#' @param x matrix of examples
-#' @param y a vector, the response
-#' @param lambda regularization parameters
-#'
-#' @return a list, an object of class 'ridge'
-#'
-#' @examples
-#'
-#' set.seed(123)
-#' n <- 100 ; p <- 10
-#' X <- matrix(rnorm(n * p), n, p)
-#' y <- rnorm(n)
-#'
-#' fit_obj <- ahead::ridge(X, y)
-#'
-#' par(mfrow=c(1, 2))
-#'
-#' matplot(log(fit_obj$lambda), t(fit_obj$coef), type = 'l',
-#' main="coefficients \n f(lambda)")
-#'
-#' plot(log(fit_obj$lambda), fit_obj$GCV, type='l',
-#' main="GCV error")
-#'
 fit_ridge_regression <- function(x, y, lambda=10^seq(-10, 10,
                                           length.out = 100))
 {
@@ -144,28 +119,6 @@ fit_ridge_regression <- function(x, y, lambda=10^seq(-10, 10,
   return(structure(out, class = "ridge"))
 }
 
-#' Predict from Ridge regression
-#'
-#' @param object object fitted by function `ridge`
-#' @param newx new examples
-#'
-#' @return predicted values for \code{newx}
-#'
-#' @examples
-#'
-#' set.seed(123)
-#'
-#' n <- 100 ; p <- 2
-#' X <- matrix(rnorm(n * p), n, p) # no intercept!
-#' y <- rnorm(n)
-#'
-#' fit_obj <- ahead::ridge(X, y)
-#'
-#' n_test <- 10
-#'
-#' predict(fit_obj, newx=matrix(rnorm(n_test * p), n_test, p))
-#'
-#'
 predict_ridge_regression <- function(object, newx)
 {
   if (length(object$lambda) > 1)

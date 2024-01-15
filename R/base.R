@@ -78,17 +78,15 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                                              "jackknifeplus",
                                                              "kdesplitconformal",
                                                              "kdejackknifeplus"),
-                                                  B = 250,  
+                                                  B = 100,  
                                                   ...) {
                                  
                                  if (is.null(self$model) || is.null(self$engine))
                                    stop(paste0(self$name, " must be fitted first"))
                                  
                                  if (is.null(level)) # no prediction interval
-                                 {
-                                   
-                                   return(self$engine$predict(self$model, X))
-                                   
+                                 {                                   
+                                   return(self$engine$predict(self$model, X))                                   
                                  } else { # prediction intervals
                                    
                                    stopifnot(is_wholenumber(level))
@@ -122,7 +120,15 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
 
                                      close(pb)
 
-                                     } else { # parallel execution of the jackknife procedure
+                                     cat("raw_residuals_loocv", "\n")
+                                     print(raw_residuals_loocv)
+                                     cat("\n")
+
+                                     cat("abs_residuals_loocv", "\n")
+                                     print(abs_residuals_loocv)
+                                     cat("\n")
+
+                                     } else { # self$cl > 1 # parallel execution of the jackknife procedure
 
                                         loofunc <- function(indx) {
                                           left_out_indices <- base::setdiff(1:n_train, indx)
@@ -135,7 +141,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                           raw_residuals_loocv[indx] <- obj_jackknife_residuals$raw_residuals                                          
                                         }
 
-                                         if (!("doSNOW" %in% utils::installed.packages()[,1]))
+                                         if (is_package_available("doSNOW") == FALSE)
                                          {
                                           utils::install.packages("doSNOW", repos="https://cran.rstudio.com/")
                                          }
@@ -151,11 +157,14 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                      }                                     
                                      
                                      preds <- self$engine$predict(self$model, X, ...) #/!\ keep
+                                     cat("preds", "\n")
+                                     print(preds)
+                                     cat("\n")
                                      
                                      if (identical(method, "jackknifeplus"))
                                      {
-                                       quantile_absolute_residuals <- quantile(abs_residuals_loocv, # abs or raw
-                                                                               level/100)
+                                       quantile_absolute_residuals <- quantile(abs_residuals_loocv, 
+                                                                               alpha = (level / 100))
                                        return(list(preds = preds,
                                                    lower = preds - quantile_absolute_residuals,
                                                    upper = preds + quantile_absolute_residuals))
@@ -163,17 +172,22 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                      
                                      if (identical(method, "kdejackknifeplus"))
                                      {
-                                       stopifnot(!is.null(B) && B > 1)    
-                                       matrix_preds <- replicate(B, preds)
+                                       stopifnot(!is.null(B) && B > 1)                                           
                                        scaled_raw_residuals <- base::scale(raw_residuals_loocv, 
                                                                            center = TRUE, 
                                                                            scale = TRUE)  
+                                       cat("scaled_raw_residuals", "\n")
+                                       print(scaled_raw_residuals)
+                                       cat("\n")
                                        sd_raw_residuals <- sd(raw_residuals_loocv)
+                                       cat("sd_raw_residuals", "\n")
+                                       print(sd_raw_residuals)
+                                       cat("\n")
                                        simulated_raw_calibrated_residuals <- rgaussiandens(scaled_raw_residuals, 
                                                                                            n=length(preds),
                                                                                            p=B,                                                                               
                                                                                            seed=self$seed) 
-                                       sims <- matrix_preds + sd_raw_residuals*simulated_raw_calibrated_residuals 
+                                       sims <- replicate(B, preds) + sd_raw_residuals*simulated_raw_calibrated_residuals 
                                        preds_lower <- apply(sims, 1, function(x) quantile(x, probs = (1 - level / 100) / 2))
                                        preds_upper <- apply(sims, 1, function(x) quantile(x, probs = 1 - (1 - level / 100) / 2))                                      
                                        return(list(preds = apply(sims, 1, median),
@@ -238,9 +252,9 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                                                   no = function(preds, y_test) sqrt(mean((preds - y_test)^2))),
                                                       level = NULL,
                                                       method = c("splitconformal",
-                                                             "jackknifeplus",
-                                                             "kdesplitconformal",
-                                                             "kdejackknifeplus"),
+                                                                 "jackknifeplus",
+                                                                 "kdesplitconformal",
+                                                                 "kdejackknifeplus"),
                                                       B = 100,
                                                       seed=123, 
                                                       graph=FALSE) {
@@ -257,9 +271,10 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                         y_test <- y[-train_index]
 
                                         fit_obj <- self$fit(X_train, y_train)
-                                        if (!is.null(level))
-                                        {
+                                        if (!is.null(level)) # prediction intervals requested 
+                                        {                                          
                                           res <- fit_obj$predict(X_test, level=level, method=method, B=B)
+                                          
                                           if ((graph == TRUE) && (!is.factor(y))) { 
                                             y_values <- c(y_train, res$preds)
                                             y_upper <- c(y_train, res$upper)
@@ -284,24 +299,22 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                           results$res <- res
 
                                           # point prediction
-                                          try_res <- try(score(res$preds, y_test), silent = FALSE)
-                                          if(!inherits(try_res, "try-error")) results$score <- try_res                                         
-                                        
+                                          results$score <- score(res$preds, y_test)
+                                          
                                           # probabilistic prediction (can use res$lower, res$upper, and res$sims if method is kdejackknifeplus or kdesplitconformal)
-                                          try_res <- try(score(res, y_test), silent = FALSE)
-                                          if(!inherits(try_res, "try-error")) results$score <- try_res 
+                                          try_res <- try(score(res, y_test), silent = TRUE)
+                                          if(!inherits(try_res, "try-error")) 
+                                          {
+                                            results$score <- try_res
+                                          }
 
-                                          if (!is.null(level))
-                                          {                                            
-                                            results$level <- level
-                                            results$method <- method
-                                            results$B <- B
-                                            results$coverage <- mean(y_test >= res$lower & y_test <= res$upper)
-                                            results$length <- mean(res$upper - res$lower)                                            
-                                          }                                        
+                                          results$level <- level
+                                          results$method <- method
+                                          results$B <- B
+                                          results$coverage <- mean(y_test >= res$lower & y_test <= res$upper)
+                                          results$length <- mean(res$upper - res$lower)                                                                                                                            
 
                                           return(results)                                                                                
-
                                         } else {
                                           return(score(fit_obj$predict(X_test), y_test))
                                         }                                                                                
