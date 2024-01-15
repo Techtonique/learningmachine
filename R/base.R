@@ -129,8 +129,8 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                                                                              idx = left_out_indices, 
                                                                                              fit_func = self$engine$fit,
                                                                                              predict_func = self$engine$predict)
-                                          abs_residuals_loocv[indx] <- obj_jackknife_residuals$abs_residuals
-                                          raw_residuals_loocv[indx] <- obj_jackknife_residuals$raw_residuals                                          
+                                          return(c(obj_jackknife_residuals$abs_residuals
+                                          , obj_jackknife_residuals$raw_residuals))                                       
                                         }
 
                                          if (is_package_available("doSNOW") == FALSE)
@@ -138,17 +138,18 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                           utils::install.packages("doSNOW", repos="https://cran.rstudio.com/")
                                          }
 
-                                        res <- parfor(what = loofunc,
+                                        residuals_df <- parfor(what = loofunc,
                                                args = seq_len(n_train),
                                                cl = self$cl,
-                                               combine = c,
+                                               combine = rbind,
                                                errorhandling = "stop",
                                                verbose = FALSE,
                                                show_progress = TRUE,
-                                               packages = NULL)
+                                               packages = NULL)                                        
+                                        residuals_df <- as.data.frame(residuals_df)
+                                        colnames(residuals_df) <- c("abs_residuals", "raw_residuals")
 
-                                        debug_print(abs_residuals_loocv)
-                                        debug_print(raw_residuals_loocv)       
+                                        debug_print(residuals_df)                                        
                                      }                                     
                                      
                                      preds <- self$engine$predict(self$model, X, ...) #/!\ keep
@@ -158,7 +159,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                      
                                      if (identical(method, "jackknifeplus"))
                                      {
-                                       quantile_absolute_residuals <- quantile_scp(abs_residuals_loocv, 
+                                       quantile_absolute_residuals <- quantile_scp(residuals_df[,"abs_residuals"], 
                                                                                alpha = (1 - level / 100))
                                        debug_print(quantile_absolute_residuals)
                                        return(list(preds = preds,
@@ -170,7 +171,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                      {
                                        stopifnot(!is.null(B) && B > 1)     
                                        debug_print(raw_residuals_loocv)                                      
-                                       scaled_raw_residuals <- base::scale(raw_residuals_loocv, 
+                                       scaled_raw_residuals <- base::scale(residuals_df[,"raw_residuals"], 
                                                                            center = TRUE, 
                                                                            scale = TRUE)  
                                        sd_raw_residuals <- sd(raw_residuals_loocv)
