@@ -2,6 +2,18 @@
 
 # prehistoric stuff -----
 debug_print <- function(x) {
+    # Get the call expression
+    call_expr <- sys.call(sys.nframe())
+    # Get the frame in which the function was called
+    calling_frame <- sys.frame(-1)
+    # Check if source reference information is available
+    if (!is.null(calling_frame$srcref)) {
+      # Get the line number from the frame
+      line_number <- calling_frame$srcref[1]
+      cat("Function 'foo' called at line", line_number, "with expression:", deparse(call_expr), "\n")
+      } else {
+      cat("Function 'foo' called without source reference information. Unable to determine line number.\n")
+    }
     print(paste0(deparse(substitute(x)), "'s value:"))
     cat(x, "\n")
     cat("\n")

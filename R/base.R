@@ -146,26 +146,35 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                                verbose = FALSE,
                                                show_progress = TRUE,
                                                packages = NULL)
+
+                                        debug_print(abs_residuals_loocv)
+                                        debug_print(raw_residuals_loocv)       
                                      }                                     
                                      
                                      preds <- self$engine$predict(self$model, X, ...) #/!\ keep
+
+                                     debug_print(raw_residuals_loocv)
+                                     debug_print(abs_residuals_loocv)
                                      
                                      if (identical(method, "jackknifeplus"))
                                      {
-                                       quantile_absolute_residuals <- quantile(abs_residuals_loocv, 
-                                                                               alpha = (level / 100))
+                                       quantile_absolute_residuals <- quantile_scp(abs_residuals_loocv, 
+                                                                               alpha = (1 - level / 100))
+                                       debug_print(quantile_absolute_residuals)
                                        return(list(preds = preds,
                                                    lower = preds - quantile_absolute_residuals,
                                                    upper = preds + quantile_absolute_residuals))
-                                     }
+                                     }                                                                          
                                      
                                      if (identical(method, "kdejackknifeplus"))
                                      {
-                                       stopifnot(!is.null(B) && B > 1)                                           
+                                       stopifnot(!is.null(B) && B > 1)     
+                                       debug_print(raw_residuals_loocv)                                      
                                        scaled_raw_residuals <- base::scale(raw_residuals_loocv, 
                                                                            center = TRUE, 
                                                                            scale = TRUE)  
                                        sd_raw_residuals <- sd(raw_residuals_loocv)
+                                       debug_print(scaled_raw_residuals)
                                        simulated_raw_calibrated_residuals <- rgaussiandens(scaled_raw_residuals, 
                                                                                            n=length(preds),
                                                                                            p=B,                                                                               
@@ -201,7 +210,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                        return(list(preds = preds,
                                                    lower = preds - quantile_absolute_residuals,
                                                    upper = preds + quantile_absolute_residuals))
-                                     }
+                                     }  
                                      
                                      if (identical(method, "kdesplitconformal"))
                                      {
