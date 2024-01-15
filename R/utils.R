@@ -128,9 +128,14 @@ parfor <- function(what,
 
   n_iter <- length(args)
   
-  # progress bars
   if (!is.null(cl)) {
-    cl_SOCK <- parallel::makeCluster(cl, type = "SOCK")
+    stopifnot(is_wholenumber(cl) && cl > -2)
+    if (cl == -1)
+    {
+      cl_SOCK <- parallel::makeCluster(parallel::detectCores(), type = "SOCK")
+    } else {
+      cl_SOCK <- parallel::makeCluster(cl, type = "SOCK")
+    }    
     doSNOW::registerDoSNOW(cl_SOCK)
     `%op%` <- foreach::`%dopar%`
   } else {
@@ -193,7 +198,7 @@ quantile_scp <- function(abs_residuals, alpha) {
 rgaussiandens <- function(x, n=length(x), p = 1, seed=1324) {  
   z <- stats::density(x, bw="sj", kernel="gaussian")
   width <- z$bw                              # Kernel width
-  rkernel <- function(n, seed) {set.seed(seed); rnorm(n, sd=width)}  # Kernel sampler
+  rkernel <- function(n, seed) {set.seed(seed); stats::rnorm(n, sd=width)}  # Kernel sampler
   if (p <= 1)
   {                
     set.seed(seed)

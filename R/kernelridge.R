@@ -215,7 +215,7 @@ fit_matern32_regression <-
           stats::kmeans(x = as.matrix(X), centers = centers)
         X_clust <- as.matrix(cclust_obj$centers)
         
-        response_y_clust <- sapply(1:centers,
+        response_y_clust <- parfor(args=1:centers,
                                    function(i)
                                      median(response_y[which(cclust_obj$cluster == i)]))
         K <- matern32_kxx_cpp(x = X_clust, l = l)
@@ -274,12 +274,12 @@ fit_matern32_regression <-
             get_loocv(x))
           n_fit_res <- length(fit_res)
           
-          loocv <- colSums(sapply(1:n_fit_res,
+          loocv <- colSums(parfor(args=1:n_fit_res,
                                   function(i)
                                     fit_res[[i]]$loocv) ^ 2)
           names(loocv) <- lambda
           
-          coefs <- sapply(1:n_fit_res,  function(i)
+          coefs <- parfor(args=1:n_fit_res,  function(i)
             fit_res[[i]]$coef)
           colnames(coefs) <- lambda
         }
@@ -377,12 +377,12 @@ fit_matern32_regression <-
             get_loocv(x))
           n_fit_res <- length(fit_res)
           
-          loocv <- colSums(sapply(1:n_fit_res,
-                                  function(i)
+          loocv <- colSums(parfor(args=1:n_fit_res,
+                                  what=function(i)
                                     fit_res[[i]]$loocv) ^ 2)
           names(loocv) <- lambda
           
-          coefs <- sapply(1:n_fit_res,  function(i)
+          coefs <- parfor(args=1:n_fit_res, what=function(i)
             fit_res[[i]]$coef)
           colnames(coefs) <- lambda
         }
@@ -426,12 +426,12 @@ fit_matern32_regression <-
             get_loocv(x))
           n_fit_res <- length(fit_res)
           
-          loocv <- colSums(sapply(1:n_fit_res,
-                                  function(i)
+          loocv <- colSums(parfor(args=1:n_fit_res,
+                                  what=function(i)
                                     fit_res[[i]]$loocv) ^ 2)
           names(loocv) <- lambda
           
-          coefs <- sapply(1:n_fit_res,  function(i)
+          coefs <- parfor(args=1:n_fit_res, what=function(i)
             fit_res[[i]]$coef)
           colnames(coefs) <- lambda
           
@@ -472,13 +472,13 @@ fit_matern32_regression <-
               get_loocv(x))
             n_fit_res <- length(fit_res)
             
-            loocv <- colSums(sapply(1:n_fit_res,
-                                    function(i)
+            loocv <- colSums(parfor(args=1:n_fit_res,
+                                    what=function(i)
                                       fit_res[[i]]$loocv) ^ 2)
             names(loocv) <- lambda
             
             coefs <-
-              sapply(1:n_fit_res,  function(i)
+              parfor(args=1:n_fit_res, what=function(i)
                 fit_res[[i]]$coef)
             colnames(coefs) <- lambda
           }
@@ -768,8 +768,8 @@ fit_matern32_classification <-
           stats::kmeans(x = as.matrix(X), centers = centers)
         X_clust <- as.matrix(cclust_obj$centers)
         
-        response_Y_clust <- sapply(1:centers,
-                                   function(i)
+        response_Y_clust <- parfor(args=1:centers,
+                                   what=function(i)
                                      apply(response_Y[which(cclust_obj$cluster == i)], 2, median))
         K <- matern32_kxx_cpp(x = X_clust, l = l)
         
@@ -834,12 +834,12 @@ fit_matern32_classification <-
             get_loocv(x))
           n_fit_res <- length(fit_res)
           
-          loocv <- colSums(sapply(1:n_fit_res,
-                                  function(i)
+          loocv <- colSums(parfor(args=1:n_fit_res,
+                                  what=function(i)
                                     fit_res[[i]]$loocv) ^ 2)
           names(loocv) <- lambda
           
-          coefs <- sapply(1:n_fit_res,  function(i)
+          coefs <- parfor(args=1:n_fit_res, what=function(i)
             fit_res[[i]]$coef)
           colnames(coefs) <- lambda
         }
@@ -934,12 +934,12 @@ fit_matern32_classification <-
             get_loocv(x))
           n_fit_res <- length(fit_res)
           
-          loocv <- colSums(sapply(1:n_fit_res,
-                                  function(i)
+          loocv <- colSums(parfor(args=1:n_fit_res,
+                                  what=function(i)
                                     fit_res[[i]]$loocv) ^ 2)
           names(loocv) <- lambda
           
-          coefs <- sapply(1:n_fit_res,  function(i)
+          coefs <- parfor(args=1:n_fit_res, what=function(i)
             fit_res[[i]]$coef)
           colnames(coefs) <- lambda
         }
@@ -983,12 +983,12 @@ fit_matern32_classification <-
             get_loocv(x))
           n_fit_res <- length(fit_res)
           
-          loocv <- colSums(sapply(1:n_fit_res,
-                                  function(i)
+          loocv <- colSums(parfor(args=1:n_fit_res,
+                                  what=function(i)
                                     fit_res[[i]]$loocv) ^ 2)
           names(loocv) <- lambda
           
-          coefs <- sapply(1:n_fit_res,  function(i)
+          coefs <- parfor(args=1:n_fit_res, what=function(i)
             fit_res[[i]]$coef)
           colnames(coefs) <- lambda
           
@@ -1029,13 +1029,13 @@ fit_matern32_classification <-
               get_loocv(x))
             n_fit_res <- length(fit_res)
             
-            loocv <- colSums(sapply(1:n_fit_res,
-                                    function(i)
+            loocv <- colSums(parfor(args=1:n_fit_res,
+                                    what=function(i)
                                       fit_res[[i]]$loocv) ^ 2)
             names(loocv) <- lambda
             
             coefs <-
-              sapply(1:n_fit_res,  function(i)
+              parfor(args=1:n_fit_res, what=function(i)
                 fit_res[[i]]$coef)
             # colnames(coefs) <- lambda # /!\ can't work
           }

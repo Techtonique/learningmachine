@@ -103,7 +103,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                      raw_residuals_loocv <- rep(0, n_train)
                                      
                                      # sequential execution of the jackknife procedure
-                                     if (self$cl <= 1 || is.null(self$cl))
+                                     if (self$cl = 0 ||self$cl = 1 || is.null(self$cl))
                                      {                                       
                                      pb <- txtProgressBar(min = 1, max = n_train, style = 3)
                                      for (i in 1:n_train) {
