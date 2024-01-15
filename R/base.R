@@ -103,7 +103,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                      raw_residuals_loocv <- rep(0, n_train)
                                      
                                      # sequential execution of the jackknife procedure
-                                     if (self$cl == 0 || self$cl == 1 || is.null(self$cl))
+                                     if (self$cl %in% c(0, 1) || is.null(self$cl))
                                      {                                       
                                      pb <- txtProgressBar(min = 1, max = n_train, style = 3)
                                      for (i in 1:n_train) {
@@ -117,9 +117,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                        raw_residuals_loocv[i] <- obj_jackknife_residuals$raw_residuals
                                        setTxtProgressBar(pb, i)
                                      }
-
                                      close(pb)
-
                                      } else { # self$cl > 1 # parallel execution of the jackknife procedure
 
                                         loofunc <- function(indx) {
@@ -138,8 +136,8 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                           utils::install.packages("doSNOW", repos="https://cran.rstudio.com/")
                                          }
 
-                                        residuals_df <- rep(0, n_train*2)
-                                        residuals_df <- parfor(what = loofunc,
+                                        residuals_vec <- rep(0, n_train*2)
+                                        residuals_vec <- parfor(what = loofunc,
                                                args = seq_len(n_train),
                                                cl = self$cl,
                                                combine = 'c',
@@ -147,9 +145,9 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                                verbose = FALSE,
                                                show_progress = TRUE,
                                                packages = NULL) 
-                                        residuals_df <- matrix(residuals_df, nrow = n_train, ncol = 2, 
+                                        residuals_matrix <- matrix(residuals_vec, nrow = n_train, ncol = 2, 
                                         byrow = TRUE)                                       
-                                        residuals_df <- as.data.frame(residuals_df)
+                                        residuals_df <- as.data.frame(residuals_matrix)
                                         colnames(residuals_df) <- c("abs_residuals", "raw_residuals")                                                                            
                                      }                                     
                                      
@@ -157,8 +155,11 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
 
                                      if (identical(method, "jackknifeplus"))
                                      {
-                                       quantile_absolute_residuals <- quantile_scp(residuals_df[,"abs_residuals"], 
-                                                                               alpha = (1 - level / 100))                                       
+                                       quantile_absolute_residuals <- ifelse(self$cl > 1, 
+                                                                             yes = quantile_scp(residuals_df[,"abs_residuals"], 
+                                                                                   alpha = (1 - level / 100)),
+                                                                             no = quantile_scp(abs_residuals_loocv, 
+                                                                                                 alpha = (1 - level / 100)))                                       
                                        return(list(preds = preds,
                                                    lower = preds - quantile_absolute_residuals,
                                                    upper = preds + quantile_absolute_residuals))
@@ -167,9 +168,13 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                      if (identical(method, "kdejackknifeplus"))
                                      {
                                        stopifnot(!is.null(B) && B > 1)                                  
-                                       scaled_raw_residuals <- base::scale(residuals_df[,"raw_residuals"], 
+                                       scaled_raw_residuals <- ifelse(self$cl > 1,
+                                                                      yes = base::scale(residuals_df[,"raw_residuals"], 
                                                                            center = TRUE, 
-                                                                           scale = TRUE)  
+                                                                           scale = TRUE),
+                                                                      no = base::scale(raw_residuals_loocv, 
+                                                                                       center = TRUE, 
+                                                                                       scale = TRUE))
                                        sd_raw_residuals <- sd(raw_residuals_loocv)                                       
                                        simulated_raw_calibrated_residuals <- rgaussiandens(scaled_raw_residuals, 
                                                                                            n=length(preds),
