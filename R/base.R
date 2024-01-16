@@ -148,18 +148,21 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                         residuals_matrix <- matrix(residuals_vec, nrow = n_train, ncol = 2, 
                                         byrow = TRUE)                                       
                                         residuals_df <- as.data.frame(residuals_matrix)
-                                        colnames(residuals_df) <- c("abs_residuals", "raw_residuals")                                                                            
-                                     }                                     
-                                     
+                                        colnames(residuals_df) <- c("abs_residuals", "raw_residuals") 
+                                        abs_residuals_loocv <- residuals_df[,"abs_residuals"]   
+                                        raw_residuals_loocv <- residuals_df[,"raw_residuals"]                                                                        
+                                     }                                                                                                               
+
                                      preds <- self$engine$predict(self$model, X, ...) #/!\ keep
+
+                                     debug_print(abs_residuals_loocv)
+                                     debug_print(raw_residuals_loocv)
+                                     debug_print(preds)
 
                                      if (identical(method, "jackknifeplus"))
                                      {
-                                       quantile_absolute_residuals <- ifelse(self$cl > 1, 
-                                                                             yes = quantile_scp(residuals_df[,"abs_residuals"], 
-                                                                                   alpha = (1 - level / 100)),
-                                                                             no = quantile_scp(abs_residuals_loocv, 
-                                                                                                 alpha = (1 - level / 100)))                                       
+                                       quantile_absolute_residuals <- quantile_scp(abs_residuals_loocv, 
+                                                                                   alpha = (1 - level / 100))                                      
                                        return(list(preds = preds,
                                                    lower = preds - quantile_absolute_residuals,
                                                    upper = preds + quantile_absolute_residuals))
@@ -168,13 +171,9 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                      if (identical(method, "kdejackknifeplus"))
                                      {
                                        stopifnot(!is.null(B) && B > 1)                                  
-                                       scaled_raw_residuals <- ifelse(self$cl > 1,
-                                                                      yes = base::scale(residuals_df[,"raw_residuals"], 
-                                                                           center = TRUE, 
-                                                                           scale = TRUE),
-                                                                      no = base::scale(raw_residuals_loocv, 
-                                                                                       center = TRUE, 
-                                                                                       scale = TRUE))
+                                       scaled_raw_residuals <- scale(raw_residuals_loocv, 
+                                                                     center = TRUE, 
+                                                                     scale = TRUE)
                                        sd_raw_residuals <- sd(raw_residuals_loocv)                                       
                                        simulated_raw_calibrated_residuals <- rgaussiandens(scaled_raw_residuals, 
                                                                                            n=length(preds),
@@ -193,7 +192,7 @@ BaseRegressor <- R6::R6Class("BaseRegressor",
                                    if (method %in% c("splitconformal", "kdesplitconformal"))
                                    {
                                      idx_train_calibration <- split_data(self$y_train,
-                                                                         p = 0.5, # 0.5 or 0.8
+                                                                         p = 0.5, 
                                                                          seed = self$seed)                                    
                                      X_train_sc <- self$X_train[idx_train_calibration, ]
                                      y_train_sc <- self$y_train[idx_train_calibration]
