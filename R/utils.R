@@ -134,8 +134,8 @@ parfor <- function(what,
                                      "remove",
                                      "pass"),
                    verbose = FALSE,
-                   #show_progress = TRUE,
-                   packages = NULL,
+                   show_progress = TRUE,
+                   packages = c("ranger", "xgboost"),
                    export = NULL,
                    ...)
 {
@@ -189,10 +189,10 @@ parfor <- function(what,
               args = c(list(args[i]), ...))
     }
     
-    if (show_progress)
-    {
-      close(pb)
-    }
+    # if (show_progress)
+    # {
+    #   close(pb)
+    # }
     
     if (!is.null(cl))
     {
