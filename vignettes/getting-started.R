@@ -3,15 +3,11 @@ library(learningmachine)
 library(caret)
 
 ## -----------------------------------------------------------------------------
-#X <- as.matrix(mtcars[,-1])
-#y <- mtcars$mpg
-
-X <- MASS::Boston[, -14]
-y <- MASS::Boston$medv  
-
+X <- as.matrix(mtcars[,-1])
+y <- mtcars$mpg
 
 ## -----------------------------------------------------------------------------
-set.seed(413)
+set.seed(123)
 (index_train <- base::sample.int(n = nrow(X),
                                  size = floor(0.8*nrow(X)),
                                  replace = FALSE))
@@ -38,13 +34,29 @@ cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
 
 ## ----fig.width=7.2------------------------------------------------------------
-res <- obj$predict(X = X_test, level = 95)
+res <- obj$predict(X = X_test, level = 95, method = "splitconformal")
 
 plot(c(y_train, res$preds), type='l',
      main="",
      ylab="",
-     ylim = c(min(c(res$upper, res$lower)),
-              max(c(res$upper, res$lower))))
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
+lines(c(y_train, res$upper), col="gray60")
+lines(c(y_train, res$lower), col="gray60")
+lines(c(y_train, res$preds), col = "red")
+lines(c(y_train, y_test), col = "blue")
+
+mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
+
+## ----fig.width=7.2------------------------------------------------------------
+res <- obj$predict(X = X_test, level = 95, 
+                   method = "jackknifeplus")
+
+plot(c(y_train, res$preds), type='l',
+     main="",
+     ylab="",
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
 lines(c(y_train, res$upper), col="gray60")
 lines(c(y_train, res$lower), col="gray60")
 lines(c(y_train, res$preds), col = "red")
@@ -66,13 +78,13 @@ cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
 
 ## ----fig.width=7.2------------------------------------------------------------
-res <- obj$predict(X = X_test, level = 95)
+res <- obj$predict(X = X_test, level = 95, method = "splitconformal")
 
 plot(c(y_train, res$preds), type='l',
      main="",
      ylab="",
-     ylim = c(min(c(res$upper, res$lower)),
-              max(c(res$upper, res$lower))))
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
 lines(c(y_train, res$upper), col="gray60")
 lines(c(y_train, res$lower), col="gray60")
 lines(c(y_train, res$preds), col = "red")
@@ -80,23 +92,20 @@ lines(c(y_train, y_test), col = "blue")
 
 mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 
+## ----fig.width=7.2------------------------------------------------------------
+res <- obj$predict(X = X_test, level = 95, method = "jackknifeplus")
 
-res2 <- obj$predict(X = X_test, level = 95, method="kdesplitconformal")
-
-plot(c(y_train, res2$preds), type='l',
+plot(c(y_train, res$preds), type='l',
      main="",
      ylab="",
-     ylim = c(min(c(res2$upper, res2$lower)),
-              max(c(res2$upper, res2$lower))))
-lines(c(y_train, res2$upper), col="gray60")
-lines(c(y_train, res2$lower), col="gray60")
-lines(c(y_train, res2$preds), col = "red")
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
+lines(c(y_train, res$upper), col="gray60")
+lines(c(y_train, res$lower), col="gray60")
+lines(c(y_train, res$preds), col = "red")
 lines(c(y_train, y_test), col = "blue")
 
-res$lower
-res2$lower
-
-mean((y_test >= as.numeric(res2$lower)) * (y_test <= as.numeric(res2$upper)))
+mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 
 ## -----------------------------------------------------------------------------
 obj <- learningmachine::XgboostRegressor$new()
@@ -114,18 +123,14 @@ obj$fit(X_train, y_train, nrounds = 10L,
         objective = "reg:squarederror"))
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 
-## -----------------------------------------------------------------------------
-res <- obj$predict(X = X_test, level=95)
-print(res)
-
 ## ----echo=TRUE, fig.width=7.2-------------------------------------------------
-res <- obj$predict(X = X_test, level = 95)
+res <- obj$predict(X = X_test, level = 95, method = "splitconformal")
 
 plot(c(y_train, res$preds), type='l',
      main="",
      ylab="",
-     ylim = c(min(c(res$upper, res$lower)),
-              max(c(res$upper, res$lower))))
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
 lines(c(y_train, res$upper), col="gray60")
 lines(c(y_train, res$lower), col="gray60")
 lines(c(y_train, res$preds), col = "red")
@@ -135,6 +140,21 @@ mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 
 ## -----------------------------------------------------------------------------
 print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
+
+## ----echo=TRUE, fig.width=7.2-------------------------------------------------
+res <- obj$predict(X = X_test, level = 95, method = "jackknifeplus")
+
+plot(c(y_train, res$preds), type='l',
+     main="",
+     ylab="",
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
+lines(c(y_train, res$upper), col="gray60")
+lines(c(y_train, res$lower), col="gray60")
+lines(c(y_train, res$preds), col = "red")
+lines(c(y_train, y_test), col = "blue")
+
+mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 
 ## -----------------------------------------------------------------------------
 # Boston dataset (dataset has an ethical problem)
@@ -230,13 +250,28 @@ cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
 
 ## ----fig.width=7.2------------------------------------------------------------
-res <- obj$predict(X = X_test, level = 95)
+res <- obj$predict(X = X_test, level = 95, method = "splitconformal")
 
 plot(c(y_train, res$preds), type='l',
      main="",
      ylab="",
-     ylim = c(min(c(res$upper, res$lower)),
-              max(c(res$upper, res$lower))))
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
+lines(c(y_train, res$upper), col="gray60")
+lines(c(y_train, res$lower), col="gray60")
+lines(c(y_train, res$preds), col = "red")
+lines(c(y_train, y_test), col = "blue")
+
+mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
+
+## ----fig.width=7.2------------------------------------------------------------
+res <- obj$predict(X = X_test, level = 95, method = "jackknifeplus")
+
+plot(c(y_train, res$preds), type='l',
+     main="",
+     ylab="",
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
 lines(c(y_train, res$upper), col="gray60")
 lines(c(y_train, res$lower), col="gray60")
 lines(c(y_train, res$preds), col = "red")

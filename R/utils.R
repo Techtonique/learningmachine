@@ -100,6 +100,11 @@ my_scale <- function(x, xm = NULL, xsd = NULL) {
 }
 my_scale <- compiler::cmpfun(my_scale)
 
+# prettify summary -----
+my_skim <- skimr::skim_with(numeric = skimr::sfl(),
+                            base = skimr::sfl(),
+                            append = TRUE)
+
 # calculate std's of columns -----
 my_sd <- function(x) {
   n <- dim(x)[1]
@@ -143,6 +148,7 @@ parfor <- function(what,
   what <- compiler::cmpfun(what)
   
   n_iter <- length(args)
+  
   if (!is.null(cl)) { # parallel 
     stopifnot(is_wholenumber(cl) && cl > -2)
     if (cl == -1)
@@ -174,25 +180,29 @@ parfor <- function(what,
   i <- NULL
     res <- foreach::foreach(
       i = 1:n_iter,
-      combine=combine,
+      .combine=combine,
       .packages = packages,
       .errorhandling = errorhandling,
       .options.snow = opts,
       .verbose = verbose,
       .export = export
     ) %op% {
-      #if (show_progress)
-      #{
-      #  utils::setTxtProgressBar(pb, i)
-      #}
-      do.call(what = what,
-              args = c(list(args[i]), ...))
+      
+      if (show_progress)
+      {
+        utils::setTxtProgressBar(pb, i)
+      }
+      
+      res <- do.call(what = what,
+                     args = c(list(args[i]), ...))
+      
+      as.numeric(res)
     }
     
-    # if (show_progress)
-    # {
-    #   close(pb)
-    # }
+    if (show_progress)
+    {
+       close(pb)
+    }
     
     if (!is.null(cl))
     {

@@ -74,8 +74,12 @@ BaseRegressor <- R6::R6Class(
                                     ...))
       self$set_engine(list(
         fit = stats::.lm.fit,
-        predict = function(obj, X)
+        predict = function(obj, X){
+          if (is.null(obj))
+            stop(paste0(self$name, " must be fitted first (use ", self$name, "$fit())"))
           drop(X %*% obj$coefficients)
+        }
+          
       ))
       return(base::invisible(self))
     },
@@ -88,7 +92,7 @@ BaseRegressor <- R6::R6Class(
                        B = 100,
                        ...) {
       if (is.null(self$model) || is.null(self$engine))
-        stop(paste0(self$name, " must be fitted first"))
+        stop(paste0(self$name, " must be fitted first (use ", self$name, "$fit())"))
       
       if (is.null(level))
         # no prediction interval
@@ -183,10 +187,6 @@ BaseRegressor <- R6::R6Class(
           
           preds <-
             self$engine$predict(self$model, X, ...) #/!\ keep
-          
-          debug_print(abs_residuals_loocv)
-          debug_print(raw_residuals_loocv)
-          debug_print(preds)
           
           if (identical(method, "jackknifeplus"))
           {
@@ -420,6 +420,71 @@ BaseRegressor <- R6::R6Class(
       } else {
         return(score(fit_obj$predict(X_test), y_test))
       }
+      
+    },
+    summary = function(X, level = 95, 
+                       show_progress = TRUE, cl = NULL) {
+      
+      if (is.null(self$model) || is.null(self$engine))
+        stop(paste0(self$name, " must be fitted first (use ", self$name, "$fit())"))
+      
+      if (is_package_available("skimr") == FALSE)
+      {
+        utils::install.packages("skimr")
+      }
+      
+      deriv_column <- function(ix)
+      {
+        zero <- 1e-4 
+        eps_factor <- zero^(1/3)
+        X_plus <- X
+        X_minus <- X
+        X_ix <- X[, ix]
+        cond <- abs(X_ix) > zero
+        h <- eps_factor * X_ix * cond + zero * (!cond)
+        X_plus[, ix] <- X_ix + h
+        X_minus[, ix] <- X_ix - h
+        derived_column <- (self$predict(as.matrix(X_plus)) - self$predict(as.matrix(X_minus)))/(2*h)
+        return (derived_column)
+      }
+      deriv_column <- compiler::cmpfun(deriv_column)
+      
+      deriv_matrix <- parfor(what = deriv_column, 
+                             args = seq_len(ncol(X)), 
+                             show_progress = show_progress, 
+                             verbose = FALSE,
+                             combine = cbind,
+                             cl = cl)
+      
+      names_X <- colnames(X)
+      if (!is.null(names_X)) 
+      {
+        colnames(deriv_matrix) <- names_X
+      } else {
+        colnames(deriv_matrix) <- paste0("V", seq_len(ncol(X)))
+      }
+      
+      foo_tests <- function(x)
+      {
+        res <- stats::t.test(x)
+        return(c(as.numeric(res$conf.int), res$p.value))
+      }
+      
+      lower_signif_codes <- c(0, 0.001, 0.01, 0.05, 0.1)
+      upper_signif_codes <- c(0.001, 0.01, 0.05, 0.1, 1)
+      signif_codes <- c("***", "**", "*", ".", "")
+      choice_signif_code <- function(x) signif_codes[which.max((lower_signif_codes <= x)*(upper_signif_codes > x))]
+      ttests <- try(data.frame(t(apply(deriv_matrix, 2, foo_tests))), silent = TRUE)
+      if (!inherits(ttests, "try-error"))
+      {
+        colnames(ttests) <- c("lower", "upper", "p-value")
+        ttests$signif <- sapply(ttests[,3], choice_signif_code) # p-values signif.  
+        return(list(ttests = ttests,
+                    effects = my_skim(deriv_matrix)))
+      } else {
+        return(my_skim(deriv_matrix))
+      }
+      
       
     }
   )
