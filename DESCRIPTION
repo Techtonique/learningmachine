@@ -19,5 +19,6 @@ Suggests: caret,
           ranger,
           rmarkdown,
           roxygen2,
+          skimr,
           xgboost
 VignetteBuilder: knitr
