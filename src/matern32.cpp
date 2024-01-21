@@ -15,7 +15,7 @@ double crossprod_cpp(NumericVector x, NumericVector y)
   
   double res = 0;
   
-  for(int i = 0; i < n; i++) {
+  for(unsigned long int i = 0; i < n; i++) {
     res += x(i)*y(i);
   }
   
@@ -29,7 +29,7 @@ double l2_norm(NumericVector x)
   unsigned long int n = x.size();
   double res = 0;
   
-  for(int i = 0; i < n; i++) {
+  for(unsigned long int i = 0; i < n; i++) {
     res += pow(x(i), 2);
   }
   
@@ -54,7 +54,7 @@ double weighted_l2_norm(NumericVector x, NumericVector l)
     ::Rf_error("you must have x.size() == l.size()");
   }
   double res = 0;
-  for(int i = 0; i < n; i++) {
+  for(unsigned long int i = 0; i < n; i++) {
     res += pow(x(i), 2)/pow(l(i), 2);
   }
   return(sqrt(res));
@@ -72,8 +72,8 @@ NumericMatrix matern32_kxx_cpp(NumericMatrix x,
   double sqrt3 = sqrt(3);
   double temp = 0;
   
-  for(int i = 0; i < n; i++) {
-    for(int j = i; j < n; j++) {
+  for(unsigned long int i = 0; i < n; i++) {
+    for(unsigned long int j = i; j < n; j++) {
       temp = sqrt3*weighted_l2_norm(x(i, _) - x(j, _), l);
       res(i , j) = (1 + temp)*exp(-temp);
       res(j , i) = res(i , j);
@@ -95,8 +95,8 @@ NumericMatrix matern32_kxstar_cpp(NumericMatrix newx,
   double temp = 0;
   double sqrt3 = sqrt(3);
   
-  for(int i = 0; i < m; i++) {
-    for(int j = 0; j < n; j++) {
+  for(unsigned long int i = 0; i < m; i++) {
+    for(unsigned long int j = 0; j < n; j++) {
       temp = sqrt3*weighted_l2_norm(newx(i, _) - x(j, _), l);
       res(i , j) = (1 + temp)*exp(-temp);
     }
