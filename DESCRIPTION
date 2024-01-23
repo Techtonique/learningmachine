@@ -1,8 +1,8 @@
 Package: learningmachine
 Type: Package
 Title: Machine Learning with uncertainty quantification     
-Version: 0.2.0
-Date: 2024-01-16
+Version: 0.2.1
+Date: 2024-01-23
 Author: T. Moudiki
 Maintainer: T. Moudiki <thierry.moudiki@gmail.com>
 Description: Machine Learning Models with uncertainty quantification.
