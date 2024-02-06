@@ -16,6 +16,7 @@ KernelRidgeRegressor <-
       model = NULL,
       X_train = NULL,
       y_train = NULL,
+      level = NULL,
       engine = NULL,
       params = NULL,
       initialize = function(name = "KernelRidgeRegressor",
@@ -23,6 +24,7 @@ KernelRidgeRegressor <-
                             model = NULL,
                             X_train = NULL,
                             y_train = NULL,
+                            level = NULL,
                             engine = NULL,
                             params = NULL) {
         self$name <- name
@@ -30,6 +32,7 @@ KernelRidgeRegressor <-
         self$model <- model
         self$X_train <- X_train
         self$y_train <- y_train
+        self$level <- level 
         self$engine <- engine
         self$params <- params
       },

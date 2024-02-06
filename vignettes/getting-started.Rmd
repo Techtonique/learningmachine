@@ -57,7 +57,8 @@ print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
 
 
 ```{r fig.width=7.2}
-res <- obj$predict(X = X_test, level = 95, method = "splitconformal")
+obj$set_level(95L)
+res <- obj$predict(X = X_test, method = "splitconformal")
 
 plot(c(y_train, res$preds), type='l',
      main="",
@@ -74,7 +75,7 @@ mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 
 
 ```{r fig.width=7.2}
-res <- obj$predict(X = X_test, level = 95, 
+res <- obj$predict(X = X_test, 
                    method = "jackknifeplus")
 
 plot(c(y_train, res$preds), type='l',
@@ -110,7 +111,8 @@ print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
 ```
 
 ```{r fig.width=7.2}
-res <- obj$predict(X = X_test, level = 95, method = "splitconformal")
+obj$set_level(95)
+res <- obj$predict(X = X_test,  method = "splitconformal")
 
 plot(c(y_train, res$preds), type='l',
      main="",
@@ -126,7 +128,7 @@ mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 ```
 
 ```{r fig.width=7.2}
-res <- obj$predict(X = X_test, level = 95, method = "jackknifeplus")
+res <- obj$predict(X = X_test,  method = "jackknifeplus")
 
 plot(c(y_train, res$preds), type='l',
      main="",
@@ -163,7 +165,8 @@ cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 
 
 ```{r echo=TRUE, fig.width=7.2}
-res <- obj$predict(X = X_test, level = 95, method = "splitconformal")
+obj$set_level(95)
+res <- obj$predict(X = X_test,  method = "splitconformal")
 
 plot(c(y_train, res$preds), type='l',
      main="",
@@ -179,11 +182,13 @@ mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 ```
 
 ```{r}
+obj$set_level(NULL)
 print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
 ```
 
 ```{r echo=TRUE, fig.width=7.2}
-res <- obj$predict(X = X_test, level = 95, method = "jackknifeplus")
+obj$set_level(95)
+res <- obj$predict(X = X_test,  method = "jackknifeplus")
 
 plot(c(y_train, res$preds), type='l',
      main="",
@@ -322,7 +327,8 @@ print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
 ```
 
 ```{r fig.width=7.2}
-res <- obj$predict(X = X_test, level = 95, method = "splitconformal")
+obj$set_level(95)
+res <- obj$predict(X = X_test,  method = "splitconformal")
 
 plot(c(y_train, res$preds), type='l',
      main="",
@@ -338,7 +344,8 @@ mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 ```
 
 ```{r fig.width=7.2}
-res <- obj$predict(X = X_test, level = 95, method = "jackknifeplus")
+obj$set_level(95)
+res <- obj$predict(X = X_test,  method = "jackknifeplus")
 
 plot(c(y_train, res$preds), type='l',
      main="",

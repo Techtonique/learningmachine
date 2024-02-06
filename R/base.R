@@ -11,6 +11,7 @@ BaseRegressor <- R6::R6Class(
     model = NULL,
     X_train = NULL,
     y_train = NULL,
+    level = NULL, 
     engine = NULL,
     params = NULL,
     cl = NULL,
@@ -20,6 +21,7 @@ BaseRegressor <- R6::R6Class(
                           model = NULL,
                           X_train = NULL,
                           y_train = NULL,
+                          level = NULL, 
                           engine = NULL,
                           params = NULL,
                           cl = NULL,
@@ -29,6 +31,7 @@ BaseRegressor <- R6::R6Class(
       self$model <- model
       self$X_train <- X_train
       self$y_train <- y_train
+      self$level <- level
       self$engine <- engine
       self$params <- params
       self$cl <- cl
@@ -65,18 +68,23 @@ BaseRegressor <- R6::R6Class(
     set_seed = function(seed) {
       self$seed <- seed
     },
+    get_level = function() {
+      self$level
+    },
+    set_level = function(level) {
+      self$level <- level
+    },
     fit = function(X, y, ...) {
       self$X_train <- X
       self$y_train <- y
       self$params <- list(...)
+      
       self$set_model(stats::.lm.fit(x = self$X_train,
                                     y = self$y_train,
                                     ...))
       self$set_engine(list(
         fit = stats::.lm.fit,
         predict = function(obj, X){
-          if (is.null(obj))
-            stop(paste0(self$name, " must be fitted first (use ", self$name, "$fit())"))
           drop(X %*% obj$coefficients)
         }
           
@@ -91,16 +99,27 @@ BaseRegressor <- R6::R6Class(
                                   "kdejackknifeplus"),
                        B = 100,
                        ...) {
-      if (is.null(self$model) || is.null(self$engine))
+      if (is.null(self$engine))
         stop(paste0(self$name, " must be fitted first (use ", self$name, "$fit())"))
       
-      if (is.null(level)) # no prediction interval
+      if (is.null(level) && is.null(self$level)) # no prediction interval
       {
+        
         return(self$engine$predict(self$model, X))
+        
       } else { # prediction intervals
-        stopifnot(is_wholenumber(level))
-        stopifnot(level > 49 &&
-                    level < 100)
+        
+        if(!is.null(self$level) && !is.null(level) && self$level != level)
+        {
+          warning(paste0("level parameter has been set to ", level, " instead of ", self$level))
+          self$set_level(level)
+        }
+        
+        if (is.null(self$level) && !is.null(level))
+        {
+          self$set_level(level)  
+        }
+        
         method <- match.arg(method)
         
         if (method %in% c("jackknifeplus", "kdejackknifeplus"))
@@ -144,8 +163,8 @@ BaseRegressor <- R6::R6Class(
             
             # self$cl > 1 # parallel execution of the jackknife procedure
             
-            loofunc <- function(indx) {
-              left_out_indices <- base::setdiff(1:n_train, indx)
+            loofunc <- function(idx) {
+              left_out_indices <- base::setdiff(1:n_train, idx)
               obj_jackknife_residuals <-
                 get_jackknife_residuals(
                   X = self$X_train,
@@ -182,13 +201,13 @@ BaseRegressor <- R6::R6Class(
             raw_residuals_loocv <- residuals_matrix[, 2]
           }
           
-          preds <-
-            self$engine$predict(self$model, X, ...) #/!\ keep
+          preds <- self$engine$predict(self$model, 
+                                       X, ...) #/!\ keep
           
           if (identical(method, "jackknifeplus"))
           {
             quantile_absolute_residuals <- quantile_scp(abs_residuals_loocv,
-                                                        alpha = (1 - level / 100))
+                                                        alpha = (1 - self$level / 100))
             return(
               list(
                 preds = preds,
@@ -221,10 +240,10 @@ BaseRegressor <- R6::R6Class(
               replicate(B, preds) + sd_raw_residuals * simulated_raw_calibrated_residuals
             preds_lower <-
               apply(sims, 1, function(x)
-                quantile(x, probs = (1 - level / 100) / 2))
+                quantile(x, probs = (1 - self$level / 100) / 2))
             preds_upper <-
               apply(sims, 1, function(x)
-                quantile(x, probs = 1 - (1 - level / 100) / 2))
+                quantile(x, probs = 1 - (1 - self$level / 100) / 2))
             return(list(
               preds = apply(sims, 1, median),
               sims = sims,
@@ -249,6 +268,9 @@ BaseRegressor <- R6::R6Class(
             self$y_train[-idx_train_calibration]
           fit_obj_train_sc <-
             self$engine$fit(X_train_sc, y_train_sc)
+          ################################################################ twice but hard to circumvent
+          self$set_model(fit_obj_train_sc)
+          ################################################################
           y_pred_calibration <-
             self$engine$predict(self$model, X_calibration_sc)
           abs_residuals <-
@@ -259,7 +281,7 @@ BaseRegressor <- R6::R6Class(
           if (identical(method, "splitconformal"))
           {
             quantile_absolute_residuals <- quantile_scp(abs_residuals,
-                                                        alpha = (1 - level / 100))
+                                                        alpha = (1 - self$level / 100))
             return(
               list(
                 preds = preds,
@@ -296,10 +318,10 @@ BaseRegressor <- R6::R6Class(
               matrix_preds + sd_calibrated_residuals * simulated_scaled_calibrated_residuals
             preds_lower <-
               apply(sims, 1, function(x)
-                quantile(x, probs = (1 - level / 100) / 2))
+                quantile(x, probs = (1 - self$level / 100) / 2))
             preds_upper <-
               apply(sims, 1, function(x)
-                quantile(x, probs = 1 - (1 - level / 100) / 2))
+                quantile(x, probs = 1 - (1 - self$level / 100) / 2))
             return(list(
               preds = apply(sims, 1, median),
               sims = sims,
@@ -346,11 +368,10 @@ BaseRegressor <- R6::R6Class(
       
       fit_obj <-
         self$fit(X_train, y_train)
-      if (!is.null(level))
+      if (!is.null(self$level))
         # prediction intervals requested
       {
         res <- fit_obj$predict(X_test,
-                               level = level,
                                method = method,
                                B = B)
         
@@ -422,7 +443,7 @@ BaseRegressor <- R6::R6Class(
     summary = function(X, level = 95, 
                        show_progress = TRUE, cl = NULL) {
       
-      if (is.null(self$model) || is.null(self$engine))
+      if (is.null(self$engine))
         stop(paste0(self$name, " must be fitted first (use ", self$name, "$fit())"))
       
       if (is_package_available("skimr") == FALSE)
@@ -559,7 +580,7 @@ BaseClassifier <- R6::R6Class(
       return(base::invisible(self))
     },
     predict_proba = function(X, ...) {
-      if (is.null(self$model) || is.null(self$engine))
+      if (is.null(self$engine))
         stop(paste0(self$name, " must be fitted first"))
       raw_preds <-
         expit(self$engine$predict(self$model, X))
