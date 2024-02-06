@@ -94,13 +94,10 @@ BaseRegressor <- R6::R6Class(
       if (is.null(self$model) || is.null(self$engine))
         stop(paste0(self$name, " must be fitted first (use ", self$name, "$fit())"))
       
-      if (is.null(level))
-        # no prediction interval
+      if (is.null(level)) # no prediction interval
       {
         return(self$engine$predict(self$model, X))
-      } else {
-        # prediction intervals
-        
+      } else { # prediction intervals
         stopifnot(is_wholenumber(level))
         stopifnot(level > 49 &&
                     level < 100)
