@@ -456,6 +456,8 @@ caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
 
 # 2 - 3 `BCN` classification
 
+# 2 - 3 - 1 not probabilistic 
+
 ```{r}
 # iris dataset
 set.seed(1234)
@@ -483,6 +485,20 @@ mean(obj$predict(X_test) == y_test)
 
 ```{r}
 caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
+```
+
+# 2 - 3 - 2 probabilistic 
+
+```{r}
+obj$predict_proba(X_test, level=95)
+```
+
+```{r}
+mean(obj$predict(X_test, level=95) == y_test)
+```
+
+```{r}
+caret::confusionMatrix(data = obj$predict(X_test, level=95), reference = y_test)
 ```
 
 # 2 - 4 `KernelRidge` classification
@@ -516,4 +532,43 @@ mean(obj$predict(X_test) == y_test)
 
 ```{r}
 caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
+```
+
+# 2 - 5 `BaseClassifier` classification
+
+```{r}
+set.seed(1234)
+X <- as.matrix(iris[, 1:4])
+# y <- factor(as.numeric(iris$Species))
+y <- iris$Species
+
+index_train <- base::sample.int(n = nrow(X),
+                                 size = floor(0.8*nrow(X)),
+                                 replace = FALSE)
+X_train <- X[index_train, ]
+y_train <- y[index_train]
+X_test <- X[-index_train, ]
+y_test <- y[-index_train]
+dim(X_train)
+dim(X_test)
+
+obj <- learningmachine::BaseClassifier$new()
+obj$get_type()
+obj$get_name()
+
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+
+t0 <- proc.time()[3]
+mean(obj$predict(X_test, level=95, 
+                 method = "kdesplitconformal") == y_test)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r}
+t0 <- proc.time()[3]
+caret::confusionMatrix(data = obj$predict(X_test, 
+                                          method = "kdesplitconformal"), reference = y_test)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```

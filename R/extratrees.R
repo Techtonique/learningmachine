@@ -95,10 +95,12 @@ ExtraTreesClassifier <-
         if (is_package_available("ranger") == FALSE)
           install.packages("ranger", repos = c(CRAN = "https://cloud.r-project.org"))
         stopifnot(is.factor(y))
+        private$y <- y
         private$encoded_factors <-
           encode_factors(y)
         private$class_names <-
           as.character(levels(unique(y)))
+        private$n_classes <- length(unique(y))
         self$X_train <- X
         self$y_train <- y
         self$params <- list(...)

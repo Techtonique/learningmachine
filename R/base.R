@@ -1,6 +1,4 @@
 
-
-
 # 1 - BaseRegressor -----------------------------------------------------------
 
 BaseRegressor <- R6::R6Class(
@@ -11,7 +9,7 @@ BaseRegressor <- R6::R6Class(
     model = NULL,
     X_train = NULL,
     y_train = NULL,
-    level = NULL, 
+    level = NULL,
     engine = NULL,
     params = NULL,
     cl = NULL,
@@ -21,7 +19,7 @@ BaseRegressor <- R6::R6Class(
                           model = NULL,
                           X_train = NULL,
                           y_train = NULL,
-                          level = NULL, 
+                          level = NULL,
                           engine = NULL,
                           params = NULL,
                           cl = NULL,
@@ -84,10 +82,10 @@ BaseRegressor <- R6::R6Class(
                                     ...))
       self$set_engine(list(
         fit = stats::.lm.fit,
-        predict = function(obj, X){
+        predict = function(obj, X) {
           drop(X %*% obj$coefficients)
         }
-          
+        
       ))
       return(base::invisible(self))
     },
@@ -102,22 +100,30 @@ BaseRegressor <- R6::R6Class(
       if (is.null(self$engine))
         stop(paste0(self$name, " must be fitted first (use ", self$name, "$fit())"))
       
-      if (is.null(level) && is.null(self$level)) # no prediction interval
+      if (is.null(level) &&
+          is.null(self$level))
+        # no prediction interval
       {
-        
         return(self$engine$predict(self$model, X))
         
-      } else { # prediction intervals
+      } else {
+        # prediction intervals
         
-        if(!is.null(self$level) && !is.null(level) && self$level != level)
+        if (!is.null(self$level) &&
+            !is.null(level) && self$level != level)
         {
-          warning(paste0("level parameter has been set to ", level, " instead of ", self$level))
+          warning(paste0(
+            "level parameter has been set to ",
+            level,
+            " instead of ",
+            self$level
+          ))
           self$set_level(level)
         }
         
         if (is.null(self$level) && !is.null(level))
         {
-          self$set_level(level)  
+          self$set_level(level)
         }
         
         method <- match.arg(method)
@@ -160,7 +166,6 @@ BaseRegressor <- R6::R6Class(
             close(pb)
             
           } else {
-            
             # self$cl > 1 # parallel execution of the jackknife procedure
             
             loofunc <- function(idx) {
@@ -187,21 +192,21 @@ BaseRegressor <- R6::R6Class(
               utils::install.packages("doSNOW", repos = "https://cran.rstudio.com/")
             }
             
-            residuals_init <- rep(0, 2*n_train)
+            residuals_init <- rep(0, 2 * n_train)
             residuals_vec <- parfor(what = loofunc,
                                     args = seq_len(n_train),
                                     cl = self$cl)
             residuals_matrix <- matrix(
-                residuals_vec,
-                nrow = n_train,
-                ncol = 2,
-                byrow = TRUE
-              )
+              residuals_vec,
+              nrow = n_train,
+              ncol = 2,
+              byrow = TRUE
+            )
             abs_residuals_loocv <- residuals_matrix[, 1]
             raw_residuals_loocv <- residuals_matrix[, 2]
           }
           
-          preds <- self$engine$predict(self$model, 
+          preds <- self$engine$predict(self$model,
                                        X, ...) #/!\ keep
           
           if (identical(method, "jackknifeplus"))
@@ -245,7 +250,7 @@ BaseRegressor <- R6::R6Class(
               apply(sims, 1, function(x)
                 quantile(x, probs = 1 - (1 - self$level / 100) / 2))
             return(list(
-              preds = apply(sims, 1, median),
+              preds = apply(sims, 1, mean),
               sims = sims,
               lower = preds_lower,
               upper = preds_upper
@@ -259,11 +264,11 @@ BaseRegressor <- R6::R6Class(
                                               p = 0.5,
                                               seed = self$seed)
           X_train_sc <-
-            self$X_train[idx_train_calibration,]
+            self$X_train[idx_train_calibration, ]
           y_train_sc <-
             self$y_train[idx_train_calibration]
           X_calibration_sc <-
-            self$X_train[-idx_train_calibration,]
+            self$X_train[-idx_train_calibration, ]
           y_calibration_sc <-
             self$y_train[-idx_train_calibration]
           fit_obj_train_sc <-
@@ -323,7 +328,7 @@ BaseRegressor <- R6::R6Class(
               apply(sims, 1, function(x)
                 quantile(x, probs = 1 - (1 - self$level / 100) / 2))
             return(list(
-              preds = apply(sims, 1, median),
+              preds = apply(sims, 1, mean),
               sims = sims,
               lower = preds_lower,
               upper = preds_upper
@@ -351,7 +356,6 @@ BaseRegressor <- R6::R6Class(
                            B = 100,
                            seed = 123,
                            graph = FALSE) {
-      
       stopifnot(pct_train >= 0.4 && pct_train < 1)
       stopifnot(length(y) == nrow(X))
       method <- match.arg(method)
@@ -360,10 +364,10 @@ BaseRegressor <- R6::R6Class(
       train_index <-
         caret::createDataPartition(y, p = pct_train)$Resample1
       X_train <-
-        as.matrix(X[train_index,])
+        as.matrix(X[train_index, ])
       y_train <- y[train_index]
       X_test <-
-        as.matrix(X[-train_index,])
+        as.matrix(X[-train_index, ])
       y_test <- y[-train_index]
       
       fit_obj <-
@@ -430,7 +434,7 @@ BaseRegressor <- R6::R6Class(
         results$method <- method
         results$B <- B
         results$coverage <-
-          mean(y_test >= res$lower & y_test <= res$upper)*100
+          mean(y_test >= res$lower & y_test <= res$upper) * 100
         results$length <-
           mean(res$upper - res$lower)
         
@@ -440,9 +444,10 @@ BaseRegressor <- R6::R6Class(
       }
       
     },
-    summary = function(X, level = 95, 
-                       show_progress = TRUE, cl = NULL) {
-      
+    summary = function(X,
+                       level = 95,
+                       show_progress = TRUE,
+                       cl = NULL) {
       if (is.null(self$engine))
         stop(paste0(self$name, " must be fitted first (use ", self$name, "$fit())"))
       
@@ -453,8 +458,8 @@ BaseRegressor <- R6::R6Class(
       
       deriv_column <- function(ix)
       {
-        zero <- 1e-4 
-        eps_factor <- zero^(1/3)
+        zero <- 1e-4
+        eps_factor <- zero ^ (1 / 3)
         X_plus <- X
         X_minus <- X
         X_ix <- X[, ix]
@@ -462,20 +467,24 @@ BaseRegressor <- R6::R6Class(
         h <- eps_factor * X_ix * cond + zero * (!cond)
         X_plus[, ix] <- X_ix + h
         X_minus[, ix] <- X_ix - h
-        derived_column <- (self$predict(as.matrix(X_plus)) - self$predict(as.matrix(X_minus)))/(2*h)
+        derived_column <-
+          (self$predict(as.matrix(X_plus)) - self$predict(as.matrix(X_minus))) /
+          (2 * h)
         return (derived_column)
       }
       deriv_column <- compiler::cmpfun(deriv_column)
       
-      deriv_matrix <- parfor(what = deriv_column, 
-                             args = seq_len(ncol(X)), 
-                             show_progress = show_progress, 
-                             verbose = FALSE,
-                             combine = cbind,
-                             cl = cl)
+      deriv_matrix <- parfor(
+        what = deriv_column,
+        args = seq_len(ncol(X)),
+        show_progress = show_progress,
+        verbose = FALSE,
+        combine = cbind,
+        cl = cl
+      )
       
       names_X <- colnames(X)
-      if (!is.null(names_X)) 
+      if (!is.null(names_X))
       {
         colnames(deriv_matrix) <- names_X
       } else {
@@ -491,12 +500,16 @@ BaseRegressor <- R6::R6Class(
       lower_signif_codes <- c(0, 0.001, 0.01, 0.05, 0.1)
       upper_signif_codes <- c(0.001, 0.01, 0.05, 0.1, 1)
       signif_codes <- c("***", "**", "*", ".", "")
-      choice_signif_code <- function(x) signif_codes[which.max((lower_signif_codes <= x)*(upper_signif_codes > x))]
-      ttests <- try(data.frame(t(apply(deriv_matrix, 2, foo_tests))), silent = TRUE)
+      choice_signif_code <-
+        function(x)
+          signif_codes[which.max((lower_signif_codes <= x) * (upper_signif_codes > x))]
+      ttests <-
+        try(data.frame(t(apply(deriv_matrix, 2, foo_tests))), silent = TRUE)
       if (!inherits(ttests, "try-error"))
       {
         colnames(ttests) <- c("lower", "upper", "p-value")
-        ttests$signif <- sapply(ttests[,3], choice_signif_code) # p-values signif.  
+        ttests$signif <-
+          sapply(ttests[, 3], choice_signif_code) # p-values signif.
         return(list(ttests = ttests,
                     effects = my_skim(deriv_matrix)))
       } else {
@@ -513,30 +526,40 @@ BaseRegressor <- R6::R6Class(
 
 BaseClassifier <- R6::R6Class(
   classname = "BaseClassifier",
-  private = list(encoded_factors = NULL,
-                 class_names = NULL),
+  private = list(
+    encoded_factors = NULL,
+    class_names = NULL,
+    n_classes = NULL,
+    y = NULL
+  ),
   public = list(
     name = "BaseClassifier",
     type = "classification",
     model = NULL,
     X_train = NULL,
     y_train = NULL,
+    level = NULL,
     engine = NULL,
     params = NULL,
+    seed = 123,
     initialize = function(name = "BaseClassifier",
                           type = "classification",
                           model = NULL,
                           X_train = NULL,
                           y_train = NULL,
+                          level = NULL,
                           engine = NULL,
-                          params = NULL) {
+                          params = NULL,
+                          seed = 123) {
       self$name <- name
       self$type <- type
       self$model <- model
       self$X_train <- X_train
       self$y_train <- y_train
+      self$level <- level
       self$engine <- engine
       self$params <- params
+      self$seed <- seed
     },
     get_name = function() {
       return(self$name)
@@ -550,6 +573,12 @@ BaseClassifier <- R6::R6Class(
     set_model = function(model) {
       self$model <- model
     },
+    get_level = function() {
+      self$level
+    },
+    set_level = function(level) {
+      self$level <- level
+    },
     set_engine = function(engine) {
       self$engine <- engine
     },
@@ -559,13 +588,21 @@ BaseClassifier <- R6::R6Class(
     get_params = function() {
       self$params
     },
+    get_seed = function() {
+      self$seed
+    },
+    set_seed = function(seed) {
+      self$seed <- seed
+    },
     fit = function(X, y, ...) {
       stopifnot(is.factor(y))
       private$encoded_factors <-
         encode_factors(y)
       private$class_names <-
         as.character(levels(unique(y)))
-      Y <- one_hot(y)
+      private$n_classes <- length(unique(y))
+      private$y <- y
+      Y <- one_hot(private$y)
       self$X_train <- X
       self$y_train <- Y
       self$params <- list(...)
@@ -579,23 +616,195 @@ BaseClassifier <- R6::R6Class(
       ))
       return(base::invisible(self))
     },
-    predict_proba = function(X, ...) {
-      if (is.null(self$engine))
+    compute_probs = function(X, ...) {
+      if (is.null(self$engine) || is.null(self$model))
         stop(paste0(self$name, " must be fitted first"))
-      raw_preds <-
-        expit(self$engine$predict(self$model, X))
-      probs <-
-        raw_preds / rowSums(raw_preds)
-      colnames(probs) <-
-        private$class_names
+      raw_preds <- expit(self$engine$predict(self$model, X))
+      probs <- raw_preds / rowSums(raw_preds)
+      colnames(probs) <- private$class_names
       return(probs)
     },
-    predict = function(X, ...) {
-      probs <- self$predict_proba(X, ...)
-      numeric_factor <-
-        apply(probs, 1, which.max)
-      res <-
-        decode_factors(numeric_factor, private$encoded_factors)
+    predict_proba = function(X,
+                             level = NULL,
+                             method = c(
+                               "kdesplitconformal",
+                               "kdejackknifeplus",
+                               "bootsplitconformal",
+                               "bootjackknifeplus",
+                               "surrsplitconformal",
+                               "surrjackknifeplus"
+                             ),
+                             B = 100,
+                             ...) {
+      if (is.null(self$engine) || is.null(self$model))
+        stop(paste0(self$name, " must be fitted first"))
+      if (is.null(level) && is.null(self$level))
+      {
+        return(self$compute_probs(X, ...))
+      } else {
+        # prediction sets with given 'level'
+        if (!is.null(self$level) &&
+            !is.null(level) && self$level != level)
+        {
+          warning(paste0(
+            "level parameter has been set to ",
+            level,
+            " instead of ",
+            self$level
+          ))
+          self$set_level(level)
+        }
+        
+        if (is.null(self$level) && !is.null(level))
+        {
+          self$set_level(level)
+        }
+        
+        method <- match.arg(method)
+        
+        if (identical(method, "kdesplitconformal"))
+        {
+          idx_train_calibration <- split_data(private$y, p = 0.5,
+                                              seed = self$seed)
+          self$y_train <- one_hot(private$y)
+          X_train_sc <-
+            as.matrix(self$X_train)[idx_train_calibration, ]
+          y_train_sc <-
+            try(as.matrix(self$y_train)[idx_train_calibration, ],
+                silent = TRUE)
+          if (try(inherits(y_train_sc, "try-error"), silent = TRUE)
+          )
+          {
+            y_train_sc <- self$y_train[idx_train_calibration]
+          }
+          X_calibration_sc <- self$X_train[-idx_train_calibration, ]
+          y_calibration_sc <-
+            try(self$y_train[-idx_train_calibration, ],
+                silent = TRUE)
+          if (try(inherits(y_calibration_sc, "try-error"), silent = TRUE)
+          )
+          {
+            y_calibration_sc <- self$y_train[-idx_train_calibration]
+          }
+          fit_objs_train_sc <- vector("list",
+                                      private$n_classes)
+          for (i in seq_len(private$n_classes))
+          {
+            fit_objs_train_sc[[i]] <- self$engine$fit(as.matrix(X_train_sc),
+                                                      factor(y_train_sc[, i]))
+          }
+          
+          ################################################################ 'twice' but hard to circumvent
+          self$set_model(fit_objs_train_sc)
+          ################################################################
+          
+          y_pred_calibration <-
+            parfor(
+              what = function(i)
+                self$engine$predict(self$model[[i]],
+                                    as.matrix(X_calibration_sc)),
+              args = seq_len(private$n_classes),
+              combine = cbind,
+              show_progress = FALSE
+            )
+          #abs_residuals <-
+          #  abs(y_calibration_sc - y_pred_calibration)
+          preds <-
+            parfor(
+              what = function(i)
+                self$engine$predict(self$model[[i]],
+                                    as.matrix(X),
+                                    ...),
+              args = seq_len(private$n_classes),
+              combine = cbind,
+              show_progress = FALSE
+            )
+          
+          if (identical(method, "kdesplitconformal"))
+          {
+            stopifnot(!is.null(B) && B > 1)
+            
+            `%op%` <- foreach::`%do%`
+            
+            res <- foreach::foreach(i = seq_len(private$n_classes), 
+                                    .verbose = FALSE) %op% {
+              matrix_preds <- replicate(B, as.vector(preds[, i]))
+              calibrated_raw_residuals <-
+                as.vector(y_calibration_sc[, i]) - as.vector(y_pred_calibration[, i])
+              scaled_calibrated_residuals <- as.vector(base::scale(calibrated_raw_residuals,
+                            center = TRUE,
+                            scale = TRUE))
+              sd_calibrated_residuals <- sd(calibrated_raw_residuals)
+              simulated_scaled_calibrated_residuals <-
+                rgaussiandens(
+                  x = scaled_calibrated_residuals,
+                  n = dim(preds)[1],
+                  p = B,
+                  seed = self$seed
+                )
+              sims <- matrix_preds + sd_calibrated_residuals * simulated_scaled_calibrated_residuals
+              expit(sims)
+              }
+            
+            if (!is.null(private$class_names))
+            {
+              names(res) <- private$class_names
+            }
+            
+            list_probs <- compute_probs_list(res)
+            
+            return(compute_pis(list_probs, alpha = 1 - level / 100))
+          }
+        }
+        
+      }
+    },
+    predict = function(X,
+                       level = NULL,
+                       method = c(
+                         "kdesplitconformal",
+                         "splitconformal",
+                         "bootsplitconformal",
+                         "bootjackknifeplus",
+                         "surrsplitconformal",
+                         "surrjackknifeplus"
+                       ),
+                       B = 100,
+                       ...) {
+      method <- match.arg(method)
+      if (is.null(level) && is.null(self$level))
+      {
+        probs <- self$predict_proba(X,
+                                    ...)
+      } else {
+        # prediction sets with given 'level'
+        if (is.null(self$level) && !is.null(level))
+        {
+          self$set_level(level)
+        }
+        if (!is.null(self$level) && !is.null(level))
+        {
+          if (self$level != level)
+          {
+            warning(paste0(
+              "level parameter has been set to ",
+              level,
+              " instead of ",
+              self$level
+            ))
+          }
+          self$set_level(level)
+        }
+        
+        probs <- self$predict_proba(X,
+                                    level = self$level,
+                                    method = method,
+                                    B = B,
+                                    ...)$preds
+        
+      }
+      numeric_factor <- apply(probs, 1, which.max)
+      res <- decode_factors(numeric_factor, private$encoded_factors)
       names(res) <- NULL
       return(res)
     }

@@ -13,7 +13,6 @@ BcnRegressor <-
       model = NULL,
       X_train = NULL,
       y_train = NULL,
-      level = NULL,
       engine = NULL,
       params = NULL,
       initialize = function(name = "BcnRegressor",
@@ -21,7 +20,6 @@ BcnRegressor <-
                             model = NULL,
                             X_train = NULL,
                             y_train = NULL,
-                            level = NULL,
                             engine = NULL,
                             params = NULL) {
         self$name <- name
@@ -29,7 +27,6 @@ BcnRegressor <-
         self$model <- model
         self$X_train <- X_train
         self$y_train <- y_train
-        self$level <- level
         self$engine <- engine
         self$params <- params
       },
@@ -110,11 +107,16 @@ BcnClassifier <-
                                   repos = c(techtonique = "https://techtonique.r-universe.dev"))
         
         stopifnot(is.factor(y))
-        private$encoded_factors <- encode_factors(y)
-        private$class_names <- as.character(levels(unique(y)))
+        private$y <- y
+        private$encoded_factors <-
+          encode_factors(y)
+        private$class_names <-
+          as.character(levels(unique(y)))
+        private$n_classes <- length(unique(y))
         self$X_train <- X
         self$y_train <- y
-        self$params <- list(...)
+        self$params <-
+          list(...)
         self$set_model(bcn::bcn(x = self$X_train, y = self$y_train, ...))
         self$set_engine(list(
           fit = function(x, y)

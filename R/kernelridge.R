@@ -100,8 +100,10 @@ KernelRidgeClassifier <-
           encode_factors(y)
         private$class_names <-
           as.character(levels(unique(y)))
+        private$n_classes <- length(unique(y))
         self$X_train <- X
         self$y_train <- y
+        private$y <- y
         self$params <- list(...)
         self$set_model(fit_matern32_classification(x = self$X_train,
                                                    y = self$y_train,
@@ -716,6 +718,7 @@ fit_matern32_classification <-
     method <- match.arg(method)
     
     x <- as.matrix(x)
+    debug_print(y)
     stopifnot(is.factor(y))
     Y <- one_hot(y)
     n_classes <- dim(Y)[2]

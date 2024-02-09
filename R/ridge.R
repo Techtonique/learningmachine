@@ -84,6 +84,9 @@ AutoRidgeClassifier <-
         Y <- one_hot(y)
         self$X_train <- X
         self$y_train <- y
+        private$y <- y
+        private$n_classes <- length(unique(y))
+        private$y <- y
         self$params <- list(...)
         
         fit_objs <- lapply(1:ncol(Y), function(j) {
@@ -112,7 +115,8 @@ AutoRidgeClassifier <-
 # 3 - utils -------------------------------------------------------------------
 
 fit_ridge_regression <- function(x, y, lambda = 10 ^ seq(-10, 10,
-                                                         length.out = 100))
+                                                         length.out = 100),
+                                 ...)
 {
   # adapted from MASS::lm.ridge
   x <- as.matrix(x)

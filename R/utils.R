@@ -1,5 +1,48 @@
 # Useful functions for learningmachine (alphabetical order)
 
+
+# compute list of all possible combinations -----
+compute_probs_list <- function(x) { # do this in Rcpp /!\
+  n_x <- length(x)
+  n <- dim(x[[1]])[1]
+  B <- dim(x[[1]])[2]
+  res <- x
+  for (key in seq_len(n_x)) {
+    for (i in seq_len(n)) {
+      for (j in seq_len(B)) {
+        res[[key]][i, j] <- x[[key]][i, j]/sum(sapply(seq_len(n_x), function(k)
+          x[[k]][i, j]))
+      }
+    }
+  }
+  if (!is.null(names(x))) {
+    names(res) <- names(x)
+  }
+  return(res)
+}
+
+# compute preds and p.i bounds -----
+compute_pis <- function(x, alpha){ # do this in Rcpp /!\
+  n <- dim(x[[1]])[1]
+  B <- dim(x[[1]])[2]
+  n_classes <- length(x)
+  preds <- lower <- upper <- matrix(0, nrow = n, 
+                                    ncol = n_classes)
+  for (i in seq_len(n)) {
+    for (j in seq_len(n_classes)) {
+      preds[i, j] <- mean(x[[j]][i,])
+      lower[i, j] <- pmax(0, pmin(1, quantile(x[[j]][i,], probs = alpha/2)))
+      upper[i, j] <- pmax(0, pmin(1, quantile(x[[j]][i,], probs = 1 - alpha/2)))
+    }
+  }
+  if (!is.null(names(x))) {
+    colnames(preds) <- names(x)
+    colnames(lower) <- names(x)
+    colnames(upper) <- names(x)
+  }
+  return(list(preds = preds, lower = lower, upper = upper))
+}
+
 # prehistoric stuff -----
 debug_print <- function(x) {
   cat("\n")
@@ -192,7 +235,7 @@ parfor <- function(what,
       .export = export
     ) %op% {
       
-      if (show_progress)
+      if (identical(show_progress, TRUE))
       {
         utils::setTxtProgressBar(pb, i)
       }
@@ -228,14 +271,30 @@ quantile_scp <- function(abs_residuals, alpha) {
 rgaussiandens <- function(x,
                           n = length(x),
                           p = 1,
-                          seed = 1324) {
-  z <- stats::density(x, bw = "sj", kernel = "gaussian")
-  width <- z$bw                              # Kernel width
-  rkernel <-
-    function(n, seed) {
+                          seed = 123,
+                          method=c("antithetic",
+                                  "traditional")) {
+  
+  z <- try(stats::density(x, bw = "sj", kernel = "gaussian"), 
+           silent = TRUE)
+  if (inherits(z, "try-error"))
+    z <- stats::density(x, kernel = "gaussian")
+  width <- z$bw # Kernel width
+  method <- match.arg(method)
+  
+  rkernel <- function(n, seed) {
       set.seed(seed)
-      stats::rnorm(n, sd = width)
+      if (!identical(method, "antithetic"))
+      {
+        return(stats::rnorm(n, sd = width))
+      } else {
+        half_n <- n %/% 2
+        eps <- stats::rnorm(half_n, sd = width)
+        return(sample(c(eps, -eps), 
+                      replace = FALSE))
+      }
     }  # Kernel sampler
+  
   if (p <= 1)
   {
     set.seed(seed)

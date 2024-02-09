@@ -63,8 +63,15 @@ GlmnetClassifier <-
       fit = function(X, y, ...) {
         if (is_package_available("glmnet") == FALSE)
           install.packages("glmnet", repos = c(CRAN = "https://cloud.r-project.org"))
+        private$y <- y
         self$X_train <- X
         self$y_train <- y
+        private$encoded_factors <-
+          encode_factors(y)
+        private$class_names <-
+          as.character(levels(unique(y)))
+        private$n_classes <- length(unique(y))
+        private$y <- y
         self$params <- list(...)
         stopifnot(!is.null(self$params$family))
         stopifnot(self$params$family %in% c("binomial", "multinomial"))

@@ -95,8 +95,13 @@ RangerClassifier <-
           as.character(levels(unique(y)))
         self$X_train <- X
         self$y_train <- y
+        private$y <- y
+        private$n_classes <- length(unique(y))
+        
+        
         self$params <- list(...)
-        self$set_model(fit_func_ranger_classification(x = self$X_train, y = self$y_train,
+        self$set_model(fit_func_ranger_classification(x = self$X_train, 
+                                                      y = self$y_train,
                                                       ...))
         self$set_engine(
           list(

@@ -1,0 +1,81 @@
+---
+title: "Prob. classifiers"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Prob. classifiers}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+library(learningmachine)
+library(caret)
+```
+
+# 1 - `BaseClassifier` classification
+
+```{r}
+set.seed(123)
+X <- as.matrix(iris[, 1:4])
+# y <- factor(as.numeric(iris$Species))
+y <- iris$Species
+
+index_train <- base::sample.int(n = nrow(X),
+                                 size = floor(0.8*nrow(X)),
+                                 replace = FALSE)
+X_train <- X[index_train, ]
+y_train <- y[index_train]
+X_test <- X[-index_train, ]
+y_test <- y[-index_train]
+dim(X_train)
+dim(X_test)
+
+obj <- learningmachine::BaseClassifier$new()
+obj$get_type()
+obj$get_name()
+
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+
+print(obj$predict_proba(X_test, level=95))
+```
+
+```{r}
+obj$set_level(95)
+mean(obj$predict(X_test) == y_test)
+```
+
+```{r}
+caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
+```
+
+# 2 - `ranger` classification
+
+
+```{r}
+obj <- learningmachine::MultiTaskClassifier$new(regressor = "ranger")
+
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+
+print(obj$predict_proba(X_test, level=95))
+```
+
+```{r}
+obj$set_level(95)
+mean(obj$predict(X_test) == y_test)
+```
+
+```{r}
+caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
+```
+
+
+
+
+
+
+
+
