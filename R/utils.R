@@ -18,6 +18,7 @@ compute_probs_list <- function(x) { # do this in Rcpp /!\
   if (!is.null(names(x))) {
     names(res) <- names(x)
   }
+  #res$sims <- x
   return(res)
 }
 
@@ -40,7 +41,10 @@ compute_pis <- function(x, alpha){ # do this in Rcpp /!\
     colnames(lower) <- names(x)
     colnames(upper) <- names(x)
   }
-  return(list(preds = preds, lower = lower, upper = upper))
+  return(list(preds = preds, 
+              lower = lower, 
+              upper = upper,
+              sims = x))
 }
 
 # prehistoric stuff -----
