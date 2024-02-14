@@ -177,10 +177,12 @@ fit_regressor <- function(x,
   regressor <- match.arg(regressor)
   obj <- switch(
     regressor,
-    bcn = bcn::bcn,
+    bcn = function(x, y, ...) bcn::bcn(x, y, ...),
     extratrees = fit_func_extratrees_regression,
-    glmnet = glmnet::glmnet,
-    kernelridge = fit_matern32_regression,
+    glmnet = function(x, y, ...) glmnet::glmnet(x, y, ...),
+    kernelridge = function(x, y, ...) fit_matern32_regression(x, y,
+                                                              lambda = 0.1, 
+                                                              ...),
     ranger = fit_func_ranger_regression,
     ridge = function(x, y, ...)
       fit_ridge_regression(x, y,
@@ -188,7 +190,7 @@ fit_regressor <- function(x,
                                              length.out = 100), ...),
     xgboost = fit_func_xgboost
   )
-  return(obj(x, y, ...))
+  return(obj(x = x, y = y, ...))
 }
 
 
