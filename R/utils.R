@@ -58,7 +58,7 @@ debug_print <- function(x) {
 # decode factors -----
 decode_factors <- function(numeric_factor, encoded_factors) {
   encoded_factors <- encoded_factors$encoded_factors
-  n_levels <- length(unique(numeric_factor))
+  n_levels <- length(encoded_factors)
   stopifnot(n_levels == length(encoded_factors))
   res <-
     sapply(
@@ -263,6 +263,18 @@ parfor <- function(what,
   return(unlist(res))
 }
 
+# permutation test -----
+permutation_test <- function(x, y, 
+                             level=95, 
+                             seed = 123) {
+  set.seed(seed)
+  stopifnot(length(x) == length(y))
+  n <- length(x)
+  xy <- x - y
+  set.seed(seed)
+  perms <- sample(xy, n)
+}
+
 # Quantile split conformal prediction -----
 quantile_scp <- function(abs_residuals, alpha) {
   n_cal_points <- length(abs_residuals)
@@ -270,8 +282,26 @@ quantile_scp <- function(abs_residuals, alpha) {
   return(rank(abs_residuals)[k])
 }
 
-# Simulate Gaussian density -----
-# Gaussian kernel density simulation
+# Simulate using bootstrap -----
+rbootstrap <- function(x,
+                       n = length(x),
+                       p = 1,
+                       seed = 123
+                       ) {
+  if (p <= 1)
+  {
+    set.seed(seed)
+    return(sample(x, size = n, replace = TRUE))
+  } else {
+    return(sapply(1:p,
+                  function(i) {
+                    set.seed(seed + i - 1)
+                    sample(x, size = n, replace = TRUE)
+                  }))
+  }
+}
+
+# Simulate Gaussian kernel density -----
 rgaussiandens <- function(x,
                           n = length(x),
                           p = 1,
@@ -281,9 +311,12 @@ rgaussiandens <- function(x,
   
   z <- try(stats::density(x, bw = "sj", kernel = "gaussian"), 
            silent = TRUE)
+  
   if (inherits(z, "try-error"))
     z <- stats::density(x, kernel = "gaussian")
+  
   width <- z$bw # Kernel width
+  
   method <- match.arg(method)
   
   rkernel <- function(n, seed) {
@@ -308,6 +341,26 @@ rgaussiandens <- function(x,
                   function(i) {
                     set.seed(seed + i - 1)
                     sample(x, n, replace = TRUE) + rkernel(n, seed + i - 1)
+                  }))
+  }
+}
+
+# Simulate using surrogate -----
+rsurrogate <- function(x,
+                       n = length(x),
+                       p = 1,
+                       seed = 123) {
+  if (p <= 1)
+  {
+    set.seed(seed)
+    return(tseries::surrogate(x, ns=p, 
+                              fft = TRUE))
+  } else {
+    return(sapply(1:p,
+                  function(i) {
+                    set.seed(seed + i - 1)
+                    tseries::surrogate(x, ns=p, 
+                                       fft = TRUE)
                   }))
   }
 }
