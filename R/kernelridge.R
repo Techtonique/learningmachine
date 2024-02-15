@@ -136,10 +136,9 @@ KernelRidgeClassifier <-
 fit_matern32_regression <-
   function(x,
            y,
-           lambda = 10 ^ seq(-10, 10, length.out = 100),
-           #10^seq(-5, 4, length.out = 100),
+           lambda = 0.1, #lambda = 10 ^ seq(-10, 10, length.out = 100),
            l = NULL,
-           method = c("chol", "solve", "svd", "eigen"),
+           method = "chol", #method = c("chol", "solve", "svd", "eigen"),
            with_kmeans = FALSE,
            centers = NULL,
            centering = FALSE,
@@ -1269,6 +1268,8 @@ predict_matern32 <- function(fit_obj, newx, ci = NULL)
     # response was centered
     if (!is.null(fit_obj$with_kmeans))
     {
+      debug_print(newx)
+      debug_print(fit_obj)
       K_star <- matern32_kxstar_cpp(
         newx = as.matrix(my_scale(
           x = newx,

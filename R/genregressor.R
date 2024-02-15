@@ -201,8 +201,6 @@ fit_regressor <- function(x,
       glmnet::glmnet(x, y, ...),
     kernelridge = function(x, y, ...)
       fit_matern32_regression(x, y,
-                              lambda = 0.1,
-                              centering = TRUE,
                               ...),
     ranger = fit_func_ranger_regression,
     ridge = function(x, y, ...)
