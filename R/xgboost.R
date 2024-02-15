@@ -131,6 +131,8 @@ XgboostClassifier <-
 
 # 3 - utils -------------------------------------------------------------------
 
-fit_func_xgboost <- function(x, y, ...) {
-  xgboost::xgboost(data = x, label = y, ...)
+fit_func_xgboost <- function(x, y, nrounds=10, ...) {
+  xgboost::xgboost(data = x, label = y, 
+                   nrounds=nrounds, 
+                   ...)
 }

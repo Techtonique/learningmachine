@@ -327,6 +327,10 @@ rgaussiandens <- function(x,
       } else {
         half_n <- n %/% 2
         eps <- stats::rnorm(half_n, sd = width)
+        if (2*length(eps) < n)
+        {
+          return(c(eps, -eps, stats::rnorm(1, sd = width)))
+        }
         return(sample(c(eps, -eps), 
                       replace = FALSE))
       }
