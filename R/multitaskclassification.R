@@ -1,5 +1,4 @@
 
-
 # 1 - MultiTaskClassifier -----------------------------------------------------
 
 MultiTaskClassifier <-
@@ -60,15 +59,17 @@ MultiTaskClassifier <-
         self$regressor
       },
       set_regressor = function(regressor) {
-        stopifnot(regressor %in% c(
-          "bcn",
-          "extratrees",
-          "glmnet",
-          "kernelridge",
-          "ranger",
-          "ridge",
-          "xgboost"
-        ))
+        stopifnot(
+          regressor %in% c(
+            "bcn",
+            "extratrees",
+            "glmnet",
+            "kernelridge",
+            "ranger",
+            "ridge",
+            "xgboost"
+          )
+        )
         regressor <- match.arg(regressor)
         self$regressor <- regressor
       },
@@ -103,21 +104,25 @@ MultiTaskClassifier <-
         self$X_train <- X
         self$y_train <- Y
         self$params <- list(...)
-        self$set_model(fit_multitaskregressor(x = self$X_train,
-                                              y = private$y,
-                                              regressor = self$regressor,
-                                              show_progress = FALSE,
-                                              ...))
-        self$set_engine(list(
-          fit = fit_multitaskregressor,
-          predict = predict_multitaskregressor
-        ))
+        self$set_model(
+          fit_multitaskregressor(
+            x = self$X_train,
+            y = private$y,
+            regressor = self$regressor,
+            show_progress = FALSE,
+            ...
+          )
+        )
+        self$set_engine(list(fit = fit_multitaskregressor,
+                             predict = predict_multitaskregressor))
         return(base::invisible(self))
       },
       compute_probs = function(X) {
         if (is.null(self$engine) || is.null(self$model))
           stop(paste0(self$name, " must be fitted first"))
-        raw_preds <- expit(self$engine$predict(self$model, X, regressor=self$regressor))
+        raw_preds <- expit(self$engine$predict(self$model,
+                                               as.matrix(X),
+                                               regressor = self$regressor))
         probs <- raw_preds / rowSums(raw_preds)
         colnames(probs) <- private$class_names
         return(probs)
@@ -128,9 +133,7 @@ MultiTaskClassifier <-
                                  "kdesplitconformal",
                                  "kdejackknifeplus",
                                  "bootsplitconformal",
-                                 "bootjackknifeplus",
-                                 "surrsplitconformal",
-                                 "surrjackknifeplus"
+                                 "bootjackknifeplus"
                                ),
                                B = 100,
                                ...) {
@@ -160,75 +163,98 @@ MultiTaskClassifier <-
         
         method <- match.arg(method)
         
-        if (method %in% c("kdesplitconformal", 
-                          "bootsplitconformal", 
-                          "surrsplitconformal"))
+        if (method %in% c("kdesplitconformal",
+                          "bootsplitconformal"))
         {
           idx_train_calibration <- split_data(private$y, p = 0.5,
                                               seed = self$seed)
           self$y_train <- one_hot(private$y)
-          X_train_sc <- self$X_train[idx_train_calibration, ]
-          y_train_sc <- self$y_train[idx_train_calibration, ]
+          X_train_sc <- self$X_train[idx_train_calibration,]
+          y_train_sc <- self$y_train[idx_train_calibration,]
           y_train_sc_factor <- private$y[idx_train_calibration]
-          X_calibration_sc <- self$X_train[-idx_train_calibration, ]
-          y_calibration_sc <- self$y_train[-idx_train_calibration, ]
-          fit_objs_train_sc <- fit_multitaskregressor(x = X_train_sc,
-                                                      y = y_train_sc_factor, 
-                                                      regressor = self$regressor,
-                                                      self$params)
+          X_calibration_sc <- self$X_train[-idx_train_calibration,]
+          y_calibration_sc <- self$y_train[-idx_train_calibration,]
+          fit_objs_train_sc <-
+            fit_multitaskregressor(
+              x = as.matrix(X_train_sc),
+              y = y_train_sc_factor,
+              regressor = self$regressor,
+              self$params
+            )
           ################################################################ 'twice' but hard to circumvent
           self$set_model(fit_objs_train_sc)
           ################################################################
           y_pred_calibration <- self$engine$predict(self$model,
-                                                    X = X_calibration_sc,
+                                                    X = as.matrix(X_calibration_sc),
                                                     regressor = self$regressor)
-          preds <- self$engine$predict(self$model, X, regressor = self$regressor)
-          if(method == "kdesplitconformal")
+          preds <- self$engine$predict(self$model, as.matrix(X),
+                                       regressor = self$regressor)
+          
+          stopifnot(!is.null(B) && B > 1)
+          `%op%` <- foreach::`%do%`
+          
+          # simulation of predictive probabilities
+          res <- foreach::foreach(i = 1:private$n_classes,
+                                  .verbose = FALSE) %op% {
+                                    matrix_preds <- replicate(B, preds[, i])
+                                    calibrated_raw_residuals <-
+                                      y_calibration_sc[, i] - y_pred_calibration[, i]
+                                    scaled_calibrated_residuals <-
+                                      as.vector(base::scale(
+                                        calibrated_raw_residuals,
+                                        center = TRUE,
+                                        scale = TRUE
+                                      ))
+                                    sd_calibrated_residuals <-
+                                      sd(calibrated_raw_residuals)
+                                    
+                                    if (identical(method, "kdesplitconformal"))
+                                    {
+                                      simulated_scaled_calibrated_residuals <-
+                                        suppressWarnings(
+                                          rgaussiandens(
+                                            x = scaled_calibrated_residuals,
+                                            n = dim(preds)[1],
+                                            p = B,
+                                            seed = self$seed
+                                          )
+                                        )
+                                    }
+                                    
+                                    if (identical(method, "bootsplitconformal")) {
+                                      simulated_scaled_calibrated_residuals <-
+                                        rbootstrap(
+                                          x = scaled_calibrated_residuals,
+                                          n = dim(preds)[1],
+                                          p = B,
+                                          seed = self$seed
+                                        )
+                                    }
+                                    
+                                    sims <-
+                                      matrix_preds + sd_calibrated_residuals * simulated_scaled_calibrated_residuals
+                                    expit(sims)
+                                  }
+          
+          if (!is.null(private$class_names))
           {
-            stopifnot(!is.null(B) && B > 1)
-            `%op%` <- foreach::`%do%`
-            res <- foreach::foreach(i = 1:private$n_classes, 
-                                    .verbose=FALSE) %op% {
-            matrix_preds <- replicate(B, preds[, i])
-            calibrated_raw_residuals <- y_calibration_sc[, i] - y_pred_calibration[, i]
-            scaled_calibrated_residuals <- as.vector(base::scale(calibrated_raw_residuals,
-                                                                 center = TRUE,
-                                                                 scale = TRUE))
-            sd_calibrated_residuals <- sd(calibrated_raw_residuals)
-            simulated_scaled_calibrated_residuals <- rgaussiandens(x = scaled_calibrated_residuals,
-                                                                   n = dim(preds)[1],
-                                                                   p = B,
-                                                                   seed = self$seed)
-            sims <- matrix_preds + sd_calibrated_residuals * simulated_scaled_calibrated_residuals
-            expit(sims)
-          }
-            
-            if (!is.null(private$class_names))
-            {
-              names(res) <- private$class_names
-            }
-            
-            list_probs <- compute_probs_list(res)
-            
-            return(compute_pis(list_probs, alpha = 1 - level / 100))
-          } else {
-            stop("Not implemented yet")
+            names(res) <- private$class_names
           }
           
-        
-      }
-        },
+          list_probs <-
+            compute_probs_list(res)
+          
+          return(compute_pis(list_probs, alpha = 1 - level / 100))
+          
+        }
+      },
       predict = function(X,
                          level = NULL,
-                         method = c(
-                           "kdesplitconformal",
-                           "splitconformal",
-                           "bootsplitconformal",
-                           "bootjackknifeplus",
-                           "surrsplitconformal",
-                           "surrjackknifeplus"
-                         ),
-                         B = 100,
+                         method = c("kdesplitconformal",
+                                    "kdejackknifeplus",
+                                    "bootsplitconformal",
+                                    "bootjackknifeplus"),
+                         B = 250,
                          ...) {
         method <- match.arg(method)
         if (is.null(self$engine) || is.null(self$model))
@@ -237,10 +263,12 @@ MultiTaskClassifier <-
         {
           probs <- self$predict_proba(X)
           numeric_factor <- apply(probs, 1, which.max)
-          res <- decode_factors(numeric_factor, private$encoded_factors)
+          res <-
+            decode_factors(numeric_factor, private$encoded_factors)
           names(res) <- NULL
           return(res)
         } else {
+          # prediction sets with given 'level'
           if (is.null(self$level) && !is.null(level))
           {
             self$set_level(level)
@@ -263,7 +291,8 @@ MultiTaskClassifier <-
                                       method = method,
                                       B = B)
           numeric_factor <- apply(probs$preds, 1, which.max)
-          res <- decode_factors(numeric_factor, private$encoded_factors)
+          res <-
+            decode_factors(numeric_factor, private$encoded_factors)
           names(res) <- NULL
           return(res)
         }
@@ -288,7 +317,7 @@ fit_multitaskregressor <- function(x,
   class_names <- as.character(levels(unique(y)))
   regressor <- match.arg(regressor)
   Y <- as.matrix(one_hot(y))
-  if (ncol(Y) != n_classes) 
+  if (ncol(Y) != n_classes)
     stop("The number classes in y must be equal to the number of classes")
   obj <- switch(
     regressor,
@@ -332,12 +361,10 @@ predict_multitaskregressor <- function(objs,
     ridge = predict_ridge_regression,
     xgboost = predict
   )
-  preds <- parfor(
-    what = function(i)
-      predict_func(objs[[i]], X),
-    args = 1:length(objs),
-    combine = cbind,
-    show_progress = FALSE
-  )
+  preds <- matrix(NA, nrow = nrow(X),
+                  ncol = length(objs))
+  for (i in 1:length(objs)) {
+    preds[, i] <- predict_func(objs[[i]], X)
+  }
   return(preds)
 }

@@ -2,7 +2,8 @@
 
 
 # compute list of all possible combinations -----
-compute_probs_list <- function(x) { # do this in Rcpp /!\
+compute_probs_list <- function(x) {
+  # do this in Rcpp /!\
   n_x <- length(x)
   n <- dim(x[[1]])[1]
   B <- dim(x[[1]])[2]
@@ -10,8 +11,9 @@ compute_probs_list <- function(x) { # do this in Rcpp /!\
   for (key in seq_len(n_x)) {
     for (i in seq_len(n)) {
       for (j in seq_len(B)) {
-        res[[key]][i, j] <- x[[key]][i, j]/sum(sapply(seq_len(n_x), function(k)
-          x[[k]][i, j]))
+        res[[key]][i, j] <-
+          x[[key]][i, j] / sum(sapply(seq_len(n_x), function(k)
+            x[[k]][i, j]))
       }
     }
   }
@@ -23,17 +25,20 @@ compute_probs_list <- function(x) { # do this in Rcpp /!\
 }
 
 # compute preds and p.i bounds -----
-compute_pis <- function(x, alpha){ # do this in Rcpp /!\
+compute_pis <- function(x, alpha) {
+  # do this in Rcpp /!\
   n <- dim(x[[1]])[1]
   B <- dim(x[[1]])[2]
   n_classes <- length(x)
-  preds <- lower <- upper <- matrix(0, nrow = n, 
+  preds <- lower <- upper <- matrix(0, nrow = n,
                                     ncol = n_classes)
   for (i in seq_len(n)) {
     for (j in seq_len(n_classes)) {
-      preds[i, j] <- mean(x[[j]][i,])
-      lower[i, j] <- pmax(0, pmin(1, quantile(x[[j]][i,], probs = alpha/2)))
-      upper[i, j] <- pmax(0, pmin(1, quantile(x[[j]][i,], probs = 1 - alpha/2)))
+      preds[i, j] <- mean(x[[j]][i, ])
+      lower[i, j] <-
+        pmax(0, pmin(1, quantile(x[[j]][i, ], probs = alpha / 2)))
+      upper[i, j] <-
+        pmax(0, pmin(1, quantile(x[[j]][i, ], probs = 1 - alpha / 2)))
     }
   }
   if (!is.null(names(x))) {
@@ -41,10 +46,12 @@ compute_pis <- function(x, alpha){ # do this in Rcpp /!\
     colnames(lower) <- names(x)
     colnames(upper) <- names(x)
   }
-  return(list(preds = preds, 
-              lower = lower, 
-              upper = upper,
-              sims = x))
+  return(list(
+    preds = preds,
+    lower = lower,
+    upper = upper,
+    sims = x
+  ))
 }
 
 # prehistoric stuff -----
@@ -90,9 +97,9 @@ expit <- function(x) {
 get_jackknife_residuals <-
   function(X, y, idx, fit_func, predict_func) {
     stopifnot(length(idx) == (nrow(X) - 1))
-    X_train <- X[idx,]
+    X_train <- X[idx, ]
     y_train <- y[idx]
-    X_test <- X[-idx,]
+    X_test <- X[-idx, ]
     y_test <- y[-idx]
     #print()
     #stopifnot(is.null(dim(X_test)))
@@ -200,7 +207,8 @@ parfor <- function(what,
   
   n_iter <- length(args)
   
-  if (!is.null(cl)) { # parallel 
+  if (!is.null(cl)) {
+    # parallel
     stopifnot(is_wholenumber(cl) && cl > -2)
     if (cl == -1)
     {
@@ -211,7 +219,8 @@ parfor <- function(what,
     }
     doSNOW::registerDoSNOW(cl_SOCK)
     `%op%` <- foreach::`%dopar%`
-  } else { # sequential 
+  } else {
+    # sequential
     `%op%` <- foreach::`%do%`
   }
   
@@ -229,43 +238,42 @@ parfor <- function(what,
   }
   
   i <- NULL
-    res <- foreach::foreach(
-      i = 1:n_iter,
-      .combine=combine,
-      .packages = packages,
-      .errorhandling = errorhandling,
-      .options.snow = opts,
-      .verbose = verbose,
-      .export = export
-    ) %op% {
-      
-      if (identical(show_progress, TRUE))
-      {
-        utils::setTxtProgressBar(pb, i)
-      }
-      
-      res <- do.call(what = what,
-                     args = c(list(args[i]), ...))
-      
-      as.numeric(res)
+  res <- foreach::foreach(
+    i = 1:n_iter,
+    .combine = combine,
+    .packages = packages,
+    .errorhandling = errorhandling,
+    .options.snow = opts,
+    .verbose = verbose,
+    .export = export
+  ) %op% {
+    if (identical(show_progress, TRUE))
+    {
+      utils::setTxtProgressBar(pb, i)
     }
     
-    if (show_progress)
-    {
-       close(pb)
-    }
+    res <- do.call(what = what,
+                   args = c(list(args[i]), ...))
     
-    if (!is.null(cl))
-    {
-      snow::stopCluster(cl_SOCK)
-    }
+    as.numeric(res)
+  }
+  
+  if (show_progress)
+  {
+    close(pb)
+  }
+  
+  if (!is.null(cl))
+  {
+    snow::stopCluster(cl_SOCK)
+  }
   
   return(unlist(res))
 }
 
 # permutation test -----
-permutation_test <- function(x, y, 
-                             level=95, 
+permutation_test <- function(x, y,
+                             level = 95,
                              seed = 123) {
   set.seed(seed)
   stopifnot(length(x) == length(y))
@@ -286,8 +294,7 @@ quantile_scp <- function(abs_residuals, alpha) {
 rbootstrap <- function(x,
                        n = length(x),
                        p = 1,
-                       seed = 123
-                       ) {
+                       seed = 123) {
   if (p <= 1)
   {
     set.seed(seed)
@@ -306,10 +313,9 @@ rgaussiandens <- function(x,
                           n = length(x),
                           p = 1,
                           seed = 123,
-                          method=c("antithetic",
-                                  "traditional")) {
-  
-  z <- try(stats::density(x, bw = "sj", kernel = "gaussian"), 
+                          method = c("antithetic",
+                                     "traditional")) {
+  z <- try(stats::density(x, bw = "sj", kernel = "gaussian"),
            silent = TRUE)
   
   if (inherits(z, "try-error"))
@@ -320,21 +326,21 @@ rgaussiandens <- function(x,
   method <- match.arg(method)
   
   rkernel <- function(n, seed) {
-      set.seed(seed)
-      if (!identical(method, "antithetic"))
+    set.seed(seed)
+    if (!identical(method, "antithetic"))
+    {
+      return(stats::rnorm(n, sd = width))
+    } else {
+      half_n <- n %/% 2
+      eps <- stats::rnorm(half_n, sd = width)
+      if (2 * length(eps) < n)
       {
-        return(stats::rnorm(n, sd = width))
-      } else {
-        half_n <- n %/% 2
-        eps <- stats::rnorm(half_n, sd = width)
-        if (2*length(eps) < n)
-        {
-          return(c(eps, -eps, stats::rnorm(1, sd = width)))
-        }
-        return(sample(c(eps, -eps), 
-                      replace = FALSE))
+        return(c(eps,-eps, stats::rnorm(1, sd = width)))
       }
-    }  # Kernel sampler
+      return(sample(c(eps,-eps),
+                    replace = FALSE))
+    }
+  }  # Kernel sampler
   
   if (p <= 1)
   {
@@ -357,13 +363,13 @@ rsurrogate <- function(x,
   if (p <= 1)
   {
     set.seed(seed)
-    return(tseries::surrogate(x, ns=p, 
+    return(tseries::surrogate(x, ns = p,
                               fft = TRUE))
   } else {
     return(sapply(1:p,
                   function(i) {
                     set.seed(seed + i - 1)
-                    tseries::surrogate(x, ns=p, 
+                    tseries::surrogate(x, ns = p,
                                        fft = TRUE)
                   }))
   }
