@@ -1,24 +1,27 @@
 Package: learningmachine
 Type: Package
 Title: Machine Learning with uncertainty quantification     
-Version: 0.2.3
-Date: 2024-02-05
+Version: 1.0.0
+Date: 2024-02-15
 Author: T. Moudiki
 Maintainer: T. Moudiki <thierry.moudiki@gmail.com>
 Description: Machine Learning Models with uncertainty quantification.
-License: BSD_3_clause Clear + file LICENSE
+License: MIT
 Imports: Rcpp (>= 1.0.10), R6
 LinkingTo: Rcpp
 RoxygenNote: 7.3.0
 Encoding: UTF-8
-Suggests: caret,
-          glmnet,
-          knitr,
-          MASS,
-          pkgbuild,
-          ranger,
-          rmarkdown,
-          roxygen2,
-          skimr,
-          xgboost
+Suggests: 
+    caret,
+    glmnet,
+    knitr,
+    MASS,
+    pkgbuild,
+    ranger,
+    rmarkdown,
+    roxygen2,
+    skimr,
+    testthat (>= 3.0.0),
+    xgboost
 VignetteBuilder: knitr
+Config/testthat/edition: 3
