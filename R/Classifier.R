@@ -1,5 +1,7 @@
 
 
+
+
 # 1 - Class Classifier --------------------------------------------------------------
 
 Classifier <-
@@ -58,7 +60,6 @@ Classifier <-
       fit = function(X,
                      y,
                      pi_method = c(
-                       "none",
                        "splitconformal",
                        "kdesplitconformal",
                        "bootsplitconformal",
@@ -74,23 +75,36 @@ Classifier <-
                      ...) {
         self$X_train <- X
         self$y_train <- y
+        private$encoded_factors <- encode_factors(y)
+        private$class_names <- as.character(levels(unique(y)))
         pi_method <- match.arg(pi_method)
         type_split <- match.arg(type_split)
         private$type_split <- type_split
         self$pi_method <- pi_method
         self$B <- B
         self$params <- list(...)
-        self$set_engine(list()) # TODO
-        self$set_model(NULL) # TODO
+        self$set_engine(
+          list(
+            fit = function(x, y, ...)
+              fit_multitaskregressor(x, y,
+                                     method = self$method,
+                                     ...),
+            predict = function(obj, X, ...)
+              predict_multitaskregressor(obj, X,
+                                         method = self$method,
+                                         ...)
+          )
+        )
         
-        if (identical(self$pi_method, "none"))
+        if (is.null(self$level))
         {
-          self$set_model(fit_classifier(
+          self$set_model(fit_multitaskregressor(
             x = self$X_train,
             y = self$y_train,
             method = self$method,
             ...
           ))
+          return()
         }
         
         if (self$pi_method %in% c("jackknifeplus", "kdejackknifeplus"))
@@ -208,7 +222,6 @@ Classifier <-
             private$abs_calib_resids <- abs(private$calib_resids)
           }
         }
-        
       },
       predict_proba = function(X,
                                level = NULL,
@@ -223,7 +236,15 @@ Classifier <-
         method <- match.arg(method)
         if (is.null(level) && is.null(self$level))
         {
-          return(self$compute_probs(X))
+          if (is.null(self$model) || is.null(self$engine))
+            stop(paste0(self$name, " must be fitted first"))
+          raw_preds <-
+            expit(self$engine$predict(self$model, X))
+          probs <-
+            raw_preds / rowSums(raw_preds)
+          colnames(probs) <-
+            private$class_names
+          return(probs)
         }
         
         # prediction sets with given 'level'
@@ -261,7 +282,7 @@ Classifier <-
             fit_multitaskregressor(
               x = as.matrix(X_train_sc),
               y = y_train_sc_factor,
-              regressor = self$regressor,
+              method = self$method,
               self$params
             )
           ################################################################ 'twice' but hard to circumvent
@@ -269,9 +290,9 @@ Classifier <-
           ################################################################
           y_pred_calibration <- self$engine$predict(self$model,
                                                     X = as.matrix(X_calibration_sc),
-                                                    regressor = self$regressor)
+                                                    method = self$method)
           preds <- self$engine$predict(self$model, as.matrix(X),
-                                       regressor = self$regressor)
+                                       method = self$method)
           
           stopifnot(!is.null(B) && B > 1)
           `%op%` <- foreach::`%do%`
@@ -347,9 +368,12 @@ Classifier <-
         if (is.null(level) && is.null(self$level))
         {
           probs <- self$predict_proba(X)
+          debug_print(probs)
           numeric_factor <- apply(probs, 1, which.max)
+          debug_print(numeric_factor)
           res <-
             decode_factors(numeric_factor, private$encoded_factors)
+          debug_print(res) 
           names(res) <- NULL
           return(res)
         } else {
@@ -593,22 +617,22 @@ Classifier <-
 
 fit_multitaskregressor <- function(x,
                                    y,
-                                   regressor = c("bcn",
-                                                 "extratrees",
-                                                 "glmnet",
-                                                 "kernelridge",
-                                                 "ranger",
-                                                 "ridge"),
+                                   method = c("bcn",
+                                              "extratrees",
+                                              "glmnet",
+                                              "kernelridge",
+                                              "ranger",
+                                              "ridge"),
                                    show_progress = FALSE,
                                    ...) {
   n_classes <- length(unique(y))
   class_names <- as.character(levels(unique(y)))
-  regressor <- match.arg(regressor)
+  method <- match.arg(method)
   Y <- as.matrix(one_hot(y))
   if (ncol(Y) != n_classes)
     stop("The number classes in y must be equal to the number of classes")
   obj <- switch(
-    regressor,
+    method,
     bcn = bcn::bcn,
     extratrees = fit_func_extratrees_regression,
     glmnet = glmnet::glmnet,
@@ -630,15 +654,15 @@ fit_multitaskregressor <- function(x,
 
 predict_multitaskregressor <- function(objs,
                                        X,
-                                       regressor = c("bcn",
-                                                     "extratrees",
-                                                     "glmnet",
-                                                     "kernelridge",
-                                                     "ranger",
-                                                     "ridge")) {
-  regressor <- match.arg(regressor)
+                                       method = c("bcn",
+                                                  "extratrees",
+                                                  "glmnet",
+                                                  "kernelridge",
+                                                  "ranger",
+                                                  "ridge")) {
+  method <- match.arg(method)
   predict_func <- switch(
-    regressor,
+    method,
     bcn = bcn::predict.bcn,
     extratrees = predict_func_extratrees,
     glmnet = predict,

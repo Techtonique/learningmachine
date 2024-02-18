@@ -88,14 +88,55 @@ Regressor <-
                               ...)
         ))
         
-        if (identical(self$pi_method, "none"))
+        if (is.null(self$level))
         {
           self$set_model(fit_regressor(
             x = self$X_train,
             y = self$y_train,
             method = self$method,
             ...
-          ))
+          )) 
+        }
+        
+        if (self$pi_method %in% c("splitconformal", "kdesplitconformal"))
+        {
+          idx_train_calibration <- split_data(
+            self$y_train,
+            p = 0.5,
+            seed = self$seed,
+            type_split = private$type_split
+          )
+          X_train_sc <-
+            self$X_train[idx_train_calibration,]
+          y_train_sc <-
+            self$y_train[idx_train_calibration]
+          X_calibration_sc <-
+            self$X_train[-idx_train_calibration,]
+          y_calibration_sc <-
+            self$y_train[-idx_train_calibration]
+          
+          fit_obj_train_sc <- self$engine$fit(X_train_sc,
+                                              y_train_sc)
+          
+          if (private$type_split == "sequential")
+          {
+            y_pred_calibration <-
+              self$engine$predict(fit_obj_train_sc, # notice the diff
+                                  X_calibration_sc)
+            private$calib_resids <-
+              y_calibration_sc - y_pred_calibration
+            private$abs_calib_resids <- abs(private$calib_resids)
+            self$set_model(self$engine$fit(X_calibration_sc,
+                                           y_calibration_sc))
+          } else {
+            self$set_model(fit_obj_train_sc)
+            y_pred_calibration <-
+              self$engine$predict(self$model,  # notice the diff
+                                  X_calibration_sc)
+            private$calib_resids <-
+              y_calibration_sc - y_pred_calibration
+            private$abs_calib_resids <- abs(private$calib_resids)
+          }
         }
         
         if (self$pi_method %in% c("jackknifeplus", "kdejackknifeplus"))
@@ -173,46 +214,7 @@ Regressor <-
           }
         }
         
-        if (self$pi_method %in% c("splitconformal", "kdesplitconformal"))
-        {
-          idx_train_calibration <- split_data(
-            self$y_train,
-            p = 0.5,
-            seed = self$seed,
-            type_split = private$type_split
-          )
-          X_train_sc <-
-            self$X_train[idx_train_calibration,]
-          y_train_sc <-
-            self$y_train[idx_train_calibration]
-          X_calibration_sc <-
-            self$X_train[-idx_train_calibration,]
-          y_calibration_sc <-
-            self$y_train[-idx_train_calibration]
-          
-          fit_obj_train_sc <- self$engine$fit(X_train_sc,
-                                              y_train_sc)
-          
-          if (private$type_split == "sequential")
-          {
-            y_pred_calibration <-
-              self$engine$predict(fit_obj_train_sc, # notice the diff
-                                  X_calibration_sc)
-            private$calib_resids <-
-              y_calibration_sc - y_pred_calibration
-            private$abs_calib_resids <- abs(private$calib_resids)
-            self$set_model(self$engine$fit(X_calibration_sc,
-                                           y_calibration_sc))
-          } else {
-            self$set_model(fit_obj_train_sc)
-            y_pred_calibration <-
-              self$engine$predict(self$model,  # notice the diff
-                                  X_calibration_sc)
-            private$calib_resids <-
-              y_calibration_sc - y_pred_calibration
-            private$abs_calib_resids <- abs(private$calib_resids)
-          }
-        }
+        return(invisible(self))
         
       },
       predict = function(X,
