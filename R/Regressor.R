@@ -1,6 +1,4 @@
 
-
-
 # 1 - Class Regressor --------------------------------------------------------------
 
 Regressor <-
@@ -82,10 +80,9 @@ Regressor <-
             fit_regressor(x, y,
                           method = self$method,
                           ...),
-          predict = function(obj, X, ...)
+          predict = function(obj, X)
             predict_regressor(obj, X,
-                              method = self$method,
-                              ...)
+                              method = self$method)
         ))
         
         if (is.null(self$level))
@@ -94,7 +91,7 @@ Regressor <-
             x = self$X_train,
             y = self$y_train,
             method = self$method,
-            ...
+            ... 
           )) 
         }
         
@@ -116,7 +113,8 @@ Regressor <-
             self$y_train[-idx_train_calibration]
           
           fit_obj_train_sc <- self$engine$fit(X_train_sc,
-                                              y_train_sc)
+                                              y_train_sc,
+                                              ...)
           
           if (private$type_split == "sequential")
           {
@@ -381,7 +379,8 @@ Regressor <-
                              ),
                              B = 100,
                              seed = 123,
-                             graph = FALSE) {
+                             graph = FALSE, 
+                             ...) {
         stopifnot(pct_train >= 0.4 && pct_train < 1)
         stopifnot(length(y) == nrow(X))
         if (!is.null(level) && level != self$level)
@@ -394,6 +393,7 @@ Regressor <-
           ))
           self$level <- level
         }
+        self$params <- list(...)
         pi_method <- match.arg(pi_method)
         set.seed(seed)
         train_index <-
@@ -407,7 +407,8 @@ Regressor <-
         
         fit_obj <- self$fit(X_train, y_train,
                             pi_method = pi_method,
-                            B = B)
+                            B = B, 
+                            ...)
         
         if (!is.null(self$level))
           # prediction intervals requested
@@ -482,122 +483,6 @@ Regressor <-
           return(score(fit_obj$predict(X_test), y_test))
         }
         
-      },
-      summary = function(X,
-                         level = 95,
-                         show_progress = TRUE,
-                         y = NULL,
-                         cl = NULL) {
-        if (is.null(self$engine) || is.null(self$model))
-          stop(paste0(self$name, " must be fitted first (use ", self$name, "$fit())"))
-        
-        if (is_package_available("skimr") == FALSE)
-        {
-          utils::install.packages("skimr")
-        }
-        
-        deriv_column <- function(ix)
-        {
-          zero <- 1e-4
-          eps_factor <- zero ^ (1 / 3)
-          X_plus <- X
-          X_minus <- X
-          X_ix <- X[, ix]
-          cond <- abs(X_ix) > zero
-          h <- eps_factor * X_ix * cond + zero * (!cond)
-          X_plus[, ix] <- X_ix + h
-          X_minus[, ix] <- X_ix - h
-          derived_column <-
-            try((self$predict(as.matrix(X_plus)) - self$predict(as.matrix(X_minus))) /
-                  (2 * h), silent = TRUE)
-          if (inherits(derived_column, "try-error"))
-            derived_column <-
-            (self$predict(as.matrix(X_plus))$preds - self$predict(as.matrix(X_minus))$preds) /
-            (2 * h)
-          return (derived_column)
-        }
-        #deriv_column <- compiler::cmpfun(deriv_column)
-        
-        effects <- parfor(
-          what = deriv_column,
-          args = seq_len(ncol(X)),
-          show_progress = show_progress,
-          verbose = FALSE,
-          combine = cbind,
-          cl = cl
-        )
-        
-        names_X <- colnames(X)
-        if (!is.null(names_X))
-        {
-          colnames(effects) <- names_X
-        } else {
-          colnames(effects) <- paste0("V", seq_len(ncol(X)))
-        }
-        
-        foo_tests <- function(x)
-        {
-          res <- stats::t.test(x)
-          return(c(
-            as.numeric(res$estimate),
-            as.numeric(res$conf.int),
-            res$p.value
-          ))
-        }
-        
-        lower_signif_codes <- c(0, 0.001, 0.01, 0.05, 0.1)
-        upper_signif_codes <- c(0.001, 0.01, 0.05, 0.1, 1)
-        signif_codes <- c("***", "**", "*", ".", "")
-        choice_signif_code <-
-          function(x)
-            signif_codes[which.max((lower_signif_codes <= x) * (upper_signif_codes > x))]
-        ttests <-
-          try(data.frame(t(apply(effects, 2, foo_tests))), silent = TRUE)
-        if (!inherits(ttests, "try-error"))
-        {
-          colnames(ttests) <- c("estimate", "lower", "upper", "p-value")
-          ttests$signif <-
-            sapply(ttests[, 3], choice_signif_code) # p-values signif.
-          if (!is.null(y))
-          {
-            preds <- self$predict(as.matrix(X))
-            y_hat <- try(preds$preds,
-                         silent = TRUE)
-            if (inherits(y_hat, "try-error"))
-              y_hat <- self$predict(as.matrix(X))
-            Residuals <- y - y_hat
-            R_squared <-
-              1 - sum((y - y_hat) ^ 2) / sum((y - mean(y)) ^ 2)
-            if (!is.null(self$level))
-            {
-              winkler_score_ <- winkler_score(obj = preds,
-                                              actual = y,
-                                              level = self$level)
-              coverage_rate <-
-                mean(y >= preds$lower & y <= preds$upper) * 100
-            } else {
-              winkler_score_ <- NULL
-              coverage_rate <- NULL
-            }
-            return(
-              list(
-                R_squared = R_squared,
-                Residuals = summary(Residuals),
-                Winkler_score = winkler_score_,
-                Coverage_rate = coverage_rate,
-                ttests = ttests,
-                effects = my_skim(effects)
-              )
-            )
-          } else {
-            return(list(ttests = ttests,
-                        effects = my_skim(effects)))
-          }
-        } else {
-          return(my_skim(effects))
-        }
-        
-        
       }
     )
   )
@@ -612,15 +497,16 @@ fit_regressor <- function(x,
                                      "ridge",
                                      "bcn",
                                      "glmnet",
-                                     "krr"),
+                                     "krr",
+                                     "xgboost"),
                           ...) {
   regressor_choice <- match.arg(method)
   obj <- switch(
     regressor_choice,
-    lm = function(x, y)
+    lm = function(x, y, ...)
       stats::.lm.fit(x, y),
-    ranger = fit_func_ranger_regression,
-    extratrees = fit_func_extratrees_regression,
+    ranger = function(x, y, ...) fit_func_ranger_regression(x, y, ...),
+    extratrees = function(x, y, ...) fit_func_extratrees_regression(x, y, ...),
     ridge = function(x, y, ...)
       fit_ridge_regression(x, y,
                            lambda = 10 ^ seq(-10, 10,
@@ -631,7 +517,9 @@ fit_regressor <- function(x,
       glmnet::glmnet(x, y, ...),
     krr = function(x, y, ...)
       fit_matern32_regression(x, y,
-                              ...)
+                              ...),
+    xgboost = function(x, y, ...)
+      fit_xgboost_regression(x, y, ...)
   )
   return(obj(x = x, y = y, ...))
 }

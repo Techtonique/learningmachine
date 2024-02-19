@@ -48,8 +48,7 @@ obj$get_method()
 
 ```{r}
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train, 
-        pi_method = "splitconformal")
+obj$fit(X_train, y_train, pi_method = "splitconformal")
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
@@ -341,6 +340,52 @@ mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 obj$summary(X_test, y=y_test, show_progress=FALSE)
 ```
 
+**`xgboost`**
+
+```{r}
+obj <- learningmachine::Regressor$new(method = "xgboost")
+obj$get_type()
+obj$get_name()
+```
+
+```{r}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train, nrounds=10, verbose=FALSE)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r}
+print(obj$predict(X_test, level = 95))
+```
+
+```{r}
+obj$summary(X_test, y=y_test, show_progress=FALSE)
+```
+
+```{r fig.width=7.2}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train, nrounds=10, verbose=FALSE,  
+        pi_method = "splitconformal")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+
+obj$set_level(95)
+res <- obj$predict(X = X_test)
+
+plot(c(y_train, res$preds), type='l',
+     main="",
+     ylab="",
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
+lines(c(y_train, res$upper), col="gray60")
+lines(c(y_train, res$lower), col="gray60")
+lines(c(y_train, res$preds), col = "red")
+lines(c(y_train, y_test), col = "blue")
+
+mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
+```
+
+
+
 # 2 - classification
 
 # 2 - 1 - iris 
@@ -384,6 +429,10 @@ print(obj)
 caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
 ```
 
+```{r}
+obj$summary(X_test, y=y_test, class_name = "setosa", show_progress=FALSE)
+```
+
 
 # 2 - 2 - penguins 
 
@@ -421,7 +470,7 @@ colnames(penguins_mat)[1] <- "species"
 print(head(penguins_mat))
 print(tail(penguins_mat))
 
-y <- as.integer(penguins_mat$species)
+y <- palmerpenguins::penguins$species
 X <- as.matrix(penguins_mat[,2:ncol(penguins_mat)])
 
 n <- nrow(X)
@@ -430,9 +479,9 @@ p <- ncol(X)
 set.seed(1234)
 index_train <- sample(1:n, size=floor(0.8*n))
 X_train <- X[index_train, ]
-y_train <- factor(y[index_train])
+y_train <- y[index_train]
 X_test <- X[-index_train, ]
-y_test <- factor(y[-index_train])
+y_test <- y[-index_train]
 ```
 
 ```{r}
@@ -454,6 +503,10 @@ print(obj)
 
 ```{r}
 caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
+```
+
+```{r}
+obj$summary(X_test, y=y_test, class_name = "Adelie", show_progress=FALSE)
 ```
 
 # 2 - 3 breast cancer 
@@ -512,3 +565,29 @@ print(obj)
 caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
 ```
 
+```{r}
+obj$summary(X_test, y=y_test, class_name = "malignant", show_progress=FALSE)
+```
+
+**`xgboost`**
+
+```{r}
+obj <- learningmachine::Classifier$new(method = "xgboost")
+obj$get_type()
+obj$get_name()
+```
+
+```{r}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train, nrounds = 10, verbose = FALSE)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r}
+print(obj)
+```
+
+
+```{r}
+caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
+```

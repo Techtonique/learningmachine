@@ -111,6 +111,17 @@ get_jackknife_residuals <-
     ))
   }
 
+# Function to get key by value
+get_key_by_value <- function(list_, value) {
+  keys <- names(list_)
+  values <- unlist(list_)
+  if ("0" %in% keys)
+  {
+    res <- as.numeric(keys[which(values == value)][1])
+    return(res + 1)
+  }
+  return(as.numeric(keys[which(values == value)][1]))
+}
 
 # Check if package is available -----
 is_package_available <- function(pkg_name) {

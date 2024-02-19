@@ -583,7 +583,6 @@ fit_matern32_classification <-
     method <- match.arg(method)
     
     x <- as.matrix(x)
-    debug_print(y)
     stopifnot(is.factor(y))
     Y <- one_hot(y)
     n_classes <- dim(Y)[2]
@@ -1134,8 +1133,6 @@ predict_matern32 <- function(fit_obj, newx, ci = NULL)
     # response was centered
     if (!is.null(fit_obj$with_kmeans))
     {
-      debug_print(newx)
-      debug_print(fit_obj)
       K_star <- matern32_kxstar_cpp(
         newx = as.matrix(my_scale(
           x = newx,

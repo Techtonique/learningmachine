@@ -1,7 +1,4 @@
 
-
-
-
 # 1 - Class Classifier --------------------------------------------------------------
 
 Classifier <-
@@ -89,10 +86,9 @@ Classifier <-
               fit_multitaskregressor(x, y,
                                      method = self$method,
                                      ...),
-            predict = function(obj, X, ...)
+            predict = function(obj, X)
               predict_multitaskregressor(obj, X,
-                                         method = self$method,
-                                         ...)
+                                         method = self$method)
           )
         )
         
@@ -200,7 +196,8 @@ Classifier <-
             self$y_train[-idx_train_calibration]
           
           fit_obj_train_sc <- self$engine$fit(X_train_sc,
-                                              y_train_sc)
+                                              y_train_sc,
+                                              ...)
           
           if (private$type_split == "sequential")
           {
@@ -231,8 +228,7 @@ Classifier <-
                                  "bootsplitconformal",
                                  "bootjackknifeplus"
                                ),
-                               B = 100,
-                               ...) {
+                               B = 100) {
         method <- match.arg(method)
         if (is.null(level) && is.null(self$level))
         {
@@ -368,12 +364,9 @@ Classifier <-
         if (is.null(level) && is.null(self$level))
         {
           probs <- self$predict_proba(X)
-          debug_print(probs)
           numeric_factor <- apply(probs, 1, which.max)
-          debug_print(numeric_factor)
           res <-
             decode_factors(numeric_factor, private$encoded_factors)
-          debug_print(res) 
           names(res) <- NULL
           return(res)
         } else {
@@ -429,7 +422,8 @@ Classifier <-
                              ),
                              B = 100,
                              seed = 123,
-                             graph = FALSE) {
+                             graph = FALSE,
+                             ...) {
         stopifnot(pct_train >= 0.4 && pct_train < 1)
         stopifnot(length(y) == nrow(X))
         if (!is.null(level) && level != self$level)
@@ -442,6 +436,7 @@ Classifier <-
           ))
           self$level <- level
         }
+        self$params <- list(...)
         pi_method <- match.arg(pi_method)
         set.seed(seed)
         train_index <-
@@ -455,7 +450,8 @@ Classifier <-
         
         fit_obj <- self$fit(X_train, y_train,
                             pi_method = pi_method,
-                            B = B)
+                            B = B, 
+                            self$params)
         
         if (!is.null(self$level))
           # prediction intervals requested
@@ -526,88 +522,6 @@ Classifier <-
           return(score(fit_obj$predict(X_test), y_test))
         }
         
-      },
-      summary = function(X,
-                         level = 95,
-                         show_progress = TRUE,
-                         cl = NULL) {
-        if (is.null(self$engine) || is.null(self$model))
-          stop(paste0(self$name, " must be fitted first (use ", self$name, "$fit())"))
-        
-        if (is_package_available("skimr") == FALSE)
-        {
-          utils::install.packages("skimr")
-        }
-        
-        deriv_column <- function(ix)
-        {
-          zero <- 1e-4
-          eps_factor <- zero ^ (1 / 3)
-          X_plus <- X
-          X_minus <- X
-          X_ix <- X[, ix]
-          cond <- abs(X_ix) > zero
-          h <- eps_factor * X_ix * cond + zero * (!cond)
-          X_plus[, ix] <- X_ix + h
-          X_minus[, ix] <- X_ix - h
-          derived_column <-
-            try((self$predict(as.matrix(X_plus)) - self$predict(as.matrix(X_minus))) /
-                  (2 * h), silent = TRUE)
-          if (inherits(derived_column, "try-error"))
-            derived_column <-
-            (self$predict(as.matrix(X_plus))$preds - self$predict(as.matrix(X_minus))$preds) /
-            (2 * h)
-          return (derived_column)
-        }
-        #deriv_column <- compiler::cmpfun(deriv_column)
-        
-        effects <- parfor(
-          what = deriv_column,
-          args = seq_len(ncol(X)),
-          show_progress = show_progress,
-          verbose = FALSE,
-          combine = cbind,
-          cl = cl
-        )
-        
-        names_X <- colnames(X)
-        if (!is.null(names_X))
-        {
-          colnames(effects) <- names_X
-        } else {
-          colnames(effects) <- paste0("V", seq_len(ncol(X)))
-        }
-        
-        foo_tests <- function(x)
-        {
-          res <- stats::t.test(x)
-          return(c(
-            as.numeric(res$estimate),
-            as.numeric(res$conf.int),
-            res$p.value
-          ))
-        }
-        
-        lower_signif_codes <- c(0, 0.001, 0.01, 0.05, 0.1)
-        upper_signif_codes <- c(0.001, 0.01, 0.05, 0.1, 1)
-        signif_codes <- c("***", "**", "*", ".", "")
-        choice_signif_code <-
-          function(x)
-            signif_codes[which.max((lower_signif_codes <= x) * (upper_signif_codes > x))]
-        ttests <-
-          try(data.frame(t(apply(effects, 2, foo_tests))), silent = TRUE)
-        if (!inherits(ttests, "try-error"))
-        {
-          colnames(ttests) <- c("estimate", "lower", "upper", "p-value")
-          ttests$signif <-
-            sapply(ttests[, 3], choice_signif_code) # p-values signif.
-          return(list(ttests = ttests,
-                      effects = my_skim(effects)))
-        } else {
-          return(my_skim(effects))
-        }
-        
-        
       }
     )
   )
@@ -622,31 +536,40 @@ fit_multitaskregressor <- function(x,
                                               "glmnet",
                                               "kernelridge",
                                               "ranger",
-                                              "ridge"),
+                                              "ridge", 
+                                              "xgboost"),
                                    show_progress = FALSE,
                                    ...) {
   n_classes <- length(unique(y))
   class_names <- as.character(levels(unique(y)))
-  method <- match.arg(method)
+  regressor_choice <- match.arg(method)
   Y <- as.matrix(one_hot(y))
   if (ncol(Y) != n_classes)
     stop("The number classes in y must be equal to the number of classes")
   obj <- switch(
-    method,
-    bcn = bcn::bcn,
-    extratrees = fit_func_extratrees_regression,
-    glmnet = glmnet::glmnet,
-    kernelridge = fit_matern32_regression,
-    ranger = fit_func_ranger_regression,
+    regressor_choice,
+    lm = function(x, y, ...)
+      stats::.lm.fit(x, y),
+    ranger = function(x, y, ...) fit_func_ranger_regression(x, y, ...),
+    extratrees = function(x, y, ...) fit_func_extratrees_regression(x, y, ...),
     ridge = function(x, y, ...)
       fit_ridge_regression(x, y,
                            lambda = 10 ^ seq(-10, 10,
-                                             length.out = 100), ...)
+                                             length.out = 100), ...),
+    bcn = function(x, y, ...)
+      bcn::bcn(x, y, ...),
+    glmnet = function(x, y, ...)
+      glmnet::glmnet(x, y, ...),
+    krr = function(x, y, ...)
+      fit_matern32_regression(x, y,
+                              ...),
+    xgboost = function(x, y, ...)
+      fit_xgboost_regression(x, y, ...)
   )
   res <- vector("list", length = n_classes)
   names(res) <- class_names
   for (i in 1:n_classes) {
-    res[[i]] <- obj(x, Y[, i], ...)
+    res[[i]] <- obj(x = x, y = Y[, i], ...)
   }
   return(res)
 }
@@ -659,7 +582,8 @@ predict_multitaskregressor <- function(objs,
                                                   "glmnet",
                                                   "kernelridge",
                                                   "ranger",
-                                                  "ridge")) {
+                                                  "ridge", 
+                                                  "xgboost")) {
   method <- match.arg(method)
   predict_func <- switch(
     method,
