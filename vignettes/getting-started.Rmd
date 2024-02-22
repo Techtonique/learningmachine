@@ -385,6 +385,51 @@ mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 ```
 
 
+```{r fig.width=7.2}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train, nrounds=10, verbose=FALSE,  
+        pi_method = "kdesplitconformal")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+
+obj$set_level(95)
+res <- obj$predict(X = X_test)
+
+plot(c(y_train, res$preds), type='l',
+     main="",
+     ylab="",
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
+lines(c(y_train, res$upper), col="gray60")
+lines(c(y_train, res$lower), col="gray60")
+lines(c(y_train, res$preds), col = "red")
+lines(c(y_train, y_test), col = "blue")
+
+mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
+```
+
+
+```{r fig.width=7.2}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train, nrounds=10, verbose=FALSE,  
+        pi_method = "bootjackknifeplus")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+
+obj$set_level(95)
+res <- obj$predict(X = X_test)
+
+plot(c(y_train, res$preds), type='l',
+     main="",
+     ylab="",
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
+lines(c(y_train, res$upper), col="gray60")
+lines(c(y_train, res$lower), col="gray60")
+lines(c(y_train, res$preds), col = "red")
+lines(c(y_train, y_test), col = "blue")
+
+mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
+```
+
 
 # 2 - classification
 
@@ -532,7 +577,7 @@ y <- breast_cancer$Class
 X <- as.matrix(model.matrix(Class ~., 
                             data=breast_cancer)[,-1])
 rownames(X) <- NULL
-colnames(X) <- paste0("X", seq_len(ncol(X)))
+colnames(X) <- base::gsub(pattern = "\\.|\\^", replacement = "_", colnames(X))
 
 n <- nrow(X)
 p <- ncol(X)
@@ -569,10 +614,10 @@ caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
 obj$summary(X_test, y=y_test, class_name = "malignant", show_progress=FALSE)
 ```
 
-**`xgboost`**
+**`krr`**
 
 ```{r}
-obj <- learningmachine::Classifier$new(method = "xgboost")
+obj <- learningmachine::Classifier$new(method = "krr")
 obj$get_type()
 obj$get_name()
 ```

@@ -218,8 +218,7 @@ Regressor <-
       predict = function(X,
                          level = NULL,
                          ...) {
-        if (identical(self$pi_method, "none") &&
-            (is.null(self$model) || is.null(self$engine)))
+        if (is.null(self$model) || is.null(self$engine))
           stop(
             paste0(
               self$name,
@@ -238,7 +237,7 @@ Regressor <-
           # no prediction interval
           return(preds)
         } else {
-          # prediction intervals
+          # prediction intervals and predictive simulations
           if (!is.null(self$level) &&
               !is.null(level) && self$level != level)
           {
@@ -256,103 +255,79 @@ Regressor <-
             self$set_level(level)
           }
           
-          if (self$pi_method %in% c("jackknifeplus", "kdejackknifeplus"))
+          if (self$pi_method %in% c("splitconformal", 
+                                    "jackknifeplus"))
           {
-            if (identical(self$pi_method, "jackknifeplus"))
-            {
-              quantile_absolute_residuals <-
-                quantile_scp(private$abs_calib_resids,
-                             alpha = (1 - self$level / 100))
-              return(
-                list(
-                  preds = preds,
-                  lower = preds - quantile_absolute_residuals,
-                  upper = preds + quantile_absolute_residuals
-                )
+            quantile_absolute_residuals <-
+              quantile_scp(private$abs_calib_resids,
+                           alpha = (1 - self$level / 100))
+            return(
+              list(
+                preds = preds,
+                lower = preds - quantile_absolute_residuals,
+                upper = preds + quantile_absolute_residuals
               )
-            }
-            
-            if (identical(self$pi_method, "kdejackknifeplus"))
-            {
-              scaled_raw_residuals <-
-                scale(private$calib_resids,
-                      center = TRUE,
-                      scale = TRUE)
-              sd_raw_residuals <- sd(private$calib_resids)
-              simulated_raw_calibrated_residuals <-
-                rgaussiandens(
-                  private$calib_resids,
-                  n = length(preds),
-                  p = self$B,
-                  seed = self$seed
-                )
-              sims <-
-                replicate(self$B, preds) + sd_raw_residuals * simulated_raw_calibrated_residuals
-              preds_lower <-
-                apply(sims, 1, function(x)
-                  quantile(x, probs = (1 - self$level / 100) / 2))
-              preds_upper <-
-                apply(sims, 1, function(x)
-                  quantile(x, probs = 1 - (1 - self$level / 100) / 2))
-              return(list(
-                preds = apply(sims, 1, mean),
-                sims = sims,
-                lower = preds_lower,
-                upper = preds_upper
-              ))
-            }
+            )
           }
           
-          if (self$pi_method %in% c("splitconformal", "kdesplitconformal"))
+          if (self$pi_method %in% c("kdejackknifeplus",
+                                    "bootjackknifeplus",
+                                    "surrjackknifeplus",
+                                    "kdesplitconformal",
+                                    "bootsplitconformal",
+                                    "surrsplitconformal"))
           {
-            if (identical(self$pi_method, "splitconformal"))
+            scaled_raw_residuals <- scale(private$calib_resids, 
+                                          center = TRUE,
+                                          scale = TRUE)
+            sd_raw_residuals <- sd(private$calib_resids)
+            
+            set.seed(self$seed)
+            
+            if (self$pi_method %in% c("kdejackknifeplus", "kdesplitconformal"))
             {
-              quantile_absolute_residuals <-
-                quantile_scp(private$abs_calib_resids,
-                             alpha = (1 - self$level / 100))
-              return(
-                list(
-                  preds = preds,
-                  lower = preds - quantile_absolute_residuals,
-                  upper = preds + quantile_absolute_residuals
-                )
+              simulated_raw_calibrated_residuals <- rgaussiandens(
+                private$calib_resids,
+                n = length(preds),
+                p = self$B,
+                seed = self$seed
               )
             }
             
-            if (identical(self$pi_method, "kdesplitconformal"))
+            if (self$pi_method %in% c("bootjackknifeplus", "bootsplitconformal"))
             {
-              scaled_calibrated_residuals <-
-                base::scale(private$calib_resids,
-                            center = TRUE,
-                            scale = TRUE)
-              sd_calibrated_residuals <- sd(private$calib_resids)
-              simulated_scaled_calibrated_residuals <-
-                rgaussiandens(
-                  scaled_calibrated_residuals,
-                  n =
-                    length(preds),
-                  p =
-                    self$B,
-                  seed =
-                    self$seed
-                )
-              matrix_preds <- replicate(self$B, preds)
-              sims <-
-                matrix_preds + sd_calibrated_residuals * simulated_scaled_calibrated_residuals
-              preds_lower <-
-                apply(sims, 1, function(x)
-                  quantile(x, probs = (1 - self$level / 100) / 2))
-              preds_upper <-
-                apply(sims, 1, function(x)
-                  quantile(x, probs = 1 - (1 - self$level / 100) / 2))
-              return(list(
-                preds = apply(sims, 1, mean),
-                sims = sims,
-                lower = preds_lower,
-                upper = preds_upper
-              ))
+              simulated_raw_calibrated_residuals <- replicate(self$B, 
+                                                             base::sample(x = private$calib_resids, 
+                                                                          size=length(preds), 
+                                                                          replace = TRUE))
             }
             
+            if (self$pi_method %in% c("surrsplitconformal", "surrjackknifeplus"))
+            {
+              if (length(preds) > length(private$calib_resids))
+              {
+                stop("For surrogates, must have number of predictions < number of training observations")
+              }
+              simulated_raw_calibrated_residuals <- tseries::surrogate(
+                x = private$calib_resids,
+                ns = self$B
+              )[seq_along(preds), ]
+            }
+            
+            sims <-
+              replicate(self$B, preds) + sd_raw_residuals * simulated_raw_calibrated_residuals
+            preds_lower <-
+              apply(sims, 1, function(x)
+                quantile(x, probs = (1 - self$level / 100) / 2))
+            preds_upper <-
+              apply(sims, 1, function(x)
+                quantile(x, probs = 1 - (1 - self$level / 100) / 2))
+            return(list(
+              preds = apply(sims, 1, mean),
+              sims = sims,
+              lower = preds_lower,
+              upper = preds_upper
+            ))
           }
         }
       },
@@ -369,9 +344,9 @@ Regressor <-
                              level = NULL,
                              pi_method = c(
                                "splitconformal",
+                               "jackknifeplus",
                                "kdesplitconformal",
                                "bootsplitconformal",
-                               "jackknifeplus",
                                "kdejackknifeplus",
                                "bootjackknifeplus",
                                "surrsplitconformal",
@@ -383,6 +358,7 @@ Regressor <-
                              ...) {
         stopifnot(pct_train >= 0.4 && pct_train < 1)
         stopifnot(length(y) == nrow(X))
+        
         if (!is.null(level) && level != self$level)
         {
           warning(paste0(
@@ -393,6 +369,12 @@ Regressor <-
           ))
           self$level <- level
         }
+        
+        if (is.null(self$level) && !is.null(level))
+        {
+          self$level <- level
+        }
+        
         self$params <- list(...)
         pi_method <- match.arg(pi_method)
         set.seed(seed)
@@ -413,11 +395,12 @@ Regressor <-
         if (!is.null(self$level))
           # prediction intervals requested
         {
-          res <- fit_obj$predict(X_test)
+          res <- fit_obj$predict(X_test, level = self$level)
           
           if ((graph == TRUE) &&
               (!is.factor(y))) {
-            y_values <- c(y_train, res$preds)
+            y_values <- c(y_train, 
+                          res$preds)
             y_upper <-
               c(y_train, res$upper)
             y_lower <-
