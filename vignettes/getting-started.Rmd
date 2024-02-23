@@ -594,6 +594,8 @@ y_test <- y[-index_train]
 obj <- learningmachine::Classifier$new(method = "extratrees")
 obj$get_type()
 obj$get_name()
+obj$get_method()
+obj$get_level()
 ```
 
 ```{r}
@@ -635,4 +637,27 @@ print(obj)
 
 ```{r}
 caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
+```
+
+** level=95**
+
+```{r}
+obj <- learningmachine::Classifier$new(method = "extratrees", level = 95)
+obj$get_type()
+obj$get_name()
+```
+
+```{r}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r}
+(preds_set <- obj$predict(X_test))
+```
+
+```{r}
+caret::confusionMatrix(data = as.factor(unlist(preds_set)), 
+                       reference = y_test)
 ```

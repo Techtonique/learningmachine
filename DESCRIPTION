@@ -1,11 +1,11 @@
 Package: learningmachine
 Type: Package
-Title: Machine Learning with uncertainty quantification and explanations    
+Title: Machine Learning with explanations and uncertainty quantification     
 Version: 1.0.0
 Date: 2024-02-24
 Author: T. Moudiki
 Maintainer: T. Moudiki <thierry.moudiki@gmail.com>
-Description: Machine Learning Models with uncertainty quantification and explanations.
+Description: Regression-based Machine Learning with explanations and uncertainty quantification.
 License: BSD_3_clause + file LICENSE
 Imports: Rcpp (>= 1.0.10), R6
 Depends: tseries

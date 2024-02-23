@@ -6,7 +6,6 @@ Regressor <-
     classname = "Regressor",
     inherit = learningmachine::Base,
     private = list(
-      y = NULL,
       type_split = NULL,
       calib_resids = NULL,
       abs_calib_resids = NULL
@@ -286,20 +285,18 @@ Regressor <-
             
             if (self$pi_method %in% c("kdejackknifeplus", "kdesplitconformal"))
             {
-              simulated_raw_calibrated_residuals <- rgaussiandens(
-                private$calib_resids,
-                n = length(preds),
-                p = self$B,
-                seed = self$seed
-              )
+              simulated_raw_calibrated_residuals <- rgaussiandens(x = private$calib_resids,
+                                                                  n = length(preds),
+                                                                  p = self$B,
+                                                                  seed = self$seed)
             }
             
             if (self$pi_method %in% c("bootjackknifeplus", "bootsplitconformal"))
             {
-              simulated_raw_calibrated_residuals <- replicate(self$B, 
-                                                             base::sample(x = private$calib_resids, 
-                                                                          size=length(preds), 
-                                                                          replace = TRUE))
+              simulated_raw_calibrated_residuals <- rbootstrap(x = private$calib_resids,
+                                                               n = length(preds),
+                                                               p = self$B,
+                                                               seed = self$seed)
             }
             
             if (self$pi_method %in% c("surrsplitconformal", "surrjackknifeplus"))
@@ -308,10 +305,10 @@ Regressor <-
               {
                 stop("For surrogates, must have number of predictions < number of training observations")
               }
-              simulated_raw_calibrated_residuals <- tseries::surrogate(
-                x = private$calib_resids,
-                ns = self$B
-              )[seq_along(preds), ]
+              simulated_raw_calibrated_residuals <- rsurrogate(x = private$calib_resids,
+                                                               n = length(preds),
+                                                               p = self$B,
+                                                               seed = self$seed)
             }
             
             sims <-

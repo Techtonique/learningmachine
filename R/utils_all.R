@@ -53,6 +53,16 @@ compute_pis <- function(x, alpha) {
     sims = x
   ))
 }
+#compute_pis <- memoise::memoize(compute_pis)
+
+# compute scores for conformal "score" method -----
+compute_scores <- function(probs, y_calibration_sc) {
+  probs_calibration_sc <- probs*y_calibration_sc
+  true_idx <- sapply(1:nrow(probs), 
+                     function(i) which(probs_calibration_sc[i, ] > 0))
+  f <- sapply(seq_len(nrow(probs)), function(i) (probs[i, true_idx[i]]))
+  return(1 - f)
+}
 
 # prehistoric stuff -----
 debug_print <- function(x) {
@@ -66,14 +76,27 @@ debug_print <- function(x) {
 decode_factors <- function(numeric_factor, encoded_factors) {
   encoded_factors <- encoded_factors$encoded_factors
   n_levels <- length(encoded_factors)
-  stopifnot(n_levels == length(encoded_factors))
   res <-
     sapply(
       numeric_factor,
       FUN = function(i)
         encoded_factors[[i]]
     )
-  factor(res, levels = as.character(unlist(encoded_factors)))
+  factor(res, 
+         levels = as.character(unlist(encoded_factors)))
+}
+
+decode_factors2 <- function(numeric_factor_list) {
+  res <- sapply(numeric_factor_list, function(elt) {
+    ans <- names(elt)
+    if(is.null(ans))
+    {
+      return(elt)
+    } else {
+      return(ans)
+    }
+  })
+  return(res)
 }
 
 # Correspondance factors -----
@@ -92,6 +115,23 @@ encode_factors <- function(y) {
 expit <- function(x) {
   1 / (1 + exp(-x))
 }
+
+
+# get classes index -----
+get_classes_idx <- function(new_probs, q_threshold, level) {
+  n_obs <- nrow(new_probs)
+  res <- vector("list", n_obs)
+  for (i in seq_len(n_obs))
+  {
+    ans <- which(new_probs[i, ] >= (1 - q_threshold))
+    if(length(names(ans)))
+    { 
+      res[[i]] <- ans 
+    } 
+  }
+  return(res)
+}
+
 
 # get jackknife residuals -----
 get_jackknife_residuals <-
@@ -121,6 +161,27 @@ get_key_by_value <- function(list_, value) {
     return(res + 1)
   }
   return(as.numeric(keys[which(values == value)][1]))
+}
+
+# get threshold for score conformal classification -----
+get_threshold <- function(probs, y_calibration_sc, level) {
+  scores <- compute_scores(probs, y_calibration_sc)
+  return(quantile_scores(scores, 
+                         level))
+}
+
+# impute classes when conformal classification finds NULL -----
+impute_classes <- function(list_classes, probs)
+{
+  n_obs <- length(list_classes)
+  for (i in seq_len(n_obs))
+  {
+    if (is.null(list_classes[[i]]))
+    {
+      list_classes[[i]] <- names(which.max(probs[i, ]))
+    }
+  }
+  return(list_classes)
 }
 
 # Check if package is available -----
@@ -295,6 +356,16 @@ permutation_test <- function(x, y,
 }
 
 # Quantile split conformal prediction -----
+
+# classification
+quantile_scores <- function(x, level) {
+  alpha <- 1 - level/100
+  n <- length(x)
+  q_level <- ceiling((n + 1)*(1 - alpha))/n
+  quantile(x, q_level)
+}
+
+# regression
 quantile_scp <- function(abs_residuals, alpha) {
   n_cal_points <- length(abs_residuals)
   k <- ceiling((0.5 * n_cal_points + 1) * (1 - alpha))
@@ -371,18 +442,24 @@ rsurrogate <- function(x,
                        n = length(x),
                        p = 1,
                        seed = 123) {
+  if (n > length(x))
+  {
+    stop("For surrogates, must have number of predictions < number of training observations")
+  }
   if (p <= 1)
   {
     set.seed(seed)
-    return(tseries::surrogate(x, ns = p,
-                              fft = TRUE))
+    res <- tseries::surrogate(x, ns = p,
+                              fft = TRUE)
+    return(res[seq_len(n), ])
   } else {
-    return(sapply(1:p,
+    res <- sapply(1:p,
                   function(i) {
                     set.seed(seed + i - 1)
                     tseries::surrogate(x, ns = p,
                                        fft = TRUE)
-                  }))
+                  })
+    return(res[seq_len(n), ])
   }
 }
 
