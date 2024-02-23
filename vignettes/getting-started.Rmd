@@ -641,6 +641,8 @@ caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
 
 **level=95**
 
+**Breast Cancer**
+
 ```{r}
 obj <- learningmachine::Classifier$new(method = "krr", level = 95)
 obj$get_type()
@@ -666,3 +668,126 @@ caret::confusionMatrix(data = as.factor(unlist(preds_set)),
 obj$summary(X_test, y=y_test, class_name = "malignant", 
             show_progress=FALSE)
 ```
+
+**iris**
+
+```{r}
+X <- as.matrix(iris[,-5])
+y <- iris$Species
+```
+
+```{r}
+set.seed(123)
+(index_train <- base::sample.int(n = nrow(X),
+                                 size = floor(0.8*nrow(X)),
+                                 replace = FALSE))
+X_train <- X[index_train, ]
+y_train <- y[index_train]
+X_test <- X[-index_train, ]
+y_test <- y[-index_train]
+dim(X_train)
+dim(X_test)
+```
+
+```{r}
+obj <- learningmachine::Classifier$new(method = "ranger", level = 90)
+obj$get_type()
+obj$get_name()
+```
+
+```{r}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r}
+(preds_set <- obj$predict(X_test))
+```
+
+```{r}
+caret::confusionMatrix(data = as.factor(unlist(preds_set)), 
+                       reference = y_test)
+```
+
+```{r}
+obj$summary(X_test, y=y_test, class_name = "setosa", 
+            show_progress=FALSE)
+```
+
+**penguins**
+
+```{r}
+data(penguins)
+```
+
+```{r}
+penguins_ <- as.data.frame(palmerpenguins::penguins)
+
+replacement <- median(penguins$bill_length_mm, na.rm = TRUE)
+penguins_$bill_length_mm[is.na(penguins$bill_length_mm)] <- replacement
+
+replacement <- median(penguins$bill_depth_mm, na.rm = TRUE)
+penguins_$bill_depth_mm[is.na(penguins$bill_depth_mm)] <- replacement
+
+replacement <- median(penguins$flipper_length_mm, na.rm = TRUE)
+penguins_$flipper_length_mm[is.na(penguins$flipper_length_mm)] <- replacement
+
+replacement <- median(penguins$body_mass_g, na.rm = TRUE)
+penguins_$body_mass_g[is.na(penguins$body_mass_g)] <- replacement
+
+# replacing NA's by the most frequent occurence
+penguins_$sex[is.na(penguins$sex)] <- "male" # most frequent
+
+print(summary(penguins_))
+print(sum(is.na(penguins_)))
+
+# one-hot encoding for covariates
+penguins_mat <- model.matrix(species ~., data=penguins_)[,-1]
+penguins_mat <- cbind(penguins_$species, penguins_mat)
+penguins_mat <- as.data.frame(penguins_mat)
+colnames(penguins_mat)[1] <- "species"
+
+print(head(penguins_mat))
+print(tail(penguins_mat))
+
+y <- palmerpenguins::penguins$species
+X <- as.matrix(penguins_mat[,2:ncol(penguins_mat)])
+
+n <- nrow(X)
+p <- ncol(X)
+
+set.seed(1234)
+index_train <- sample(1:n, size=floor(0.8*n))
+X_train <- X[index_train, ]
+y_train <- y[index_train]
+X_test <- X[-index_train, ]
+y_test <- y[-index_train]
+```
+
+```{r}
+obj <- learningmachine::Classifier$new(method = "extratrees", level = 90)
+obj$get_type()
+obj$get_name()
+```
+
+```{r}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r}
+(preds_set <- obj$predict(X_test))
+```
+
+```{r}
+caret::confusionMatrix(data = as.factor(unlist(preds_set)), 
+                       reference = y_test)
+```
+
+```{r}
+obj$summary(X_test, y=y_test, class_name = "Adelie", 
+            show_progress=FALSE)
+```
+
