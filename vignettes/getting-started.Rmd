@@ -639,10 +639,10 @@ print(obj)
 caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
 ```
 
-** level=95**
+**level=95**
 
 ```{r}
-obj <- learningmachine::Classifier$new(method = "extratrees", level = 95)
+obj <- learningmachine::Classifier$new(method = "krr", level = 95)
 obj$get_type()
 obj$get_name()
 ```
@@ -660,4 +660,9 @@ cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```{r}
 caret::confusionMatrix(data = as.factor(unlist(preds_set)), 
                        reference = y_test)
+```
+
+```{r}
+obj$summary(X_test, y=y_test, class_name = "malignant", 
+            show_progress=FALSE)
 ```

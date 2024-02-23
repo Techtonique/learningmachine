@@ -64,6 +64,17 @@ compute_scores <- function(probs, y_calibration_sc) {
   return(1 - f)
 }
 
+coverage_rate_classifier <- function(y_test, preds_set_list) {
+  n <- length(y_test)
+  stopifnot(n == length(preds_set_list))
+  res <- rep(0, n)
+  for (i in seq_len(n))
+  {
+    res[i] <- (y_test[i] %in% preds_set_list[[i]])+0
+  }
+  return(mean(res)*100)
+}
+
 # prehistoric stuff -----
 debug_print <- function(x) {
   cat("\n")
@@ -362,7 +373,7 @@ quantile_scores <- function(x, level) {
   alpha <- 1 - level/100
   n <- length(x)
   q_level <- ceiling((n + 1)*(1 - alpha))/n
-  quantile(x, q_level)
+  return(stats::quantile(x, probs=q_level))
 }
 
 # regression

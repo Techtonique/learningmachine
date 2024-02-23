@@ -24,7 +24,7 @@ Classifier <-
       y_train = NULL,
       pi_method = NULL,
       level = NULL,
-      type_set = "score",
+      type_prediction_set = "score",
       B = NULL,
       engine = NULL,
       params = NULL,
@@ -37,7 +37,7 @@ Classifier <-
                             y_train = NULL,
                             pi_method = NULL,
                             level = NULL,
-                            type_set = "score",
+                            type_prediction_set = "score",
                             B = NULL,
                             engine = NULL,
                             params = NULL,
@@ -56,13 +56,13 @@ Classifier <-
           params = params,
           seed = seed
         )
-        self$type_set <- type_set
+        self$type_prediction_set <- type_prediction_set
       },
-      get_type_set = function() {
-        self$type_set
+      get_type_prediction_set = function() {
+        self$type_prediction_set
       },
-      set_type_set = function(type_set) {
-        self$type_set <- type_set
+      set_type_prediction_set = function(type_prediction_set) {
+        self$type_prediction_set <- type_prediction_set
       },
       fit = function(X,
                      y,
@@ -269,6 +269,12 @@ Classifier <-
           
         } else { # !is.null(level) || !is.null(self$level)
           
+          res <- list()
+          res$preds <- NULL # predictions sets with given 'level'
+          res$lower <- NULL # upon request
+          res$upper <- NULL # upon request
+          res$sims <- NULL # upon request
+          
           # prediction sets with given 'level'
           if (is.null(self$level) && !is.null(level))
           {
@@ -289,109 +295,16 @@ Classifier <-
             self$set_level(level)
           }
           
-          if (self$type_set == "score")
+          if (self$type_prediction_set == "score")
           {
             ix_list <- get_classes_idx(probs, 
                                   private$q_threshold, 
                                   self$level)
             list_classes <- decode_factors2(ix_list)
-            return(impute_classes(list_classes, probs))
+            res$preds <- impute_classes(list_classes, probs)
+            return(res)
           }
         }
-      },
-      fit_predict = function(X,
-                             y,
-                             pct_train = 0.8,
-                             score = ifelse(
-                               is.factor(y),
-                               yes = function(preds, y_test)
-                                 mean(preds == y_test),
-                               no = function(preds, y_test)
-                                 sqrt(mean((preds - y_test) ^ 2))
-                             ),
-                             level = NULL,
-                             pi_method = c(
-                               "splitconformal",
-                               "kdesplitconformal",
-                               "bootsplitconformal",
-                               "jackknifeplus",
-                               "kdejackknifeplus",
-                               "bootjackknifeplus",
-                               "surrsplitconformal",
-                               "surrjackknifeplus"
-                             ),
-                             B = 100,
-                             seed = 123,
-                             graph = FALSE,
-                             ...) {
-        stopifnot(pct_train >= 0.4 && pct_train < 1)
-        stopifnot(length(y) == nrow(X))
-        if (!is.null(level) && level != self$level)
-        {
-          warning(paste0(
-            "attribute 'level' has been set to ",
-            level,
-            " instead of ",
-            self$level
-          ))
-          self$level <- level
-        }
-        self$params <- list(...)
-        pi_method <- match.arg(pi_method)
-        set.seed(seed)
-        train_index <-
-          caret::createDataPartition(y, p = pct_train)$Resample1
-        X_train <-
-          as.matrix(X[train_index, ])
-        y_train <- y[train_index]
-        X_test <-
-          as.matrix(X[-train_index, ])
-        y_test <- y[-train_index]
-        
-        fit_obj <- self$fit(X_train,
-                            y_train,
-                            pi_method = pi_method,
-                            B = B,
-                            self$params)
-        
-        if (!is.null(self$level))
-          # prediction intervals requested
-        {
-          res <- fit_obj$predict(X_test)
-          
-          if ((graph == TRUE)) {
-            warning("Nothing to plot here")
-          }
-          
-          # results ------
-          results <- list()
-          results$res <- res
-          
-          # point prediction
-          results$score <-
-            score(res$preds, y_test)
-          
-          # probabilistic prediction (can use res$lower, res$upper, and res$sims if method is kdejackknifeplus or kdesplitconformal)
-          try_res <-
-            try(score(res, y_test), silent = TRUE)
-          if (!inherits(try_res, "try-error"))
-          {
-            results$score <- try_res
-          }
-          
-          results$level <- level
-          results$pi_method <- pi_method
-          results$B <- B
-          results$coverage <-
-            mean(y_test >= res$lower & y_test <= res$upper) * 100
-          results$length <-
-            mean(res$upper - res$lower)
-          
-          return(results)
-        } else {
-          return(score(fit_obj$predict(X_test), y_test))
-        }
-        
       }
     )
   )

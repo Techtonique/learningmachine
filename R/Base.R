@@ -206,24 +206,15 @@ Base <-
                          silent = TRUE)
             if (inherits(y_hat, "try-error"))
               y_hat <- self$predict(as.matrix(X))
-            Residuals <- suppressWarnings(y - y_hat)
-            R_squared <- suppressWarnings(1 - sum((y - y_hat) ^ 2) / sum((y - mean(y)) ^ 2))
             if (!is.null(self$level))
             {
-              winkler_score_ <- suppressWarnings(winkler_score(obj = preds,
-                                              actual = y,
-                                              level = self$level))
-              coverage_rate <-
-                suppressWarnings(mean(y >= preds$lower & y <= preds$upper) * 100)
+              coverage_rate <- coverage_rate_classifier(y_test = y, 
+                                                        preds_set_list = preds$preds)
             } else {
-              winkler_score_ <- NULL
               coverage_rate <- NULL
             }
             return(
               list(
-                R_squared = R_squared,
-                Residuals = summary(Residuals),
-                Winkler_score = winkler_score_,
                 Coverage_rate = coverage_rate,
                 ttests = ttests,
                 effects = my_skim(effects)
