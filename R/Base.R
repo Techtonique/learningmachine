@@ -1,4 +1,5 @@
 
+
 # 1 - Class Base --------------------------------------------------------------
 
 Base <-
@@ -108,8 +109,8 @@ Base <-
                          class_name = NULL,
                          y = NULL,
                          cl = NULL) {
-        
-        if (is.null(self$engine) || is.null(self$model) || is.null(self$type))
+        if (is.null(self$engine) ||
+            is.null(self$model) || is.null(self$type))
           stop(paste0(self$name, " must be fitted first (use ", self$name, "$fit())"))
         
         if (is_package_available("skimr") == FALSE)
@@ -135,14 +136,17 @@ Base <-
                     (2 * h), silent = TRUE)
             if (inherits(derived_column, "try-error"))
               derived_column <-
-              100*(self$predict(as.matrix(X_plus))$preds - self$predict(as.matrix(X_minus))$preds) /
+              100 * (self$predict(as.matrix(X_plus))$preds - self$predict(as.matrix(X_minus))$preds) /
               (2 * h)
             return (derived_column)
           }
-        } else { # classification
+          
+        } else {
+          # classification
           stopifnot(!is.null(class_name))
-          class_index <- get_key_by_value(private$encoded_factors$encoded_factors, 
-                                          class_name)
+          class_index <-
+            get_key_by_value(private$encoded_factors$encoded_factors,
+                             class_name)
           deriv_column <- function(ix)
           {
             zero <- 1e-4
@@ -154,13 +158,16 @@ Base <-
             h <- eps_factor * X_ix * cond + zero * (!cond)
             X_plus[, ix] <- X_ix + h
             X_minus[, ix] <- X_ix - h
-            probs_plus <- self$predict_proba(as.matrix(X_plus))[, class_index]
-            probs_minus <- self$predict_proba(as.matrix(X_minus))[, class_index]
-            derived_column <- 100*(probs_plus - probs_minus) / (2 * h)
+            probs_plus <-
+              self$predict_proba(as.matrix(X_plus))[, class_index]
+            probs_minus <-
+              self$predict_proba(as.matrix(X_minus))[, class_index]
+            derived_column <-
+              100 * (probs_plus - probs_minus) / (2 * h)
             return (derived_column)
           }
         }
-          
+        
         effects <- parfor(
           what = deriv_column,
           args = seq_len(ncol(X)),
@@ -198,28 +205,57 @@ Base <-
         {
           colnames(ttests) <- c("estimate", "lower", "upper", "p-value")
           ttests$signif <-
-            sapply(ttests[, 3], choice_signif_code) # p-values signif.
+            sapply(ttests[, 4], choice_signif_code) # p-values signif.
           if (!is.null(y))
           {
             preds <- self$predict(as.matrix(X))
-            y_hat <- try(preds$preds,
-                         silent = TRUE)
-            if (inherits(y_hat, "try-error"))
-              y_hat <- self$predict(as.matrix(X))
             if (!is.null(self$level))
             {
-              coverage_rate <- coverage_rate_classifier(y_test = y, 
-                                                        preds_set_list = preds$preds)
-            } else {
-              coverage_rate <- NULL
+              if (self$type == "regression")
+              {
+                coverage_rate <- 100 * mean((y >= as.numeric(preds$lower)) * (y <= as.numeric(preds$upper)))
+                R_squared <- 1 - sum((y - preds$preds) ^ 2) / sum((y - mean(y)) ^ 2)
+                R_squared_adj <-
+                  1 - (1 - R_squared) * (length(y) - 1) / (length(y) - ncol(X) - 1)
+                Residuals <- y - preds$preds
+                return(list(
+                  R_squared = R_squared,
+                  R_squared_adj = R_squared_adj,
+                  Residuals = summary(Residuals),
+                  Coverage_rate = coverage_rate,
+                  ttests = ttests,
+                  effects = my_skim(effects)
+                ))
+              } else { # classification
+                return(list(
+                  Coverage_rate = coverage_rate_classifier(y, 
+                                                           preds$preds),
+                  ttests = ttests,
+                  effects = my_skim(effects)
+                ))
+              }
+            } else { # is.null(self$level)
+              if (self$type == "regression")
+              {
+                R_squared <- 1 - sum((y - preds) ^ 2) / sum((y - mean(y)) ^ 2)
+                R_squared_adj <-
+                  1 - (1 - R_squared) * (length(y) - 1) / (length(y) - ncol(X) - 1)
+                Residuals <- y - preds
+                return(list(
+                  R_squared = R_squared,
+                  R_squared_adj = R_squared_adj,
+                  Residuals = summary(Residuals),
+                  ttests = ttests,
+                  effects = my_skim(effects)
+                ))
+              } else { # classification
+                return(list(
+                  accuracy = mean(y == preds) * 100,
+                  ttests = ttests,
+                  effects = my_skim(effects)
+                ))
+              }
             }
-            return(
-              list(
-                Coverage_rate = coverage_rate,
-                ttests = ttests,
-                effects = my_skim(effects)
-              )
-            )
           } else {
             return(list(ttests = ttests,
                         effects = my_skim(effects)))

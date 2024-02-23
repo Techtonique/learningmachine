@@ -474,6 +474,10 @@ rsurrogate <- function(x,
   }
 }
 
+remove_nulls <- function(x) {
+  return(x[!is.null(x)])
+}
+
 # sort data frame -----
 sort_df <- function(df, by, decreasing = FALSE) {
   return(df[order(df[[by]], decreasing = decreasing), ])
