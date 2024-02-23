@@ -154,8 +154,8 @@ Base <-
             h <- eps_factor * X_ix * cond + zero * (!cond)
             X_plus[, ix] <- X_ix + h
             X_minus[, ix] <- X_ix - h
-            probs_plus <- self$predict_proba(as.matrix(X_plus))[, class_index]
-            probs_minus <- self$predict_proba(as.matrix(X_minus))[, class_index]
+            probs_plus <- 100*self$predict_proba(as.matrix(X_plus))[, class_index]
+            probs_minus <- 100*self$predict_proba(as.matrix(X_minus))[, class_index]
             derived_column <- (probs_plus - probs_minus) / (2 * h)
             return (derived_column)
           }

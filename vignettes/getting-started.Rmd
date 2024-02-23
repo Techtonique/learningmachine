@@ -766,7 +766,7 @@ y_test <- y[-index_train]
 ```
 
 ```{r}
-obj <- learningmachine::Classifier$new(method = "extratrees", level = 90)
+obj <- learningmachine::Classifier$new(method = "ridge", level = 90)
 obj$get_type()
 obj$get_name()
 ```
