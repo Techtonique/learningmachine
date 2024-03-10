@@ -130,8 +130,11 @@ Regressor <-
             y_pred_calibration <-
               self$engine$predict(self$model,  # notice the diff
                                   X_calibration_sc)
+            debug_print(y_calibration_sc)
+            debug_print(y_pred_calibration)
             private$calib_resids <-
               y_calibration_sc - y_pred_calibration
+            debug_print(private$calib_resids)
             private$abs_calib_resids <- abs(private$calib_resids)
           }
         }
@@ -479,8 +482,18 @@ fit_regressor <- function(x,
                                      "glmnet",
                                      "krr",
                                      "xgboost"),
+                          scaling = FALSE, 
                           ...) {
   regressor_choice <- match.arg(method)
+  if (scaling == TRUE)
+  {
+    scales <- scale_matrix(x)
+    xm <- scales$X_mean
+    xs <- scales$X_sd
+    x <- scales$X
+    ym <- mean(y)
+    y <- y - ym
+  }
   obj <- switch(
     regressor_choice,
     lm = function(x, y, ...)
@@ -501,7 +514,17 @@ fit_regressor <- function(x,
     xgboost = function(x, y, ...)
       fit_xgboost_regression(x, y, ...)
   )
-  return(obj(x = x, y = y, ...))
+  
+  res <- obj(x = x, y = y, ...)
+  res$scaling <- FALSE
+  if (scaling == TRUE)
+  {
+    res$scaling <- TRUE
+    res$xm <- xm
+    res$xs <- xs
+    res$ym <- ym
+  }
+  return(res)
 }
 
 
@@ -516,7 +539,11 @@ predict_regressor <- function(obj,
                                          "krr",
                                          "xgboost")) {
   method_choice <- match.arg(method)
-  
+  if (obj$scaling == TRUE)
+  {
+    X <- sweep(X, 2, obj$xm, "-")
+    X <- sweep(X, 2, obj$xs, "/")
+  }
   predict_func <- switch(
     method_choice,
     lm = function(object, X)
@@ -529,5 +556,9 @@ predict_regressor <- function(obj,
     ridge = predict_ridge_regression,
     xgboost = predict
   )
+  if (obj$scaling == TRUE)
+  {
+    return(predict_func(obj, X) + obj$ym)
+  }
   return(predict_func(obj, X))
 }

@@ -17,9 +17,11 @@ compute_probs_list <- function(x) {
       }
     }
   }
-  if (!is.null(names(x))) {
-    names(res) <- names(x)
-  }
+  
+  names_x <- try(names(x), silent = TRUE)
+  if(!inherits(names_x, "try-error"))
+    names(res) <- names_x
+  
   #res$sims <- x
   return(res)
 }
@@ -41,10 +43,12 @@ compute_pis <- function(x, alpha) {
         pmax(0, pmin(1, quantile(x[[j]][i, ], probs = 1 - alpha / 2)))
     }
   }
-  if (!is.null(names(x))) {
-    colnames(preds) <- names(x)
-    colnames(lower) <- names(x)
-    colnames(upper) <- names(x)
+  
+  names_x <- try(names(x), silent = TRUE)
+  if (!inherits(names_x, "try-error")) {
+    colnames(preds) <- names_x
+    colnames(lower) <- names_x
+    colnames(upper) <- names_x
   }
   return(list(
     preds = preds,
@@ -141,6 +145,14 @@ get_classes_idx <- function(new_probs, q_threshold, level) {
     } 
   }
   return(res)
+}
+
+
+# get expit probs -----
+expit_probs <- function(x) {
+  stopifnot(is.vector(x))
+  temp <- 1 / (1 + exp(-x))
+  temp/sum(temp)
 }
 
 
@@ -476,6 +488,15 @@ rsurrogate <- function(x,
 
 remove_nulls <- function(x) {
   return(x[!is.null(x)])
+}
+
+scale_matrix <- function(X)
+{
+  X_mean <- colMeans(X)
+  X_sd <- apply(X, 2, sd)
+  X <- sweep(X, 2, X_mean, "-")
+  X <- sweep(X, 2, X_sd, "/")
+  return(list(X = X, X_mean = X_mean, X_sd = X_sd))
 }
 
 # sort data frame -----

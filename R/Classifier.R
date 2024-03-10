@@ -258,22 +258,73 @@ Classifier <-
       },
       predict = function(X,
                          level = NULL) {
-        probs <- self$predict_proba(X)
         if (is.null(level) && is.null(self$level))
         {
+          probs <- self$predict_proba(X)
           numeric_factor <- apply(probs, 1, which.max)
-          res <- decode_factors(numeric_factor, 
-                                private$encoded_factors)
-          names(res) <- NULL
-          return(res)
-          
+          preds <- decode_factors(numeric_factor, 
+                                  private$encoded_factors)
+          names(preds) <- NULL
+          return(preds)
         } else { # !is.null(level) || !is.null(self$level)
+          raw_preds <- self$engine$predict(self$model, X)
+          scaled_raw_residuals <- scale(private$calib_resids, 
+                                        center = TRUE,
+                                        scale = TRUE)
+          sd_raw_residuals <- apply(private$calib_resids, 2, sd)
+          
+          set.seed(self$seed)
+          
+          if (self$pi_method %in% c("kdejackknifeplus", "kdesplitconformal"))
+          {
+            simulated_raw_calibrated_residuals <- lapply(seq_len(private$n_classes),
+                                                         function(i) rgaussiandens(x = private$calib_resids[, i],
+                                                                n = nrow(raw_preds),
+                                                                p = self$B,
+                                                                seed = self$seed))
+          }
+          
+          if (self$pi_method %in% c("bootjackknifeplus", "bootsplitconformal"))
+          {
+            simulated_raw_calibrated_residuals <- lapply(seq_len(private$n_classes),
+                                                         function(i) rbootstrap(x = private$calib_resids[, i],
+                                                             n = nrow(raw_preds),
+                                                             p = self$B,
+                                                             seed = self$seed))
+          }
+          
+          if (self$pi_method %in% c("surrsplitconformal", "surrjackknifeplus"))
+          {
+            if (nrow(raw_preds) > length(private$calib_resids))
+            {
+              stop("For surrogates, must have number of predictions < number of training observations")
+            }
+            simulated_raw_calibrated_residuals <- lapply(seq_len(private$n_classes),
+                                                         function(i) rsurrogate(x = private$calib_resids[, i],
+                                                             n = nrow(raw_preds),
+                                                             p = self$B,
+                                                             seed = self$seed))
+          }
+          sims <- lapply(seq_len(private$n_classes),
+                         function (i) replicate(self$B, 
+                                                raw_preds[,i]) + sd_raw_residuals[i] * simulated_raw_calibrated_residuals[[i]])
+          preds_lower <- lapply(seq_len(private$n_classes), function(i)
+            pmax(0, apply(sims[[i]], 1, function(x)
+              quantile(x, probs = (1 - self$level / 100) / 2))))
+          preds_upper <- lapply(seq_len(private$n_classes), function(i)
+            pmin(1, apply(sims[[i]], 1, function(x)
+              quantile(x, probs = 1 - (1 - self$level / 100) / 2))))
+          if(!is.null(private$class_names))
+          {
+            names(sims) <- private$class_names
+            names(preds_lower) <- private$class_names
+            names(preds_upper) <- private$class_names
+          }
           
           res <- list()
-          res$preds <- NULL # predictions sets with given 'level'
-          res$lower <- NULL # upon request
-          res$upper <- NULL # upon request
-          res$sims <- NULL # upon request
+          res$lower <- preds_lower
+          res$upper <- preds_upper
+          res$sims <- sims # upon request
           
           # prediction sets with given 'level'
           if (is.null(self$level) && !is.null(level))
@@ -314,7 +365,8 @@ Classifier <-
 
 fit_multitaskregressor <- function(x,
                                    y,
-                                   method = c("bcn",
+                                   method = c("lm",
+                                              "bcn",
                                               "extratrees",
                                               "glmnet",
                                               "krr",
@@ -362,7 +414,8 @@ fit_multitaskregressor <- function(x,
 
 predict_multitaskregressor <- function(objs,
                                        X,
-                                       method = c("bcn",
+                                       method = c("lm",
+                                                  "bcn",
                                                   "extratrees",
                                                   "glmnet",
                                                   "krr",
@@ -372,6 +425,7 @@ predict_multitaskregressor <- function(objs,
   method <- match.arg(method)
   predict_func <- switch(
     method,
+    lm = function(obj, X) X%*%obj$coefficients,
     bcn = bcn::predict.bcn,
     extratrees = predict_func_extratrees,
     glmnet = predict,
