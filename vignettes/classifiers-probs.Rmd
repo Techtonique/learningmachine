@@ -7,15 +7,29 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+
 ```{r}
-library(learningmachine)
-library(caret)
+rm(list=ls())
 ```
 
-# 1 - `BaseClassifier` classification
 
 ```{r}
-set.seed(123)
+library(ggridges)
+library(ggplot2)
+library(learningmachine)
+library(caret)
+library(palmerpenguins)
+library(mlbench)
+library(skimr)
+library(reshape2)
+library(pROC)
+library(reticulate)
+```
+
+# 1 - `Classifier` classification
+
+```{r}
+set.seed(43)
 X <- as.matrix(iris[, 1:4])
 # y <- factor(as.numeric(iris$Species))
 y <- iris$Species
@@ -30,52 +44,228 @@ y_test <- y[-index_train]
 dim(X_train)
 dim(X_test)
 
-obj <- learningmachine::BaseClassifier$new()
+obj <- learningmachine::Classifier$new(method = "ranger")
 obj$get_type()
 obj$get_name()
 
+obj$set_level(95)
 t0 <- proc.time()[3]
 obj$fit(X_train, y_train)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 
-print(obj$predict_proba(X_test, level=95))
+probs <- obj$predict_proba(X_test)
 ```
 
-```{r}
-obj$set_level(95)
-mean(obj$predict(X_test) == y_test)
-```
-
-```{r}
-caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
+```{rE}
+obj$summary(X_test, y=y_test, 
+            class_name = "setosa",
+            show_progress=FALSE)
 ```
 
 # 2 - `ranger` classification
 
 
 ```{r}
-obj <- learningmachine::MultiTaskClassifier$new(regressor = "ranger")
-
+obj <- learningmachine::Classifier$new(method = "ranger")
+obj$set_level(95)
 t0 <- proc.time()[3]
 obj$fit(X_train, y_train)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 
-print(obj$predict_proba(X_test, level=95))
+probs <- obj$predict_proba(X_test)
 ```
 
 ```{r}
-obj$set_level(95)
 mean(obj$predict(X_test) == y_test)
 ```
 
 ```{r}
-caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
+obj$set_pi_method("bootsplitconformal")
+(preds <- factor(unlist(obj$predict(X_test)$preds)))
+print(y_test)
 ```
 
 
+# 3 - `extratrees` classification
 
 
+```{r}
+obj <- learningmachine::Classifier$new(method = "extratrees")
+obj$set_level(95)
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train, 
+        pi_method = "bootsplitconformal")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r}
+probs <- obj$predict_proba(X_test)
+preds <- obj$predict(X_test)
+```
 
 
+# 3 - Penguins dataset
 
+```{r}
+data(penguins)
+```
+
+```{r}
+penguins_ <- as.data.frame(palmerpenguins::penguins)
+
+replacement <- median(penguins$bill_length_mm, na.rm = TRUE)
+penguins_$bill_length_mm[is.na(penguins$bill_length_mm)] <- replacement
+
+replacement <- median(penguins$bill_depth_mm, na.rm = TRUE)
+penguins_$bill_depth_mm[is.na(penguins$bill_depth_mm)] <- replacement
+
+replacement <- median(penguins$flipper_length_mm, na.rm = TRUE)
+penguins_$flipper_length_mm[is.na(penguins$flipper_length_mm)] <- replacement
+
+replacement <- median(penguins$body_mass_g, na.rm = TRUE)
+penguins_$body_mass_g[is.na(penguins$body_mass_g)] <- replacement
+
+# replacing NA's by the most frequent occurence
+penguins_$sex[is.na(penguins$sex)] <- "male" # most frequent
+
+print(summary(penguins_))
+print(sum(is.na(penguins_)))
+
+# one-hot encoding for covariates
+penguins_mat <- model.matrix(species ~., data=penguins_)[,-1]
+penguins_mat <- cbind(penguins_$species, penguins_mat)
+penguins_mat <- as.data.frame(penguins_mat)
+colnames(penguins_mat)[1] <- "species"
+
+print(head(penguins_mat))
+print(tail(penguins_mat))
+
+y <- as.integer(penguins_mat$species)
+X <- as.matrix(penguins_mat[,2:ncol(penguins_mat)])
+
+n <- nrow(X)
+p <- ncol(X)
+
+set.seed(1234)
+index_train <- sample(1:n, size=floor(0.8*n))
+X_train <- X[index_train, ]
+y_train <- factor(y[index_train])
+X_test <- X[-index_train, ]
+y_test <- factor(y[-index_train])
+```
+
+```{r}
+obj <- learningmachine::Classifier$new(method = "extratrees")
+obj$set_level(95)
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r eval=TRUE}
+probs <- obj$predict_proba(X_test)
+head(probs)
+```
+
+
+```{r}
+obj$set_pi_method("bootsplitconformal")
+obj$set_level(95)
+preds <- obj$predict(X_test)
+```
+
+# 4 - `mlbench` `BreastCancer` dataset
+
+```{r}
+library(mlbench)
+data(BreastCancer)
+```
+
+```{r}
+breast_cancer <- BreastCancer
+breast_cancer$Id <- NULL
+```
+
+```{r}
+replacement <- 10L
+breast_cancer$Bare.nuclei[is.na(breast_cancer$Bare.nuclei)] <- replacement
+breast_cancer$Bare.nuclei <- as.factor(as.integer(breast_cancer$Bare.nuclei))
+```
+
+```{r}
+y <- breast_cancer$Class
+X <- as.matrix(model.matrix(Class ~., 
+                            data=breast_cancer)[,-1])
+rownames(X) <- NULL
+colnames(X) <- paste0("X", seq_len(ncol(X)))
+
+n <- nrow(X)
+p <- ncol(X)
+
+set.seed(1234)
+index_train <- sample(1:n, size=floor(0.8*n))
+X_train <- X[index_train, ]
+y_train <- y[index_train]
+X_test <- X[-index_train, ]
+y_test <- y[-index_train]
+```
+
+```{r}
+obj <- learningmachine::Classifier$new(method = "extratrees")
+obj$set_level(95)
+obj$set_pi_method("kdesplitconformal")
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+
+**KDE**
+
+```{r}
+probs <- obj$predict_proba(X_test)
+preds <- obj$predict(X_test)
+```
+
+```{r fig.width=8, fig.height=4, eval=TRUE}
+df <- reshape2::melt(preds$sims$malignant[1:3, ])
+df$Var2 <- NULL 
+colnames(df) <- c("individual", "prob_malignant")
+df$individual <- as.factor(df$individual)
+ggplot2::ggplot(df, aes(x=individual, y=prob_malignant)) + geom_boxplot() + coord_flip()
+```
+
+```{r fig.width=8, fig.height=4, eval=TRUE}
+ggplot2::ggplot(df, aes(x=prob_malignant, fill=individual)) + geom_density(alpha=.3)
+```
+
+**Bootstrap**
+
+```{r eval=TRUE}
+obj <- learningmachine::Classifier$new(method = "ridge")
+obj$set_pi_method("bootsplitconformal")
+obj$set_level(95)
+obj$fit(X_train, y_train)
+probs <- obj$predict_proba(X_test)
+preds <- obj$predict(X_test)
+```
+
+
+```{r fig.width=8, fig.height=4, eval=TRUE}
+df2 <- reshape2::melt(preds$sims$malignant[1:3, ])
+df2$Var2 <- NULL 
+colnames(df2) <- c("individual", "prob_malignant")
+df2$individual <- as.factor(df$individual)
+ggplot2::ggplot(df2, aes(x=individual, y=prob_malignant)) + geom_boxplot() + coord_flip()
+```
+
+```{r fig.width=8, fig.height=4, eval=TRUE}
+ggplot2::ggplot(df2, aes(x=prob_malignant, fill=individual)) + geom_density(alpha=.3)
+```
+
+
+```{r}
+head(df)
+head(df2)
+```
 
