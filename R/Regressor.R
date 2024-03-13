@@ -130,11 +130,8 @@ Regressor <-
             y_pred_calibration <-
               self$engine$predict(self$model,  # notice the diff
                                   X_calibration_sc)
-            debug_print(y_calibration_sc)
-            debug_print(y_pred_calibration)
             private$calib_resids <-
               y_calibration_sc - y_pred_calibration
-            debug_print(private$calib_resids)
             private$abs_calib_resids <- abs(private$calib_resids)
           }
         }

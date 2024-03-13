@@ -1,30 +1,36 @@
 # Useful functions for learningmachine (alphabetical order)
 
 
-# compute list of all possible combinations -----
-compute_probs_list <- function(x) {
-  # do this in Rcpp /!\
-  n_x <- length(x)
-  n <- dim(x[[1]])[1]
-  B <- dim(x[[1]])[2]
-  res <- x
-  for (key in seq_len(n_x)) {
-    for (i in seq_len(n)) {
-      for (j in seq_len(B)) {
-        res[[key]][i, j] <-
-          x[[key]][i, j] / sum(sapply(seq_len(n_x), function(k)
-            x[[k]][i, j]))
-      }
-    }
-  }
-  
-  names_x <- try(names(x), silent = TRUE)
-  if(!inherits(names_x, "try-error"))
-    names(res) <- names_x
-  
-  #res$sims <- x
-  return(res)
-}
+# # compute list of all possible combinations -----
+# compute_probs_list <- function(x) {
+#   
+#   # do this in Rcpp /!\
+#   n_x <- length(x)
+#   n <- dim(x[[1]])[1]
+#   B <- dim(x[[1]])[2]
+#   res <- x
+#   
+#   for (key in seq_len(n_x)) {
+#     for (i in seq_len(n)) {
+#       for (j in seq_len(B)) {
+#         res[[key]][i, j] <-
+#           x[[key]][i, j] / sum(sapply(seq_len(n_x), function(k)
+#             x[[k]][i, j]))
+#       }
+#     }
+#   }
+#   
+#   debug_print(res)
+#   
+#   debug_print(compute_probs_loop_cpp(n_x, n, B, res, x))
+#   
+#   names_x <- try(names(x), silent = TRUE)
+#   if(!inherits(names_x, "try-error"))
+#     names(res) <- names_x
+#   
+#   #res$sims <- x
+#   return(res)
+# }
 
 # compute preds and p.i bounds -----
 compute_pis <- function(x, alpha) {
@@ -70,11 +76,20 @@ compute_scores <- function(probs, y_calibration_sc) {
 
 coverage_rate_classifier <- function(y_test, preds_set_list) {
   n <- length(y_test)
-  stopifnot(n == length(preds_set_list))
   res <- rep(0, n)
-  for (i in seq_len(n))
+  if (is.list(preds_set_list))
   {
-    res[i] <- (y_test[i] %in% preds_set_list[[i]])+0
+    stopifnot(n == length(preds_set_list))
+    for (i in seq_len(n))
+    {
+      res[i] <- (y_test[i] %in% preds_set_list[[i]])+0
+    } 
+  } else { # is.matrix 
+    stopifnot(n == nrow(preds_set_list))
+    for (i in seq_len(n))
+    {
+      res[i] <- (y_test[i] == preds_set_list[i])+0
+    }
   }
   return(mean(res)*100)
 }
@@ -134,11 +149,34 @@ expit <- function(x) {
 
 # get classes index -----
 get_classes_idx <- function(new_probs, q_threshold, level) {
-  n_obs <- nrow(new_probs)
+  if (is.matrix(new_probs))
+  {
+    n_obs <- nrow(new_probs) 
+  } else {
+    if (!is.null(new_probs$sims))
+    {
+      n_obs <- nrow(new_probs$sims[[1]])
+    } else {
+      stop("check dimensions of input probs") 
+    }
+  }
+  
   res <- vector("list", n_obs)
+  
+  if (is.list(new_probs))
+  {
+    new_probs_ <- expit_probs(sapply(new_probs$sims, function(x) rowMeans(x)))
+    if (!is.null(names(new_probs$sims)))
+    {
+      names(new_probs_) <- names(new_probs$sims)
+    }
+  } else {
+    new_probs_ <- expit_probs(new_probs)
+  }
+  
   for (i in seq_len(n_obs))
   {
-    ans <- which(new_probs[i, ] >= (1 - q_threshold))
+    ans <- which(new_probs_[i, ] >= (1 - q_threshold))
     if(length(names(ans)))
     { 
       res[[i]] <- ans 
@@ -150,9 +188,9 @@ get_classes_idx <- function(new_probs, q_threshold, level) {
 
 # get expit probs -----
 expit_probs <- function(x) {
-  stopifnot(is.vector(x))
   temp <- 1 / (1 + exp(-x))
-  temp/sum(temp)
+  return(sweep(x=temp, MARGIN=1, FUN="/", 
+               STATS=rowSums(temp)))
 }
 
 
@@ -293,7 +331,6 @@ parfor <- function(what,
                                      "pass"),
                    verbose = FALSE,
                    show_progress = TRUE,
-                   packages = c("ranger", "xgboost"),
                    export = NULL,
                    ...)
 {
@@ -336,7 +373,6 @@ parfor <- function(what,
   res <- foreach::foreach(
     i = 1:n_iter,
     .combine = combine,
-    .packages = packages,
     .errorhandling = errorhandling,
     .options.snow = opts,
     .verbose = verbose,

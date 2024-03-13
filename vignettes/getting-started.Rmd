@@ -474,10 +474,6 @@ print(obj)
 caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
 ```
 
-```{r}
-obj$summary(X_test, y=y_test, class_name = "setosa", show_progress=FALSE)
-```
-
 
 # 2 - 2 - penguins 
 
@@ -550,13 +546,11 @@ print(obj)
 caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
 ```
 
-```{r}
-obj$summary(X_test, y=y_test, class_name = "Adelie", show_progress=FALSE)
-```
 
 # 2 - 3 breast cancer 
 
 ```{r}
+library(mlbench)
 data(BreastCancer)
 ```
 
@@ -595,7 +589,6 @@ obj <- learningmachine::Classifier$new(method = "extratrees")
 obj$get_type()
 obj$get_name()
 obj$get_method()
-obj$get_level()
 ```
 
 ```{r}
@@ -612,9 +605,6 @@ print(obj)
 caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
 ```
 
-```{r}
-obj$summary(X_test, y=y_test, class_name = "malignant", show_progress=FALSE)
-```
 
 **`krr`**
 
@@ -639,12 +629,10 @@ print(obj)
 caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
 ```
 
-**level=95**
-
 **Breast Cancer**
 
 ```{r}
-obj <- learningmachine::Classifier$new(method = "krr", level = 95)
+obj <- learningmachine::Classifier$new(method = "ridge")
 obj$get_type()
 obj$get_name()
 ```
@@ -664,10 +652,6 @@ caret::confusionMatrix(data = as.factor(unlist(preds_set)),
                        reference = y_test)
 ```
 
-```{r}
-obj$summary(X_test, y=y_test, class_name = "malignant", 
-            show_progress=FALSE)
-```
 
 **iris**
 
@@ -710,10 +694,6 @@ caret::confusionMatrix(data = as.factor(unlist(preds_set)),
                        reference = y_test)
 ```
 
-```{r}
-obj$summary(X_test, y=y_test, class_name = "setosa", 
-            show_progress=FALSE)
-```
 
 **penguins**
 
@@ -784,10 +764,5 @@ cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```{r}
 caret::confusionMatrix(data = as.factor(unlist(preds_set)), 
                        reference = y_test)
-```
-
-```{r}
-obj$summary(X_test, y=y_test, class_name = "Adelie", 
-            show_progress=FALSE)
 ```
 

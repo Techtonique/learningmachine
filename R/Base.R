@@ -159,9 +159,9 @@ Base <-
             X_plus[, ix] <- X_ix + h
             X_minus[, ix] <- X_ix - h
             probs_plus <-
-              self$predict_proba(as.matrix(X_plus))[, class_index]
+              self$predict_proba(as.matrix(X_plus))$preds[, class_index]
             probs_minus <-
-              self$predict_proba(as.matrix(X_minus))[, class_index]
+              self$predict_proba(as.matrix(X_minus))$preds[, class_index]
             derived_column <-
               100 * (probs_plus - probs_minus) / (2 * h)
             return (derived_column)
@@ -227,9 +227,9 @@ Base <-
                   effects = my_skim(effects)
                 ))
               } else { # classification
+                probs <- self$predict_proba(as.matrix(X))
                 return(list(
-                  Coverage_rate = coverage_rate_classifier(y, 
-                                                           preds$preds),
+                  Coverage_rate = coverage_rate_classifier(y, preds),
                   ttests = ttests,
                   effects = my_skim(effects)
                 ))

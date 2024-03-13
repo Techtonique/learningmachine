@@ -1,4 +1,5 @@
 
+
 # 1 - Class Classifier --------------------------------------------------------------
 
 Classifier <-
@@ -6,7 +7,7 @@ Classifier <-
     classname = "Classifier",
     inherit = learningmachine::Base,
     private = list(
-      y = NULL, 
+      y = NULL,
       encoded_factors = NULL,
       class_names = NULL,
       n_classes = NULL,
@@ -82,7 +83,8 @@ Classifier <-
         self$y_train <- y
         private$y <- y
         private$encoded_factors <- encode_factors(private$y)
-        private$class_names <- as.character(levels(unique(private$y)))
+        private$class_names <-
+          as.character(levels(unique(private$y)))
         private$n_classes <- length(private$class_names)
         pi_method <- match.arg(pi_method)
         type_split <- match.arg(type_split)
@@ -104,14 +106,12 @@ Classifier <-
         
         if (is.null(self$level))
         {
-          self$set_model(
-            fit_multitaskregressor(
-              x = self$X_train,
-              y = private$y,
-              method = self$method,
-              ...
-            )
-          )
+          self$set_model(fit_multitaskregressor(
+            x = self$X_train,
+            y = private$y,
+            method = self$method,
+            ...
+          ))
           return (invisible(self))
         }
         
@@ -192,11 +192,9 @@ Classifier <-
           }
         }
         
-        if (self$pi_method %in% c(
-          "kdesplitconformal",
-          "bootsplitconformal",
-          "surrsplitconformal"
-        ))
+        if (self$pi_method %in% c("kdesplitconformal",
+                                  "bootsplitconformal",
+                                  "surrsplitconformal"))
         {
           idx_train_calibration <- split_data(
             private$y,
@@ -205,11 +203,11 @@ Classifier <-
             type_split = private$type_split
           )
           X_train_sc <-
-            self$X_train[idx_train_calibration, ]
+            self$X_train[idx_train_calibration,]
           y_train_sc <-
             self$y_train[idx_train_calibration]
           X_calibration_sc <-
-            self$X_train[-idx_train_calibration, ]
+            self$X_train[-idx_train_calibration,]
           y_calibration_sc <-
             self$y_train[-idx_train_calibration]
           
@@ -236,39 +234,55 @@ Classifier <-
               one_hot(y_calibration_sc) - y_pred_calibration
             private$abs_calib_resids <- abs(private$calib_resids)
           }
+          
+          raw_preds <- expit(self$engine$predict(self$model, 
+                                                 X_calibration_sc))
+          probs <- sweep(x = raw_preds, 
+                         MARGIN = 1, 
+                         STATS=rowSums(raw_preds),
+                         FUN = "/")
           private$q_threshold <- get_threshold(
-              probs = self$predict_proba(X_calibration_sc),
-              y_calibration_sc = one_hot(y_calibration_sc),
-              level = self$level
-            )
+            probs = probs,
+            y_calibration_sc = one_hot(y_calibration_sc), # must be private$y 
+            level = self$level
+          )
         }
         
         return(invisible(self))
       },
-      predict_proba = function(X) {
-          if (is.null(self$model) || is.null(self$engine))
-            stop(paste0(self$name, " must be fitted first"))
-          raw_preds <-
-            expit(self$engine$predict(self$model, X))
-          probs <-
-            raw_preds / rowSums(raw_preds)
+      predict_proba = function(X, level=NULL) {
+        if (is.null(self$model) || is.null(self$engine))
+          stop(paste0(self$name, " must be fitted first"))
+        raw_preds <- expit(self$engine$predict(self$model, X))
+        if (is.null(level) && is.null(self$level))
+        {
+          probs <- sweep(x = raw_preds, 
+                         MARGIN = 1, 
+                         STATS=rowSums(raw_preds),
+                         FUN = "/")
           colnames(probs) <-
             private$class_names
           return(probs)
-      },
-      predict = function(X,
-                         level = NULL) {
-        if (is.null(level) && is.null(self$level))
-        {
-          probs <- self$predict_proba(X)
-          numeric_factor <- apply(probs, 1, which.max)
-          preds <- decode_factors(numeric_factor, 
-                                  private$encoded_factors)
-          names(preds) <- NULL
-          return(preds)
-        } else { # !is.null(level) || !is.null(self$level)
-          raw_preds <- self$engine$predict(self$model, X)
-          scaled_raw_residuals <- scale(private$calib_resids, 
+        } else { # !is.null(level) || !is.null(self$level))
+          
+          if (!is.null(self$level) &&
+              !is.null(level) && self$level != level)
+          {
+            warning(paste0(
+              "attribute 'level' has been set to ",
+              level,
+              " instead of ",
+              self$level
+            ))
+            self$set_level(level)
+          }
+          
+          if (is.null(self$level) && !is.null(level))
+          {
+            self$set_level(level)
+          }
+          
+          scaled_raw_residuals <- scale(private$calib_resids,
                                         center = TRUE,
                                         scale = TRUE)
           sd_raw_residuals <- apply(private$calib_resids, 2, sd)
@@ -277,44 +291,61 @@ Classifier <-
           
           if (self$pi_method %in% c("kdejackknifeplus", "kdesplitconformal"))
           {
-            simulated_raw_calibrated_residuals <- lapply(seq_len(private$n_classes),
-                                                         function(i) rgaussiandens(x = private$calib_resids[, i],
-                                                                n = nrow(raw_preds),
-                                                                p = self$B,
-                                                                seed = self$seed))
+            simulated_raw_calibrated_residuals <-
+              lapply(seq_len(private$n_classes),
+                     function(i)
+                       rgaussiandens(
+                         x = private$calib_resids[, i],
+                         n = nrow(raw_preds),
+                         p = self$B,
+                         seed = self$seed
+                       ))
           }
           
           if (self$pi_method %in% c("bootjackknifeplus", "bootsplitconformal"))
           {
-            simulated_raw_calibrated_residuals <- lapply(seq_len(private$n_classes),
-                                                         function(i) rbootstrap(x = private$calib_resids[, i],
-                                                             n = nrow(raw_preds),
-                                                             p = self$B,
-                                                             seed = self$seed))
+            simulated_raw_calibrated_residuals <-
+              lapply(seq_len(private$n_classes),
+                     function(i)
+                       rbootstrap(
+                         x = private$calib_resids[, i],
+                         n = nrow(raw_preds),
+                         p = self$B,
+                         seed = self$seed
+                       ))
           }
           
           if (self$pi_method %in% c("surrsplitconformal", "surrjackknifeplus"))
           {
             if (nrow(raw_preds) > length(private$calib_resids))
             {
-              stop("For surrogates, must have number of predictions < number of training observations")
+              stop(
+                "For surrogates, must have number of predictions < number of training observations"
+              )
             }
-            simulated_raw_calibrated_residuals <- lapply(seq_len(private$n_classes),
-                                                         function(i) rsurrogate(x = private$calib_resids[, i],
-                                                             n = nrow(raw_preds),
-                                                             p = self$B,
-                                                             seed = self$seed))
+            simulated_raw_calibrated_residuals <-
+              lapply(seq_len(private$n_classes),
+                     function(i)
+                       rsurrogate(
+                         x = private$calib_resids[, i],
+                         n = nrow(raw_preds),
+                         p = self$B,
+                         seed = self$seed
+                       ))
           }
           sims <- lapply(seq_len(private$n_classes),
-                         function (i) replicate(self$B, 
-                                                raw_preds[,i]) + sd_raw_residuals[i] * simulated_raw_calibrated_residuals[[i]])
-          preds_lower <- lapply(seq_len(private$n_classes), function(i)
-            pmax(0, apply(sims[[i]], 1, function(x)
-              quantile(x, probs = (1 - self$level / 100) / 2))))
-          preds_upper <- lapply(seq_len(private$n_classes), function(i)
-            pmin(1, apply(sims[[i]], 1, function(x)
-              quantile(x, probs = 1 - (1 - self$level / 100) / 2))))
-          if(!is.null(private$class_names))
+                         function (i)
+                           replicate(self$B,
+                                     raw_preds[, i]) + sd_raw_residuals[i] * simulated_raw_calibrated_residuals[[i]])
+          preds_lower <-
+            lapply(seq_len(private$n_classes), function(i)
+              pmax(0, apply(sims[[i]], 1, function(x)
+                quantile(x, probs = (1 - self$level / 100) / 2))))
+          preds_upper <-
+            lapply(seq_len(private$n_classes), function(i)
+              pmin(1, apply(sims[[i]], 1, function(x)
+                quantile(x, probs = 1 - (1 - self$level / 100) / 2))))
+          if (!is.null(private$class_names))
           {
             names(sims) <- private$class_names
             names(preds_lower) <- private$class_names
@@ -322,9 +353,27 @@ Classifier <-
           }
           
           res <- list()
+          res$preds <- expit_probs(sapply(sims, function(x) rowMeans(x)))
           res$lower <- preds_lower
           res$upper <- preds_upper
           res$sims <- sims # upon request
+          return(res)
+        }
+      },
+      predict = function(X,
+                         level = NULL) {
+        
+        probs <- self$predict_proba(X)
+        
+        if (is.null(level) && is.null(self$level))
+        {
+          numeric_factor <- apply(probs, 1, which.max)
+          preds <- decode_factors(numeric_factor,
+                                  private$encoded_factors)
+          names(preds) <- NULL
+          return(preds)
+          
+        } else { # !is.null(level) || !is.null(self$level)
           
           # prediction sets with given 'level'
           if (is.null(self$level) && !is.null(level))
@@ -348,12 +397,12 @@ Classifier <-
           
           if (self$type_prediction_set == "score")
           {
-            ix_list <- get_classes_idx(probs, 
-                                  private$q_threshold, 
-                                  self$level)
+            ix_list <- get_classes_idx(probs,
+                                       private$q_threshold,
+                                       self$level)
             list_classes <- decode_factors2(ix_list)
-            res$preds <- impute_classes(list_classes, probs)
-            return(res)
+            
+            return(impute_classes(list_classes, probs$preds))
           }
         }
       }
@@ -425,7 +474,8 @@ predict_multitaskregressor <- function(objs,
   method <- match.arg(method)
   predict_func <- switch(
     method,
-    lm = function(obj, X) X%*%obj$coefficients,
+    lm = function(obj, X)
+      X %*% obj$coefficients,
     bcn = bcn::predict.bcn,
     extratrees = predict_func_extratrees,
     glmnet = predict,
