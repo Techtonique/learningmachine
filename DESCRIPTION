@@ -8,7 +8,7 @@ Maintainer: T. Moudiki <thierry.moudiki@gmail.com>
 Description: Regression-based Machine Learning with explanations and uncertainty quantification.
 License: BSD_3_clause + file LICENSE
 Imports: Rcpp (>= 1.0.10), R6
-Depends: tseries
+Depends: randtoolbox, tseries
 LinkingTo: Rcpp
 RoxygenNote: 7.3.0
 Encoding: UTF-8
