@@ -479,18 +479,14 @@ fit_regressor <- function(x,
                                      "glmnet",
                                      "krr",
                                      "xgboost"),
-                          scaling = FALSE, 
+                          nb_hidden = 0,
+                          nodes_sim = c("sobol", "halton", "unif"),
+                          activ = c("relu", "sigmoid", "tanh",
+                                    "leakyrelu", "elu", "linear"),
                           ...) {
+  
   regressor_choice <- match.arg(method)
-  if (scaling == TRUE)
-  {
-    scales <- scale_matrix(x)
-    xm <- scales$X_mean
-    xs <- scales$X_sd
-    x <- scales$X
-    ym <- mean(y)
-    y <- y - ym
-  }
+  
   obj <- switch(
     regressor_choice,
     lm = function(x, y, ...)
@@ -512,16 +508,28 @@ fit_regressor <- function(x,
       fit_xgboost_regression(x, y, ...)
   )
   
-  res <- obj(x = x, y = y, ...)
-  res$scaling <- FALSE
-  if (scaling == TRUE)
+  if(nb_hidden == 0)
   {
-    res$scaling <- TRUE
-    res$xm <- xm
-    res$xs <- xs
-    res$ym <- ym
+    return(obj(x = x, 
+               y = y, 
+               ...)) 
   }
-  return(res)
+  else { # nb_hidden > 0
+    nodes_sim <- match.arg(nodes_sim)
+    activ <- match.arg(activ)
+    new_predictors <- create_new_predictors(x, 
+                                            nb_hidden = nb_hidden,
+                                            nodes_sim = nodes_sim,
+                                            activ = activ)
+    obj <- obj(x = new_predictors$predictors, 
+               y = y, 
+               ...)
+    obj$new_predictors <- new_predictors
+    obj$nb_hidden <- nb_hidden
+    obj$nodes_sim <- nodes_sim
+    obj$activ <- activ
+    return(obj) 
+  }
 }
 
 
@@ -536,11 +544,6 @@ predict_regressor <- function(obj,
                                          "krr",
                                          "xgboost")) {
   method_choice <- match.arg(method)
-  if (obj$scaling == TRUE)
-  {
-    X <- sweep(X, 2, obj$xm, "-")
-    X <- sweep(X, 2, obj$xs, "/")
-  }
   predict_func <- switch(
     method_choice,
     lm = function(object, X)
@@ -553,9 +556,16 @@ predict_regressor <- function(obj,
     ridge = predict_ridge_regression,
     xgboost = predict
   )
-  if (obj$scaling == TRUE)
+  if (!is.null(obj$new_predictors))
   {
-    return(predict_func(obj, X) + obj$ym)
+    newX <- create_new_predictors(X, 
+                                  nb_hidden = obj$nb_hidden,
+                                  nodes_sim = obj$nodes_sim,
+                                  activ = obj$activ,
+                                  nn_xm = obj$new_predictors$nn_xm, 
+                                  nn_scales = obj$new_predictors$nn_scales)
+    return(predict_func(obj, newX))
   }
+  
   return(predict_func(obj, X))
 }

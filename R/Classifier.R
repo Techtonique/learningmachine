@@ -423,6 +423,10 @@ fit_multitaskregressor <- function(x,
                                               "ridge",
                                               "xgboost"),
                                    show_progress = FALSE,
+                                   nb_hidden = 5,
+                                   nodes_sim = c("sobol", "halton", "unif"),
+                                   activ = c("relu", "sigmoid", "tanh",
+                                             "leakyrelu", "elu", "linear"),
                                    ...) {
   n_classes <- length(unique(y))
   class_names <- as.character(levels(unique(y)))
@@ -454,8 +458,26 @@ fit_multitaskregressor <- function(x,
   )
   res <- vector("list", length = n_classes)
   names(res) <- class_names
-  for (i in 1:n_classes) {
-    res[[i]] <- obj(x = x, y = Y[, i], ...)
+  if(nb_hidden == 0)
+  {
+    for (i in 1:n_classes) {
+      res[[i]] <- obj(x = x, y = Y[, i], ...)
+    }
+  } else { # nb_hidden > 0
+    nodes_sim <- match.arg(nodes_sim)
+    activ <- match.arg(activ)
+    new_predictors <- create_new_predictors(x, 
+                                            nb_hidden = nb_hidden,
+                                            nodes_sim = nodes_sim,
+                                            activ = activ)
+    for (i in 1:n_classes) {
+      res[[i]] <- obj(x = new_predictors$predictors, 
+                      y = Y[, i], ...)
+    }
+    res$new_predictors <- new_predictors
+    res$nb_hidden <- nb_hidden
+    res$nodes_sim <- nodes_sim
+    res$activ <- activ
   }
   return(res)
 }
@@ -486,8 +508,24 @@ predict_multitaskregressor <- function(objs,
   )
   preds <- matrix(NA, nrow = nrow(X),
                   ncol = length(objs))
-  for (i in 1:length(objs)) {
-    preds[, i] <- predict_func(objs[[i]], X)
+  if (!is.null(obj$new_predictors))
+  {
+    for (i in 1:length(objs)) {
+      preds[, i] <- predict_func(objs[[i]], X)
+    }
+  } else {
+    newX <- create_new_predictors(X, 
+                                  nb_hidden = objs$nb_hidden,
+                                  nodes_sim = objs$nodes_sim,
+                                  activ = objs$activ,
+                                  nn_xm = objs$new_predictors$nn_xm, 
+                                  nn_scales = objs$new_predictors$nn_scales)
+    if (!is.null(obj$new_predictors))
+    {
+      for (i in 1:length(objs)) {
+        preds[, i] <- predict_func(objs[[i]], newX)
+      }
   }
   return(preds)
+  }
 }

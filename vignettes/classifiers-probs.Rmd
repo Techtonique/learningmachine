@@ -13,7 +13,7 @@ rm(list=ls())
 ```
 
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(ggplot2)
 library(learningmachine)
 library(caret)
@@ -25,7 +25,7 @@ library(pROC)
 library(reticulate)
 ```
 
-# 1 - `Classifier` classification
+# 1 - Using `Classifier` object 
 
 ```{r}
 set.seed(43)
