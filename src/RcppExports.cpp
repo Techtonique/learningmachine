@@ -10,6 +10,21 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// compute_probs_loop_cpp
+List compute_probs_loop_cpp(unsigned long int n_x, unsigned long int n, unsigned long int B, ListOf<NumericMatrix> res, ListOf<NumericMatrix> x);
+RcppExport SEXP _learningmachine_compute_probs_loop_cpp(SEXP n_xSEXP, SEXP nSEXP, SEXP BSEXP, SEXP resSEXP, SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< unsigned long int >::type n_x(n_xSEXP);
+    Rcpp::traits::input_parameter< unsigned long int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< unsigned long int >::type B(BSEXP);
+    Rcpp::traits::input_parameter< ListOf<NumericMatrix> >::type res(resSEXP);
+    Rcpp::traits::input_parameter< ListOf<NumericMatrix> >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(compute_probs_loop_cpp(n_x, n, B, res, x));
+    return rcpp_result_gen;
+END_RCPP
+}
 // crossprod_cpp
 double crossprod_cpp(NumericVector x, NumericVector y);
 RcppExport SEXP _learningmachine_crossprod_cpp(SEXP xSEXP, SEXP ySEXP) {
@@ -165,6 +180,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_learningmachine_compute_probs_loop_cpp", (DL_FUNC) &_learningmachine_compute_probs_loop_cpp, 5},
     {"_learningmachine_crossprod_cpp", (DL_FUNC) &_learningmachine_crossprod_cpp, 2},
     {"_learningmachine_l2_norm", (DL_FUNC) &_learningmachine_l2_norm, 1},
     {"_learningmachine_na_matrix", (DL_FUNC) &_learningmachine_na_matrix, 2},

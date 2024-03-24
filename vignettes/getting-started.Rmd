@@ -10,10 +10,11 @@ vignette: >
 ```{r}
 library(learningmachine)
 library(caret)
+library(mlbench)
+library(palmerpenguins)
 ```
 
-
-# 1 - regression 
+# 1 - regression
 
 ```{r}
 X <- as.matrix(mtcars[,-1])
@@ -33,14 +34,71 @@ dim(X_train)
 dim(X_test)
 ```
 
-
-# 1 - 0 lm regression 
+# 1 - 0 lm regression
 
 ```{r}
-obj <- learningmachine::BaseRegressor$new()
+obj <- learningmachine::Regressor$new(method = "lm")
 ```
 
 ```{r}
+obj$get_type()
+obj$get_name()
+obj$get_method()
+```
+
+```{r}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train, pi_method = "splitconformal")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r}
+print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
+```
+
+```{r fig.width=7.2}
+res <- obj$predict(X = X_test, level = 95)
+
+plot(c(y_train, res$preds), type='l',
+     main="",
+     ylab="",
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
+lines(c(y_train, res$upper), col="gray60")
+lines(c(y_train, res$lower), col="gray60")
+lines(c(y_train, res$preds), col = "red")
+lines(c(y_train, y_test), col = "blue")
+
+mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
+```
+
+```{r fig.width=7.2}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train, 
+        pi_method = "jackknifeplus")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+
+obj$set_level(95L)
+
+res <- obj$predict(X = X_test)
+
+plot(c(y_train, res$preds), type='l',
+     main="",
+     ylab="",
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
+lines(c(y_train, res$upper), col="gray60")
+lines(c(y_train, res$lower), col="gray60")
+lines(c(y_train, res$preds), col = "red")
+lines(c(y_train, y_test), col = "blue")
+
+mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
+```
+
+# 1 - 1 `ranger` regression
+
+```{r}
+obj <- learningmachine::Regressor$new(method = "ranger")
 obj$get_type()
 obj$get_name()
 ```
@@ -55,62 +113,15 @@ cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
 ```
 
-
 ```{r fig.width=7.2}
-res <- obj$predict(X = X_test, level = 95, method = "splitconformal")
-
-plot(c(y_train, res$preds), type='l',
-     main="",
-     ylab="",
-     ylim = c(min(c(res$upper, res$lower, y)),
-              max(c(res$upper, res$lower, y))))
-lines(c(y_train, res$upper), col="gray60")
-lines(c(y_train, res$lower), col="gray60")
-lines(c(y_train, res$preds), col = "red")
-lines(c(y_train, y_test), col = "blue")
-
-mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
-```
-
-
-```{r fig.width=7.2}
-res <- obj$predict(X = X_test, level = 95, 
-                   method = "jackknifeplus")
-
-plot(c(y_train, res$preds), type='l',
-     main="",
-     ylab="",
-     ylim = c(min(c(res$upper, res$lower, y)),
-              max(c(res$upper, res$lower, y))))
-lines(c(y_train, res$upper), col="gray60")
-lines(c(y_train, res$lower), col="gray60")
-lines(c(y_train, res$preds), col = "red")
-lines(c(y_train, y_test), col = "blue")
-
-mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
-```
-
-
-# 1 - 1 `ranger` regression 
-
-```{r}
-obj <- learningmachine::RangerRegressor$new()
-obj$get_type()
-obj$get_name()
-```
-
-```{r}
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train)
+obj$fit(X_train, y_train,  
+        pi_method = "splitconformal")
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
-```
 
-```{r}
-print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
-```
+obj$set_level(95)
 
-```{r fig.width=7.2}
-res <- obj$predict(X = X_test, level = 95, method = "splitconformal")
+res <- obj$predict(X = X_test)
 
 plot(c(y_train, res$preds), type='l',
      main="",
@@ -126,7 +137,7 @@ mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 ```
 
 ```{r fig.width=7.2}
-res <- obj$predict(X = X_test, level = 95, method = "jackknifeplus")
+res <- obj$predict(X = X_test)
 
 plot(c(y_train, res$preds), type='l',
      main="",
@@ -141,64 +152,7 @@ lines(c(y_train, y_test), col = "blue")
 mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 ```
 
-# 1 - 2 `xgboost` regression
-
-```{r}
-obj <- learningmachine::XgboostRegressor$new()
-obj$get_type()
-obj$get_name()
-```
-
-```{r}
-t0 <- proc.time()[3]
-obj$fit(X_train, y_train, nrounds = 10L,
-        verbose = 0,
-        params = list(max_depth = 3L,
-        eta = 0.1,
-        subsample = 0.8,
-        colsample_bytree = 0.8,
-        objective = "reg:squarederror"))
-cat("Elapsed: ", proc.time()[3] - t0, "s \n")
-```
-
-
-```{r echo=TRUE, fig.width=7.2}
-res <- obj$predict(X = X_test, level = 95, method = "splitconformal")
-
-plot(c(y_train, res$preds), type='l',
-     main="",
-     ylab="",
-     ylim = c(min(c(res$upper, res$lower, y)),
-              max(c(res$upper, res$lower, y))))
-lines(c(y_train, res$upper), col="gray60")
-lines(c(y_train, res$lower), col="gray60")
-lines(c(y_train, res$preds), col = "red")
-lines(c(y_train, y_test), col = "blue")
-
-mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
-```
-
-```{r}
-print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
-```
-
-```{r echo=TRUE, fig.width=7.2}
-res <- obj$predict(X = X_test, level = 95, method = "jackknifeplus")
-
-plot(c(y_train, res$preds), type='l',
-     main="",
-     ylab="",
-     ylim = c(min(c(res$upper, res$lower, y)),
-              max(c(res$upper, res$lower, y))))
-lines(c(y_train, res$upper), col="gray60")
-lines(c(y_train, res$lower), col="gray60")
-lines(c(y_train, res$preds), col = "red")
-lines(c(y_train, y_test), col = "blue")
-
-mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
-```
-
-# 1 - 3 `BCN`, `xgboost`, `KRR` & `ranger` regression 
+# 1 - 3 `BCN`, `KRR` & `ranger` regression
 
 **`BCN`**
 
@@ -207,18 +161,18 @@ mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 library(MASS)
 data("Boston")
 
-set.seed(1234)
+set.seed(13)
 train_idx <- sample(nrow(Boston), 0.8 * nrow(Boston))
 X_train <- as.matrix(Boston[train_idx, -ncol(Boston)])
 X_test <- as.matrix(Boston[-train_idx, -ncol(Boston)])
 y_train <- Boston$medv[train_idx]
 y_test <- Boston$medv[-train_idx]
 
-obj <- learningmachine::BcnRegressor$new()
+obj <- learningmachine::Regressor$new(method = "bcn")
 
 t0 <- proc.time()[3]
 obj$fit(X = X_train, y = y_train, B = 500L, nu = 0.5646811,
-lam = 10**0.5106108, r = 1 - 10**(-7), tol = 10**-7,
+lam = 10**0.5106108, r = 1 - 10**(-7), tol = 10**-7, verbose = 0,
 col_sample = 0.5, activation = "tanh", type_optim = "nlminb", 
 show_progress = FALSE)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
@@ -228,32 +182,19 @@ cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
 ```
 
-**`xgboost`**
-
-```{r}
-obj <- learningmachine::XgboostRegressor$new()
-obj$get_type()
-obj$get_name()
-```
-
 ```{r}
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train, nrounds = 500L,
-        verbose = 0,
-        params = list(objective = "reg:squarederror"))
+obj$summary(X_test, y=y_test, show_progress = FALSE)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
-```
-
-```{r}
-print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
 ```
 
 **`KRR`**
 
 ```{r}
-obj <- learningmachine::KernelRidgeRegressor$new()
+obj <- learningmachine::Regressor$new(method = "krr")
 obj$get_type()
 obj$get_name()
+obj$get_method()
 ```
 
 ```{r}
@@ -263,14 +204,17 @@ cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
 ```{r}
-print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
+print(sqrt(mean((obj$predict(X_test, level = 95)$preds - y_test)^2)))
 ```
 
+```{r}
+obj$summary(X_test, y=y_test, show_progress=FALSE)
+```
 
 **`ranger`**
 
 ```{r}
-obj <- learningmachine::RangerRegressor$new()
+obj <- learningmachine::Regressor$new(method = "ranger")
 obj$get_type()
 obj$get_name()
 ```
@@ -281,10 +225,14 @@ obj$fit(X_train, y_train)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
+
 ```{r}
-print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
+print(sqrt(mean((obj$predict(X_test, level=95)$preds - y_test)^2)))
 ```
 
+```{r}
+obj$summary(X_test, y=y_test, show_progress=FALSE)
+```
 
 # 1 - 4 `KRR` regression
 
@@ -304,9 +252,8 @@ dim(X_train)
 dim(X_test)
 ```
 
-
 ```{r}
-obj <- learningmachine::KernelRidgeRegressor$new()
+obj <- learningmachine::Regressor$new(method = "krr")
 obj$get_type()
 obj$get_name()
 ```
@@ -318,11 +265,17 @@ cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
 ```{r}
-print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
+print(obj$predict(X_test, level = 95))
 ```
 
 ```{r fig.width=7.2}
-res <- obj$predict(X = X_test, level = 95, method = "splitconformal")
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train, lambda = 0.1,  
+        pi_method = "splitconformal")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+
+obj$set_level(95)
+res <- obj$predict(X = X_test)
 
 plot(c(y_train, res$preds), type='l',
      main="",
@@ -338,7 +291,12 @@ mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 ```
 
 ```{r fig.width=7.2}
-res <- obj$predict(X = X_test, level = 95, method = "jackknifeplus")
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train, lambda = 0.1,  
+        pi_method = "splitconformal")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+
+res <- obj$predict(X = X_test, level= 95)
 
 plot(c(y_train, res$preds), type='l',
      main="",
@@ -352,16 +310,138 @@ lines(c(y_train, y_test), col = "blue")
 
 mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 ```
+
+```{r}
+obj$summary(X_test, y=y_test, show_progress=FALSE)
+```
+
+```{r fig.width=7.2}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train, lambda = 0.1,  
+        pi_method = "kdejackknifeplus")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+
+res <- obj$predict(X = X_test, level= 95)
+
+plot(c(y_train, res$preds), type='l',
+     main="",
+     ylab="",
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
+lines(c(y_train, res$upper), col="gray60")
+lines(c(y_train, res$lower), col="gray60")
+lines(c(y_train, res$preds), col = "red")
+lines(c(y_train, y_test), col = "blue")
+
+mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
+```
+
+```{r}
+obj$summary(X_test, y=y_test, show_progress=FALSE)
+```
+
+**`xgboost`**
+
+```{r}
+obj <- learningmachine::Regressor$new(method = "xgboost")
+obj$get_type()
+obj$get_name()
+```
+
+```{r}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train, nrounds=10, verbose=FALSE)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r}
+print(obj$predict(X_test, level = 95))
+```
+
+```{r}
+obj$summary(X_test, y=y_test, show_progress=FALSE)
+```
+
+```{r fig.width=7.2}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train, nrounds=10, verbose=FALSE,  
+        pi_method = "splitconformal")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+
+obj$set_level(95)
+res <- obj$predict(X = X_test)
+
+plot(c(y_train, res$preds), type='l',
+     main="",
+     ylab="",
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
+lines(c(y_train, res$upper), col="gray60")
+lines(c(y_train, res$lower), col="gray60")
+lines(c(y_train, res$preds), col = "red")
+lines(c(y_train, y_test), col = "blue")
+
+mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
+```
+
+
+```{r fig.width=7.2}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train, nrounds=10, verbose=FALSE,  
+        pi_method = "kdesplitconformal")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+
+obj$set_level(95)
+res <- obj$predict(X = X_test)
+
+plot(c(y_train, res$preds), type='l',
+     main="",
+     ylab="",
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
+lines(c(y_train, res$upper), col="gray60")
+lines(c(y_train, res$lower), col="gray60")
+lines(c(y_train, res$preds), col = "red")
+lines(c(y_train, y_test), col = "blue")
+
+mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
+```
+
+
+```{r fig.width=7.2}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train, nrounds=10, verbose=FALSE,  
+        pi_method = "bootjackknifeplus")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+
+obj$set_level(95)
+res <- obj$predict(X = X_test)
+
+plot(c(y_train, res$preds), type='l',
+     main="",
+     ylab="",
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
+lines(c(y_train, res$upper), col="gray60")
+lines(c(y_train, res$lower), col="gray60")
+lines(c(y_train, res$preds), col = "red")
+lines(c(y_train, y_test), col = "blue")
+
+mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
+```
+
 
 # 2 - classification
 
-# 2 - 1 `ranger` classification
+# 2 - 1 - iris 
+
+```{r}
+X <- as.matrix(iris[,-5])
+y <- iris$Species
+```
 
 ```{r}
 set.seed(123)
-X <- as.matrix(iris[, 1:4])
-y <- iris$Species
-
 (index_train <- base::sample.int(n = nrow(X),
                                  size = floor(0.8*nrow(X)),
                                  replace = FALSE))
@@ -374,139 +454,315 @@ dim(X_test)
 ```
 
 ```{r}
-obj <- learningmachine::RangerClassifier$new()
+obj <- learningmachine::Classifier$new(method = "ranger")
 obj$get_type()
 obj$get_name()
 ```
-
 
 ```{r}
 t0 <- proc.time()[3]
 obj$fit(X_train, y_train)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
-
-mean(obj$predict(X_test) == y_test)
 ```
 
 ```{r}
-print(obj$predict_proba(X_test))
-```
-
-```{r}
-caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
+print(obj)
 ```
 
 
-# 2 - 2 `xgboost` classification
-
-```{r}
-data(iris)
-X <- as.matrix(iris[, 1:4])
-print(head(X))
-y <- iris$Species
-print(head(y))
-
-set.seed(1214)
-(index_train <- base::sample.int(n = nrow(X),
-                                 size = floor(0.8*nrow(X)),
-                                 replace = FALSE))
-X_train <- X[index_train, ]
-y_train <- y[index_train]
-X_test <- X[-index_train, ]
-y_test <- y[-index_train]
-dim(X_train)
-dim(X_test)
-```
-
-```{r}
-obj <- learningmachine::XgboostClassifier$new()
-obj$get_type()
-obj$get_name()
-```
-
-```{r}
-t0 <- proc.time()[3]
-obj$fit(X_train, y_train, nrounds = 10L,
-        params = list(max_depth = 3L,
-                      eta = 0.1,
-                      subsample = 0.8,
-                      colsample_bytree = 0.8,
-                      objective = "multi:softprob",
-                      num_class = 3L))
-cat("Elapsed: ", proc.time()[3] - t0, "s \n")
-```
-
-```{r echo=TRUE}
-print(mean(obj$predict(X_test) == y_test))
-```
-
-```{r echo=TRUE}
-print(obj$predict_proba(X_test))
-```
 ```{r}
 caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
 ```
 
-# 2 - 3 `BCN` classification
+
+# 2 - 2 - penguins 
 
 ```{r}
-# iris dataset
+data(penguins)
+```
+
+```{r}
+penguins_ <- as.data.frame(palmerpenguins::penguins)
+
+replacement <- median(penguins$bill_length_mm, na.rm = TRUE)
+penguins_$bill_length_mm[is.na(penguins$bill_length_mm)] <- replacement
+
+replacement <- median(penguins$bill_depth_mm, na.rm = TRUE)
+penguins_$bill_depth_mm[is.na(penguins$bill_depth_mm)] <- replacement
+
+replacement <- median(penguins$flipper_length_mm, na.rm = TRUE)
+penguins_$flipper_length_mm[is.na(penguins$flipper_length_mm)] <- replacement
+
+replacement <- median(penguins$body_mass_g, na.rm = TRUE)
+penguins_$body_mass_g[is.na(penguins$body_mass_g)] <- replacement
+
+# replacing NA's by the most frequent occurence
+penguins_$sex[is.na(penguins$sex)] <- "male" # most frequent
+
+print(summary(penguins_))
+print(sum(is.na(penguins_)))
+
+# one-hot encoding for covariates
+penguins_mat <- model.matrix(species ~., data=penguins_)[,-1]
+penguins_mat <- cbind(penguins_$species, penguins_mat)
+penguins_mat <- as.data.frame(penguins_mat)
+colnames(penguins_mat)[1] <- "species"
+
+print(head(penguins_mat))
+print(tail(penguins_mat))
+
+y <- palmerpenguins::penguins$species
+X <- as.matrix(penguins_mat[,2:ncol(penguins_mat)])
+
+n <- nrow(X)
+p <- ncol(X)
+
 set.seed(1234)
-train_idx <- sample(nrow(iris), 0.8 * nrow(iris))
-X_train <- as.matrix(iris[train_idx, -ncol(iris)])
-X_test <- as.matrix(iris[-train_idx, -ncol(iris)])
-y_train <- iris$Species[train_idx]
-y_test <- iris$Species[-train_idx]
+index_train <- sample(1:n, size=floor(0.8*n))
+X_train <- X[index_train, ]
+y_train <- y[index_train]
+X_test <- X[-index_train, ]
+y_test <- y[-index_train]
+```
 
-obj <- learningmachine::BcnClassifier$new()
+```{r}
+obj <- learningmachine::Classifier$new(method = "ranger")
+obj$get_type()
+obj$get_name()
+```
 
+```{r}
 t0 <- proc.time()[3]
-obj$fit(X = X_train, y = y_train, 
-        B = 10L, nu = 0.335855,
-        lam = 10**0.7837525, 
-        r = 1 - 10**(-5.470031), 
-        tol = 10**-7,
-        activation = "tanh", 
-        type_optim = "nlminb", 
-        show_progress = FALSE)
+obj$fit(X_train, y_train)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
 
-mean(obj$predict(X_test) == y_test)
+```{r}
+print(obj)
+```
+
+
+```{r}
+caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
+```
+
+
+# 2 - 3 breast cancer 
+
+```{r}
+library(mlbench)
+data(BreastCancer)
+```
+
+```{r}
+breast_cancer <- BreastCancer
+breast_cancer$Id <- NULL
+```
+
+```{r}
+replacement <- 10L
+breast_cancer$Bare.nuclei[is.na(breast_cancer$Bare.nuclei)] <- replacement
+breast_cancer$Bare.nuclei <- as.factor(as.integer(breast_cancer$Bare.nuclei))
+```
+
+```{r}
+#y <- as.factor(as.numeric(breast_cancer$Class))
+y <- breast_cancer$Class
+X <- as.matrix(model.matrix(Class ~., 
+                            data=breast_cancer)[,-1])
+rownames(X) <- NULL
+colnames(X) <- base::gsub(pattern = "\\.|\\^", replacement = "_", colnames(X))
+
+n <- nrow(X)
+p <- ncol(X)
+
+set.seed(1234)
+index_train <- sample(1:n, size=floor(0.8*n))
+X_train <- X[index_train, ]
+y_train <- y[index_train]
+X_test <- X[-index_train, ]
+y_test <- y[-index_train]
+```
+
+```{r}
+obj <- learningmachine::Classifier$new(method = "extratrees")
+obj$get_type()
+obj$get_name()
+obj$get_method()
+```
+
+```{r}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r}
+print(obj)
 ```
 
 ```{r}
 caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
 ```
 
-# 2 - 4 `KernelRidge` classification
+
+**`krr`**
+
+```{r}
+obj <- learningmachine::Classifier$new(method = "krr")
+obj$get_type()
+obj$get_name()
+```
+
+```{r}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train, nrounds = 10, verbose = FALSE)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r}
+print(obj)
+```
+
+
+```{r}
+caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
+```
+
+**Breast Cancer**
+
+```{r}
+obj <- learningmachine::Classifier$new(method = "ridge")
+obj$get_type()
+obj$get_name()
+```
+
+```{r}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r}
+(preds_set <- obj$predict(X_test))
+```
+
+```{r}
+caret::confusionMatrix(data = as.factor(unlist(preds_set)), 
+                       reference = y_test)
+```
+
+
+**iris**
+
+```{r}
+X <- as.matrix(iris[,-5])
+y <- iris$Species
+```
 
 ```{r}
 set.seed(123)
-X <- as.matrix(iris[, 1:4])
-# y <- factor(as.numeric(iris$Species))
-y <- iris$Species
-
-index_train <- base::sample.int(n = nrow(X),
+(index_train <- base::sample.int(n = nrow(X),
                                  size = floor(0.8*nrow(X)),
-                                 replace = FALSE)
+                                 replace = FALSE))
 X_train <- X[index_train, ]
 y_train <- y[index_train]
 X_test <- X[-index_train, ]
 y_test <- y[-index_train]
 dim(X_train)
 dim(X_test)
-
-obj <- learningmachine::KernelRidgeClassifier$new()
-obj$get_type()
-obj$get_name()
-
-t0 <- proc.time()[3]
-obj$fit(X_train, y_train)
-cat("Elapsed: ", proc.time()[3] - t0, "s \n")
-
-mean(obj$predict(X_test) == y_test)
 ```
 
 ```{r}
-caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
+obj <- learningmachine::Classifier$new(method = "ranger", level = 90)
+obj$get_type()
+obj$get_name()
 ```
+
+```{r}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r}
+(preds_set <- obj$predict(X_test))
+```
+
+```{r}
+caret::confusionMatrix(data = as.factor(unlist(preds_set)), 
+                       reference = y_test)
+```
+
+
+**penguins**
+
+```{r}
+data(penguins)
+```
+
+```{r}
+penguins_ <- as.data.frame(palmerpenguins::penguins)
+
+replacement <- median(penguins$bill_length_mm, na.rm = TRUE)
+penguins_$bill_length_mm[is.na(penguins$bill_length_mm)] <- replacement
+
+replacement <- median(penguins$bill_depth_mm, na.rm = TRUE)
+penguins_$bill_depth_mm[is.na(penguins$bill_depth_mm)] <- replacement
+
+replacement <- median(penguins$flipper_length_mm, na.rm = TRUE)
+penguins_$flipper_length_mm[is.na(penguins$flipper_length_mm)] <- replacement
+
+replacement <- median(penguins$body_mass_g, na.rm = TRUE)
+penguins_$body_mass_g[is.na(penguins$body_mass_g)] <- replacement
+
+# replacing NA's by the most frequent occurence
+penguins_$sex[is.na(penguins$sex)] <- "male" # most frequent
+
+print(summary(penguins_))
+print(sum(is.na(penguins_)))
+
+# one-hot encoding for covariates
+penguins_mat <- model.matrix(species ~., data=penguins_)[,-1]
+penguins_mat <- cbind(penguins_$species, penguins_mat)
+penguins_mat <- as.data.frame(penguins_mat)
+colnames(penguins_mat)[1] <- "species"
+
+print(head(penguins_mat))
+print(tail(penguins_mat))
+
+y <- palmerpenguins::penguins$species
+X <- as.matrix(penguins_mat[,2:ncol(penguins_mat)])
+
+n <- nrow(X)
+p <- ncol(X)
+
+set.seed(1234)
+index_train <- sample(1:n, size=floor(0.8*n))
+X_train <- X[index_train, ]
+y_train <- y[index_train]
+X_test <- X[-index_train, ]
+y_test <- y[-index_train]
+```
+
+```{r}
+obj <- learningmachine::Classifier$new(method = "ridge", level = 90)
+obj$get_type()
+obj$get_name()
+```
+
+```{r}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r}
+(preds_set <- obj$predict(X_test))
+```
+
+```{r}
+caret::confusionMatrix(data = as.factor(unlist(preds_set)), 
+                       reference = y_test)
+```
+

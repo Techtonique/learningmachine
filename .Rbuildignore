@@ -3,3 +3,4 @@
 ^learningmachine\.Rcheck$
 ^learningmachine.*\.tar\.gz$
 ^learningmachine.*\.tgz$
+^\.github$
