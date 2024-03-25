@@ -556,8 +556,10 @@ predict_regressor <- function(obj,
     ridge = predict_ridge_regression,
     xgboost = predict
   )
-  if (!is.null(obj$new_predictors))
+  if (is.null(obj$new_predictors))
   {
+    return(predict_func(obj, X))
+  } else {
     newX <- create_new_predictors(X, 
                                   nb_hidden = obj$nb_hidden,
                                   nodes_sim = obj$nodes_sim,
@@ -566,6 +568,4 @@ predict_regressor <- function(obj,
                                   nn_scales = obj$new_predictors$nn_scales)
     return(predict_func(obj, newX))
   }
-  
-  return(predict_func(obj, X))
 }

@@ -112,6 +112,10 @@ create_new_predictors <- function(x, nb_hidden = 5,
                                   nn_xm = NULL, nn_scales = NULL)
 {
   x <- as.matrix(x)
+  if (identical(nb_hidden, 0))
+  {
+    return(x)
+  }
   g <- switch(match.arg(activ),
               "relu" = function(x) x*(x>0),
               "sigmoid" = function(x) 1/(1 + exp(-x)),

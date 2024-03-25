@@ -423,7 +423,7 @@ fit_multitaskregressor <- function(x,
                                               "ridge",
                                               "xgboost"),
                                    show_progress = FALSE,
-                                   nb_hidden = 5,
+                                   nb_hidden = 0,
                                    nodes_sim = c("sobol", "halton", "unif"),
                                    activ = c("relu", "sigmoid", "tanh",
                                              "leakyrelu", "elu", "linear"),
@@ -458,6 +458,7 @@ fit_multitaskregressor <- function(x,
   )
   res <- vector("list", length = n_classes)
   names(res) <- class_names
+  
   if(nb_hidden == 0)
   {
     for (i in 1:n_classes) {
@@ -508,7 +509,7 @@ predict_multitaskregressor <- function(objs,
   )
   preds <- matrix(NA, nrow = nrow(X),
                   ncol = length(objs))
-  if (!is.null(obj$new_predictors))
+  if (is.null(objs$new_predictors))
   {
     for (i in 1:length(objs)) {
       preds[, i] <- predict_func(objs[[i]], X)
@@ -520,12 +521,9 @@ predict_multitaskregressor <- function(objs,
                                   activ = objs$activ,
                                   nn_xm = objs$new_predictors$nn_xm, 
                                   nn_scales = objs$new_predictors$nn_scales)
-    if (!is.null(obj$new_predictors))
-    {
-      for (i in 1:length(objs)) {
-        preds[, i] <- predict_func(objs[[i]], newX)
-      }
+    for (i in 1:length(objs)) {
+      preds[, i] <- predict_func(objs[[i]], newX)
+    }
   }
   return(preds)
-  }
 }

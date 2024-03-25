@@ -14,8 +14,6 @@ library(mlbench)
 library(palmerpenguins)
 ```
 
-# 1 - regression
-
 ```{r}
 X <- as.matrix(mtcars[,-1])
 y <- mtcars$mpg
@@ -34,7 +32,7 @@ dim(X_train)
 dim(X_test)
 ```
 
-# 1 - 0 lm regression
+# 0 lm regression
 
 ```{r}
 obj <- learningmachine::Regressor$new(method = "lm")
@@ -95,7 +93,7 @@ lines(c(y_train, y_test), col = "blue")
 mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 ```
 
-# 1 - 1 `ranger` regression
+# 1 `ranger` regression
 
 ```{r}
 obj <- learningmachine::Regressor$new(method = "ranger")
@@ -152,7 +150,7 @@ lines(c(y_train, y_test), col = "blue")
 mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 ```
 
-# 1 - 3 `BCN`, `KRR` & `ranger` regression
+# 3 `BCN`, `KRR` & `ranger` regression
 
 **`BCN`**
 
@@ -172,7 +170,7 @@ obj <- learningmachine::Regressor$new(method = "bcn")
 
 t0 <- proc.time()[3]
 obj$fit(X = X_train, y = y_train, B = 500L, nu = 0.5646811,
-lam = 10**0.5106108, r = 1 - 10**(-7), tol = 10**-7, verbose = 0,
+lam = 10**0.5106108, r = 10**(-7), tol = 10**-7, verbose = 0,
 col_sample = 0.5, activation = "tanh", type_optim = "nlminb", 
 show_progress = FALSE)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
@@ -234,7 +232,7 @@ print(sqrt(mean((obj$predict(X_test, level=95)$preds - y_test)^2)))
 obj$summary(X_test, y=y_test, show_progress=FALSE)
 ```
 
-# 1 - 4 `KRR` regression
+# 4 `KRR` regression
 
 ```{r}
 X <- as.matrix(mtcars[,-1])
@@ -428,341 +426,5 @@ lines(c(y_train, res$preds), col = "red")
 lines(c(y_train, y_test), col = "blue")
 
 mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
-```
-
-
-# 2 - classification
-
-# 2 - 1 - iris 
-
-```{r}
-X <- as.matrix(iris[,-5])
-y <- iris$Species
-```
-
-```{r}
-set.seed(123)
-(index_train <- base::sample.int(n = nrow(X),
-                                 size = floor(0.8*nrow(X)),
-                                 replace = FALSE))
-X_train <- X[index_train, ]
-y_train <- y[index_train]
-X_test <- X[-index_train, ]
-y_test <- y[-index_train]
-dim(X_train)
-dim(X_test)
-```
-
-```{r}
-obj <- learningmachine::Classifier$new(method = "ranger")
-obj$get_type()
-obj$get_name()
-```
-
-```{r}
-t0 <- proc.time()[3]
-obj$fit(X_train, y_train)
-cat("Elapsed: ", proc.time()[3] - t0, "s \n")
-```
-
-```{r}
-print(obj)
-```
-
-
-```{r}
-caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
-```
-
-
-# 2 - 2 - penguins 
-
-```{r}
-data(penguins)
-```
-
-```{r}
-penguins_ <- as.data.frame(palmerpenguins::penguins)
-
-replacement <- median(penguins$bill_length_mm, na.rm = TRUE)
-penguins_$bill_length_mm[is.na(penguins$bill_length_mm)] <- replacement
-
-replacement <- median(penguins$bill_depth_mm, na.rm = TRUE)
-penguins_$bill_depth_mm[is.na(penguins$bill_depth_mm)] <- replacement
-
-replacement <- median(penguins$flipper_length_mm, na.rm = TRUE)
-penguins_$flipper_length_mm[is.na(penguins$flipper_length_mm)] <- replacement
-
-replacement <- median(penguins$body_mass_g, na.rm = TRUE)
-penguins_$body_mass_g[is.na(penguins$body_mass_g)] <- replacement
-
-# replacing NA's by the most frequent occurence
-penguins_$sex[is.na(penguins$sex)] <- "male" # most frequent
-
-print(summary(penguins_))
-print(sum(is.na(penguins_)))
-
-# one-hot encoding for covariates
-penguins_mat <- model.matrix(species ~., data=penguins_)[,-1]
-penguins_mat <- cbind(penguins_$species, penguins_mat)
-penguins_mat <- as.data.frame(penguins_mat)
-colnames(penguins_mat)[1] <- "species"
-
-print(head(penguins_mat))
-print(tail(penguins_mat))
-
-y <- palmerpenguins::penguins$species
-X <- as.matrix(penguins_mat[,2:ncol(penguins_mat)])
-
-n <- nrow(X)
-p <- ncol(X)
-
-set.seed(1234)
-index_train <- sample(1:n, size=floor(0.8*n))
-X_train <- X[index_train, ]
-y_train <- y[index_train]
-X_test <- X[-index_train, ]
-y_test <- y[-index_train]
-```
-
-```{r}
-obj <- learningmachine::Classifier$new(method = "ranger")
-obj$get_type()
-obj$get_name()
-```
-
-```{r}
-t0 <- proc.time()[3]
-obj$fit(X_train, y_train)
-cat("Elapsed: ", proc.time()[3] - t0, "s \n")
-```
-
-```{r}
-print(obj)
-```
-
-
-```{r}
-caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
-```
-
-
-# 2 - 3 breast cancer 
-
-```{r}
-library(mlbench)
-data(BreastCancer)
-```
-
-```{r}
-breast_cancer <- BreastCancer
-breast_cancer$Id <- NULL
-```
-
-```{r}
-replacement <- 10L
-breast_cancer$Bare.nuclei[is.na(breast_cancer$Bare.nuclei)] <- replacement
-breast_cancer$Bare.nuclei <- as.factor(as.integer(breast_cancer$Bare.nuclei))
-```
-
-```{r}
-#y <- as.factor(as.numeric(breast_cancer$Class))
-y <- breast_cancer$Class
-X <- as.matrix(model.matrix(Class ~., 
-                            data=breast_cancer)[,-1])
-rownames(X) <- NULL
-colnames(X) <- base::gsub(pattern = "\\.|\\^", replacement = "_", colnames(X))
-
-n <- nrow(X)
-p <- ncol(X)
-
-set.seed(1234)
-index_train <- sample(1:n, size=floor(0.8*n))
-X_train <- X[index_train, ]
-y_train <- y[index_train]
-X_test <- X[-index_train, ]
-y_test <- y[-index_train]
-```
-
-```{r}
-obj <- learningmachine::Classifier$new(method = "extratrees")
-obj$get_type()
-obj$get_name()
-obj$get_method()
-```
-
-```{r}
-t0 <- proc.time()[3]
-obj$fit(X_train, y_train)
-cat("Elapsed: ", proc.time()[3] - t0, "s \n")
-```
-
-```{r}
-print(obj)
-```
-
-```{r}
-caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
-```
-
-
-**`krr`**
-
-```{r}
-obj <- learningmachine::Classifier$new(method = "krr")
-obj$get_type()
-obj$get_name()
-```
-
-```{r}
-t0 <- proc.time()[3]
-obj$fit(X_train, y_train, nrounds = 10, verbose = FALSE)
-cat("Elapsed: ", proc.time()[3] - t0, "s \n")
-```
-
-```{r}
-print(obj)
-```
-
-
-```{r}
-caret::confusionMatrix(data = obj$predict(X_test), reference = y_test)
-```
-
-**Breast Cancer**
-
-```{r}
-obj <- learningmachine::Classifier$new(method = "ridge")
-obj$get_type()
-obj$get_name()
-```
-
-```{r}
-t0 <- proc.time()[3]
-obj$fit(X_train, y_train)
-cat("Elapsed: ", proc.time()[3] - t0, "s \n")
-```
-
-```{r}
-(preds_set <- obj$predict(X_test))
-```
-
-```{r}
-caret::confusionMatrix(data = as.factor(unlist(preds_set)), 
-                       reference = y_test)
-```
-
-
-**iris**
-
-```{r}
-X <- as.matrix(iris[,-5])
-y <- iris$Species
-```
-
-```{r}
-set.seed(123)
-(index_train <- base::sample.int(n = nrow(X),
-                                 size = floor(0.8*nrow(X)),
-                                 replace = FALSE))
-X_train <- X[index_train, ]
-y_train <- y[index_train]
-X_test <- X[-index_train, ]
-y_test <- y[-index_train]
-dim(X_train)
-dim(X_test)
-```
-
-```{r}
-obj <- learningmachine::Classifier$new(method = "ranger", level = 90)
-obj$get_type()
-obj$get_name()
-```
-
-```{r}
-t0 <- proc.time()[3]
-obj$fit(X_train, y_train)
-cat("Elapsed: ", proc.time()[3] - t0, "s \n")
-```
-
-```{r}
-(preds_set <- obj$predict(X_test))
-```
-
-```{r}
-caret::confusionMatrix(data = as.factor(unlist(preds_set)), 
-                       reference = y_test)
-```
-
-
-**penguins**
-
-```{r}
-data(penguins)
-```
-
-```{r}
-penguins_ <- as.data.frame(palmerpenguins::penguins)
-
-replacement <- median(penguins$bill_length_mm, na.rm = TRUE)
-penguins_$bill_length_mm[is.na(penguins$bill_length_mm)] <- replacement
-
-replacement <- median(penguins$bill_depth_mm, na.rm = TRUE)
-penguins_$bill_depth_mm[is.na(penguins$bill_depth_mm)] <- replacement
-
-replacement <- median(penguins$flipper_length_mm, na.rm = TRUE)
-penguins_$flipper_length_mm[is.na(penguins$flipper_length_mm)] <- replacement
-
-replacement <- median(penguins$body_mass_g, na.rm = TRUE)
-penguins_$body_mass_g[is.na(penguins$body_mass_g)] <- replacement
-
-# replacing NA's by the most frequent occurence
-penguins_$sex[is.na(penguins$sex)] <- "male" # most frequent
-
-print(summary(penguins_))
-print(sum(is.na(penguins_)))
-
-# one-hot encoding for covariates
-penguins_mat <- model.matrix(species ~., data=penguins_)[,-1]
-penguins_mat <- cbind(penguins_$species, penguins_mat)
-penguins_mat <- as.data.frame(penguins_mat)
-colnames(penguins_mat)[1] <- "species"
-
-print(head(penguins_mat))
-print(tail(penguins_mat))
-
-y <- palmerpenguins::penguins$species
-X <- as.matrix(penguins_mat[,2:ncol(penguins_mat)])
-
-n <- nrow(X)
-p <- ncol(X)
-
-set.seed(1234)
-index_train <- sample(1:n, size=floor(0.8*n))
-X_train <- X[index_train, ]
-y_train <- y[index_train]
-X_test <- X[-index_train, ]
-y_test <- y[-index_train]
-```
-
-```{r}
-obj <- learningmachine::Classifier$new(method = "ridge", level = 90)
-obj$get_type()
-obj$get_name()
-```
-
-```{r}
-t0 <- proc.time()[3]
-obj$fit(X_train, y_train)
-cat("Elapsed: ", proc.time()[3] - t0, "s \n")
-```
-
-```{r}
-(preds_set <- obj$predict(X_test))
-```
-
-```{r}
-caret::confusionMatrix(data = as.factor(unlist(preds_set)), 
-                       reference = y_test)
 ```
 
