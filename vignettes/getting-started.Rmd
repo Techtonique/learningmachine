@@ -150,9 +150,7 @@ lines(c(y_train, y_test), col = "blue")
 mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 ```
 
-# 3 `BCN`, `KRR` & `ranger` regression
-
-**`BCN`**
+# 3 `KRR` & `ranger` regression
 
 ```{r}
 # Boston dataset (dataset has an ethical problem)
@@ -165,25 +163,6 @@ X_train <- as.matrix(Boston[train_idx, -ncol(Boston)])
 X_test <- as.matrix(Boston[-train_idx, -ncol(Boston)])
 y_train <- Boston$medv[train_idx]
 y_test <- Boston$medv[-train_idx]
-
-obj <- learningmachine::Regressor$new(method = "bcn")
-
-t0 <- proc.time()[3]
-obj$fit(X = X_train, y = y_train, B = 500L, nu = 0.5646811,
-lam = 10**0.5106108, r = 10**(-7), tol = 10**-7, verbose = 0,
-col_sample = 0.5, activation = "tanh", type_optim = "nlminb", 
-show_progress = FALSE)
-cat("Elapsed: ", proc.time()[3] - t0, "s \n")
-```
-
-```{r}
-print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
-```
-
-```{r}
-t0 <- proc.time()[3]
-obj$summary(X_test, y=y_test, show_progress = FALSE)
-cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
 **`KRR`**

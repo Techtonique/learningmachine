@@ -20,7 +20,6 @@ library(mlbench)
 library(skimr)
 library(reshape2)
 library(pROC)
-library(reticulate)
 ```
 
 # 1 - Using `Classifier` object
