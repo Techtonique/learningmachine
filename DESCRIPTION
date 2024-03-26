@@ -17,6 +17,7 @@ Suggests:
     glmnet,
     knitr,
     MASS,
+    mlbench,
     palmerpenguins,
     pkgbuild,
     ranger,
