@@ -49,7 +49,3 @@ find_lam_eigen <- function(Eigenvectors, Eigenvalues, y, lambda_vector) {
     .Call(`_learningmachine_find_lam_eigen`, Eigenvectors, Eigenvalues, y, lambda_vector)
 }
 
-rcpp_hello_world <- function() {
-    .Call(`_learningmachine_rcpp_hello_world`)
-}
-

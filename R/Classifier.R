@@ -78,6 +78,10 @@ Classifier <-
                      type_split = c("stratify",
                                     "sequential"),
                      B = 100,
+                     nb_hidden = 0,
+                     nodes_sim = c("sobol", "halton", "unif"),
+                     activ = c("relu", "sigmoid", "tanh",
+                               "leakyrelu", "elu", "linear"),
                      ...) {
         self$X_train <- X
         self$y_train <- y
@@ -88,6 +92,8 @@ Classifier <-
         private$n_classes <- length(private$class_names)
         pi_method <- match.arg(pi_method)
         type_split <- match.arg(type_split)
+        nodes_sim <- match.arg(nodes_sim)
+        activ <- match.arg(activ)
         private$type_split <- type_split
         self$pi_method <- pi_method
         self$B <- B
@@ -97,9 +103,12 @@ Classifier <-
             fit = function(x, y, ...)
               fit_multitaskregressor(x, y,
                                      method = self$method,
+                                     nb_hidden = nb_hidden,
+                                     nodes_sim = nodes_sim,
+                                     activ = activ,
                                      ...),
-            predict = function(obj, X)
-              predict_multitaskregressor(obj, X,
+            predict = function(objs, X)
+              predict_multitaskregressor(objs, X,
                                          method = self$method)
           )
         )
@@ -214,7 +223,7 @@ Classifier <-
           fit_obj_train_sc <- self$engine$fit(X_train_sc,
                                               y_train_sc,
                                               ...)
-          
+          self$set_model(fit_obj_train_sc)
           if (private$type_split == "sequential")
           {
             y_pred_calibration <-
@@ -226,7 +235,6 @@ Classifier <-
             self$set_model(self$engine$fit(X_calibration_sc,
                                            y_calibration_sc))
           } else {
-            self$set_model(fit_obj_train_sc)
             y_pred_calibration <-
               self$engine$predict(self$model,  # notice the diff
                                   X_calibration_sc)
@@ -428,6 +436,8 @@ fit_multitaskregressor <- function(x,
                                    activ = c("relu", "sigmoid", "tanh",
                                              "leakyrelu", "elu", "linear"),
                                    ...) {
+  if (!is.factor(y))
+    y <- as.factor(y)
   n_classes <- length(unique(y))
   class_names <- as.character(levels(unique(y)))
   regressor_choice <- match.arg(method)
@@ -474,11 +484,11 @@ fit_multitaskregressor <- function(x,
     for (i in 1:n_classes) {
       res[[i]] <- obj(x = new_predictors$predictors, 
                       y = Y[, i], ...)
+      res[[i]]$new_predictors <- new_predictors
+      res[[i]]$nb_hidden <- nb_hidden
+      res[[i]]$nodes_sim <- nodes_sim
+      res[[i]]$activ <- activ
     }
-    res$new_predictors <- new_predictors
-    res$nb_hidden <- nb_hidden
-    res$nodes_sim <- nodes_sim
-    res$activ <- activ
   }
   return(res)
 }
@@ -509,20 +519,23 @@ predict_multitaskregressor <- function(objs,
   )
   preds <- matrix(NA, nrow = nrow(X),
                   ncol = length(objs))
-  if (is.null(objs$new_predictors))
+  if (is.null(objs[[1]]$nb_hidden))
   {
     for (i in 1:length(objs)) {
       preds[, i] <- predict_func(objs[[i]], X)
     }
   } else {
+    nb_hidden <- objs[[1]]$nb_hidden
+    if (is.null(nb_hidden))
+      nb_hidden <- 0  
     newX <- create_new_predictors(X, 
-                                  nb_hidden = objs$nb_hidden,
-                                  nodes_sim = objs$nodes_sim,
-                                  activ = objs$activ,
-                                  nn_xm = objs$new_predictors$nn_xm, 
-                                  nn_scales = objs$new_predictors$nn_scales)
+                                  nb_hidden = nb_hidden,
+                                  nodes_sim = objs[[1]]$nodes_sim,
+                                  activ = objs[[1]]$activ,
+                                  nn_xm = objs[[1]]$new_predictors$nn_xm, 
+                                  nn_scales = objs[[1]]$new_predictors$nn_scales)
     for (i in 1:length(objs)) {
-      preds[, i] <- predict_func(objs[[i]], newX)
+      preds[, i] <- predict_func(objs[[i]], newX$predictors)
     }
   }
   return(preds)

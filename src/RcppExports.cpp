@@ -168,16 +168,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rcpp_hello_world
-List rcpp_hello_world();
-RcppExport SEXP _learningmachine_rcpp_hello_world() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(rcpp_hello_world());
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_learningmachine_compute_probs_loop_cpp", (DL_FUNC) &_learningmachine_compute_probs_loop_cpp, 5},
@@ -192,7 +182,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_learningmachine_inters2", (DL_FUNC) &_learningmachine_inters2, 5},
     {"_learningmachine_solve_eigen", (DL_FUNC) &_learningmachine_solve_eigen, 4},
     {"_learningmachine_find_lam_eigen", (DL_FUNC) &_learningmachine_find_lam_eigen, 4},
-    {"_learningmachine_rcpp_hello_world", (DL_FUNC) &_learningmachine_rcpp_hello_world, 0},
     {NULL, NULL, 0}
 };
 

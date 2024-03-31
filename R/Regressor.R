@@ -65,11 +65,17 @@ Regressor <-
                      type_split = c("stratify",
                                     "sequential"),
                      B = 100,
+                     nb_hidden = 0,
+                     nodes_sim = c("sobol", "halton", "unif"),
+                     activ = c("relu", "sigmoid", "tanh",
+                               "leakyrelu", "elu", "linear"),
                      ...) {
         self$X_train <- X
         self$y_train <- drop(y)
         pi_method <- match.arg(pi_method)
         type_split <- match.arg(type_split)
+        nodes_sim <- match.arg(nodes_sim)
+        activ <- match.arg(activ)
         private$type_split <- type_split
         self$pi_method <- pi_method
         self$B <- B
@@ -78,6 +84,9 @@ Regressor <-
           fit = function(x, y, ...)
             fit_regressor(x, y,
                           method = self$method,
+                          nb_hidden = nb_hidden,
+                          nodes_sim = nodes_sim,
+                          activ = activ,
                           ...),
           predict = function(obj, X)
             predict_regressor(obj, X,
@@ -566,6 +575,6 @@ predict_regressor <- function(obj,
                                   activ = obj$activ,
                                   nn_xm = obj$new_predictors$nn_xm, 
                                   nn_scales = obj$new_predictors$nn_scales)
-    return(predict_func(obj, newX))
+    return(predict_func(obj, newX$predictors))
   }
 }
