@@ -35,14 +35,14 @@ dim(X_test)
 # 1 `ranger` regression
 
 ```{r}
-obj <- learningmachine::Regressor$new(method = "ranger")
+obj <- learningmachine::Regressor$new(method = "ranger", nb_hidden=5L)
 obj$get_type()
 obj$get_name()
 ```
 
 ```{r}
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train, nb_hidden=5L)
+obj$fit(X_train, y_train)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
@@ -91,14 +91,14 @@ y_test <- y[-index_train]
 dim(X_train)
 dim(X_test)
 
-obj <- learningmachine::Classifier$new(method = "ranger")
+obj <- learningmachine::Classifier$new(method = "ranger", nb_hidden=5L)
 obj$get_type()
 obj$get_name()
 obj$set_B(10)
 obj$set_level(95)
 
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train, nb_hidden=5L, pi_method="kdesplitconformal")
+obj$fit(X_train, y_train, pi_method="kdesplitconformal")
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 
 probs <- obj$predict_proba(X_test)

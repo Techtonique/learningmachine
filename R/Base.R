@@ -24,6 +24,10 @@ Base <-
       pi_method = NULL,
       level = NULL,
       B = NULL,
+      nb_hidden = 0,
+      nodes_sim = c("sobol", "halton", "unif"),
+      activ = c("relu", "sigmoid", "tanh",
+                "leakyrelu", "elu", "linear"),
       engine = NULL,
       params = NULL,
       seed = 123,
@@ -36,9 +40,17 @@ Base <-
                             pi_method = NULL,
                             level = NULL,
                             B = NULL,
+                            nb_hidden = 0,
+                            nodes_sim = c("sobol", "halton", "unif"),
+                            activ = c("relu", "sigmoid", "tanh",
+                                      "leakyrelu", "elu", "linear"),
                             engine = NULL,
                             params = NULL,
                             seed = 123) {
+        
+        nodes_sim <- match.arg(nodes_sim)
+        activ <- match.arg(activ)
+        
         self$name <- name
         self$type <- type
         self$model <- model
@@ -48,6 +60,9 @@ Base <-
         self$pi_method <- pi_method
         self$level <- level
         self$B <- B
+        self$nb_hidden <- nb_hidden
+        self$nodes_sim <- nodes_sim
+        self$activ <- activ
         self$engine <- engine
         self$params <- params
         self$seed <- seed
@@ -87,6 +102,24 @@ Base <-
       },
       set_B = function(B) {
         self$B <- B
+      },
+      get_nb_hidden = function() {
+        self$nb_hidden
+      },
+      set_nb_hidden = function(nb_hidden) {
+        self$nb_hidden <- nb_hidden
+      },
+      get_nodes_sim = function() {
+        self$nodes_sim
+      },
+      set_nodes_sim = function(nodes_sim) {
+        self$nodes_sim <- nodes_sim
+      },
+      get_activ = function() {
+        self$activ
+      },
+      set_activ = function(activ) {
+        self$activ <- activ
       },
       set_engine = function(engine) {
         self$engine <- engine

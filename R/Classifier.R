@@ -27,6 +27,10 @@ Classifier <-
       level = NULL,
       type_prediction_set = "score",
       B = NULL,
+      nb_hidden = 0,
+      nodes_sim = c("sobol", "halton", "unif"),
+      activ = c("relu", "sigmoid", "tanh",
+                "leakyrelu", "elu", "linear"),
       engine = NULL,
       params = NULL,
       seed = 123,
@@ -40,9 +44,17 @@ Classifier <-
                             level = NULL,
                             type_prediction_set = "score",
                             B = NULL,
+                            nb_hidden = 0,
+                            nodes_sim = c("sobol", "halton", "unif"),
+                            activ = c("relu", "sigmoid", "tanh",
+                                      "leakyrelu", "elu", "linear"),
                             engine = NULL,
                             params = NULL,
                             seed = 123) {
+        
+        nodes_sim <- match.arg(nodes_sim)
+        activ <- match.arg(activ)
+        
         super$initialize(
           name = name,
           type = type,
@@ -53,6 +65,9 @@ Classifier <-
           pi_method = pi_method,
           level = level,
           B = B,
+          nb_hidden = nb_hidden,
+          nodes_sim = nodes_sim,
+          activ = activ,
           engine = engine,
           params = params,
           seed = seed
@@ -78,10 +93,6 @@ Classifier <-
                      type_split = c("stratify",
                                     "sequential"),
                      B = 100,
-                     nb_hidden = 0,
-                     nodes_sim = c("sobol", "halton", "unif"),
-                     activ = c("relu", "sigmoid", "tanh",
-                               "leakyrelu", "elu", "linear"),
                      ...) {
         self$X_train <- X
         self$y_train <- y
@@ -92,8 +103,6 @@ Classifier <-
         private$n_classes <- length(private$class_names)
         pi_method <- match.arg(pi_method)
         type_split <- match.arg(type_split)
-        nodes_sim <- match.arg(nodes_sim)
-        activ <- match.arg(activ)
         private$type_split <- type_split
         self$pi_method <- pi_method
         self$B <- B
@@ -103,9 +112,9 @@ Classifier <-
             fit = function(x, y, ...)
               fit_multitaskregressor(x, y,
                                      method = self$method,
-                                     nb_hidden = nb_hidden,
-                                     nodes_sim = nodes_sim,
-                                     activ = activ,
+                                     nb_hidden = self$nb_hidden,
+                                     nodes_sim = self$nodes_sim,
+                                     activ = self$activ,
                                      ...),
             predict = function(objs, X)
               predict_multitaskregressor(objs, X,
