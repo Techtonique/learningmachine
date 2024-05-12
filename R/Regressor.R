@@ -132,7 +132,7 @@ Regressor <-
           fit_obj_train_sc <- self$engine$fit(X_train_sc,
                                               y_train_sc,
                                               ...)
-          
+          self$set_model(fit_obj_train_sc)
           if (private$type_split == "sequential")
           {
             y_pred_calibration <-
@@ -144,7 +144,6 @@ Regressor <-
             self$set_model(self$engine$fit(X_calibration_sc,
                                            y_calibration_sc))
           } else {
-            self$set_model(fit_obj_train_sc)
             y_pred_calibration <-
               self$engine$predict(self$model,  # notice the diff
                                   X_calibration_sc)

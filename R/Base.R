@@ -140,6 +140,7 @@ Base <-
                          level = 95,
                          show_progress = TRUE,
                          class_name = NULL,
+                         class_index = NULL, 
                          y = NULL,
                          cl = NULL) {
         if (is.null(self$engine) ||
@@ -176,10 +177,14 @@ Base <-
           
         } else {
           # classification
-          stopifnot(!is.null(class_name))
-          class_index <-
-            get_key_by_value(private$encoded_factors$encoded_factors,
-                             class_name)
+          if (is.null(class_name))
+          {
+            stopifnot(!is.null(class_index))
+          } else {
+            class_index <-
+              get_key_by_value(private$encoded_factors$encoded_factors,
+                               class_name) 
+          }
           deriv_column <- function(ix)
           {
             zero <- 1e-4

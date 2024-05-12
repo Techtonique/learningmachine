@@ -102,6 +102,12 @@ obj$summary(X_test, y=y_test,
             show_progress=FALSE)
 ```
 
+```{r}
+obj$summary(X_test, y=y_test, 
+            class_index = 2,
+            show_progress=FALSE)
+```
+
 # 3 - `extratrees` classification
 
 ```{r}
