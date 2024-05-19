@@ -2,6 +2,12 @@
 
 # 1 - Class Classifier --------------------------------------------------------------
 
+#' `Classifier` class
+#'
+#' @description
+#' the `Classifier` class contains supervised classification models 
+#' 
+
 Classifier <-
   R6::R6Class(
     classname = "Classifier",
@@ -17,23 +23,54 @@ Classifier <-
       q_threshold = NULL
     ),
     public = list(
+      #' @param name name of the class
       name = "Classifier",
+      #' @param type type of supervised learning method implemented  
       type = "classification",
+      #' @param model fitted model 
       model = NULL,
+      #' @param method supervised learning method in c('lm', 'ranger', 
+      #' 'extratrees', 'ridge', 'bcn', 'glmnet', 'krr', 'xgboost') 
       method = NULL,
+      #' @param X_train training set features; do not modify by hand 
       X_train = NULL,
+      #' @param y_train training set response; do not modify by hand
       y_train = NULL,
+      #' @param pi_method type of prediction set in c("splitconformal",
+      #' "kdesplitconformal", "bootsplitconformal", "jackknifeplus",
+      #' "kdejackknifeplus", "bootjackknifeplus", "surrsplitconformal",
+      #' "surrjackknifeplus")
       pi_method = NULL,
+      #' @param level an integer; the level of confidence (default is 95, for 95%)
+      #' for prediction sets 
       level = NULL,
+      #' @param type_prediction_set a string; the type of prediction set (currently, only "score" method)
       type_prediction_set = "score",
+      #' @param B an integer; the number of simulations when \code{level} is not \code{NULL}
       B = NULL,
+      #' @param nb_hidden number of nodes in the hidden layer, for construction of a quasi-
+      #' randomized network 
       nb_hidden = 0,
+      #' @param nodes_sim type of 'simulations' for hidden nodes, if \code{nb_hidden} > 0; 
+      #' takes values in c("sobol", "halton", "unif") 
       nodes_sim = c("sobol", "halton", "unif"),
+      #' @param activ activation function's name for the hidden layer, in the construction 
+      #' of a quasi-randomized network; takes values in c("relu", "sigmoid", "tanh", "
+      #' leakyrelu", "elu", "linear")
       activ = c("relu", "sigmoid", "tanh",
                 "leakyrelu", "elu", "linear"),
+      #' @param engine contains fit and predic lower-level methods for the given \code{method}; 
+      #' do not modify by hand
       engine = NULL,
+      #' @param params additional parameters passed to \code{method} when calling \code{fit}
+      #' do not modify by hand 
       params = NULL,
+      #' @param seed an integer; reproducibility seed for methods that include 
+      #' randomization
       seed = 123,
+      #' @description
+      #' Create a new object.
+      #' @return A new `Classifier` object.
       initialize = function(name = "Classifier",
                             type = "classification",
                             model = NULL,

@@ -2,6 +2,14 @@
 
 # 1 - Class Base --------------------------------------------------------------
 
+#' `Base` class
+#'
+#' @description
+#' the `Base` class used by other objects; useful 
+#' for extensions of the package, not for basic 
+#' interactions with the package
+#'
+
 Base <-
   R6::R6Class(
     classname = "Base",
@@ -15,22 +23,49 @@ Base <-
       abs_calib_resids = NULL
     ),
     public = list(
+      #' @param name name of the class
       name = "Base",
+      #' @param type type of supervised learning method implemented  
       type = "none",
+      #' @param model fitted model 
       model = NULL,
+      #' @param method supevised learning method 
       method = NULL,
+      #' @param X_train training set features 
       X_train = NULL,
+      #' @param y_train training set response
       y_train = NULL,
+      #' @param pi_method type of prediction interval in c("splitconformal",
+      #' "kdesplitconformal", "bootsplitconformal", "jackknifeplus",
+      #' "kdejackknifeplus", "bootjackknifeplus", "surrsplitconformal",
+      #' "surrjackknifeplus")
       pi_method = NULL,
+      #' @param level an integer; the level of confidence 
       level = NULL,
+      #' @param B an integer; the number of simulations when \code{level} is not \code{NULL}
       B = NULL,
+      #' @param nb_hidden number of nodes in the hidden layer, for construction of a quasi-
+      #' randomized network 
       nb_hidden = 0,
+      #' @param nodes_sim type of 'simulations' for hidden nodes, if \code{nb_hidden} > 0; 
+      #' takes values in c("sobol", "halton", "unif") 
       nodes_sim = c("sobol", "halton", "unif"),
+      #' @param activ activation function's name for the hidden layer, in the construction 
+      #' of a quasi-randomized network; takes values in c("relu", "sigmoid", "tanh", "
+      #' leakyrelu", "elu", "linear")
       activ = c("relu", "sigmoid", "tanh",
                 "leakyrelu", "elu", "linear"),
+      #' @param engine contains fit and predic lower-level methods for the given \code{method}; 
+      #' do not modify by hand
       engine = NULL,
+      #' @param params additional parameters passed to \code{method} when calling \code{fit}
       params = NULL,
+      #' @param seed an integer; reproducibility seed for methods that include 
+      #' randomization
       seed = 123,
+      #' @description
+      #' Create a new object.
+      #' @return A new `Base` object.
       initialize = function(name = "Base",
                             type = "none",
                             model = NULL,

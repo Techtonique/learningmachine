@@ -21,6 +21,16 @@ obj6 <- learningmachine::Regressor$new(method = "glmnet")
 obj7 <- learningmachine::Regressor$new(method = "krr")
 obj8 <- learningmachine::Regressor$new(method = "xgboost")
 
+(params_qrn <- expand.grid(nodes_sim = c("sobol", "halton", "unif"), 
+            activ=c("relu", "sigmoid", "tanh", 
+                    "leakyrelu", "elu", "linear")))
+params_qrn$nodes_sim <- as.vector(params_qrn$nodes_sim)
+params_qrn$activ <- as.vector(params_qrn$activ)
+
+obj9 <- learningmachine::Regressor$new(method = "ranger", 
+                                       nb_hidden=5)
+
+
 (obj1$get_type())
 (obj1$get_name())
 (obj1$get_method())
@@ -42,6 +52,7 @@ obj6$fit(X_train, y_train)
 obj7$fit(X_train, y_train, lambda=0.05)
 obj8$fit(X_train, y_train, 
          nrounds=10, verbose=FALSE)
+obj9$fit(X_train, y_train)
 
 (mse1 <- mean((obj1$predict(X_test) - y_test)^2))
 (mse2 <- mean((obj2$predict(X_test) - y_test)^2))
@@ -51,6 +62,18 @@ obj8$fit(X_train, y_train,
 (mse6 <- mean((obj6$predict(X_test) - y_test)^2))
 (mse7 <- mean((obj7$predict(X_test) - y_test)^2))
 (mse8 <- mean((obj8$predict(X_test) - y_test)^2))
+(mse9 <- mean((obj9$predict(X_test) - y_test)^2))
+
+mses_qrn <- rep(0, nrow(params_qrn))
+for (i in 1:length(mses_qrn))
+{
+  obj_temp <- learningmachine::Regressor$new(method = "ranger", 
+                                             nb_hidden = 3,
+                                             nodes_sim = params_qrn$nodes_sim[i],
+                                             activ = params_qrn$activ[i])
+  obj_temp$fit(X_train, y_train)
+  mses_qrn[i] <- mean((obj_temp$predict(X_test) - y_test)^2) 
+}
 
 
 test_that("1 - checks on basic getters", {
@@ -78,5 +101,7 @@ test_that("2 - checks on basic fitting", {
 })
 
 
-test_that("3 - additional parameters", {
+test_that("3 - checks qrn", {
+  expect_equal(round(mse9, 2), 5.93)
+  expect_equal(sum(round(mses_qrn, 2)), 94.7)
 })
