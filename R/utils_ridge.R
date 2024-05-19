@@ -65,17 +65,17 @@ predict_ridge_regression <- function(object, newx)
                   scale = object$xsd) %*% object$coef[, which.min(object$GCV)] + object$ym
     ),
     silent = TRUE)
-    if (inherits(res, "try-error"))
-    {
-      res <- try(drop(
-        base::scale(newx, center = object$xm,
-                    scale = object$xsd) %*% object$coef[which.min(object$GCV)] + object$ym
-      ),
-      silent = TRUE)
-      return(res)
-    } else {
-      return(res)
-    }
+    # if (inherits(res, "try-error"))
+    # {
+    #   res <- try(drop(
+    #     base::scale(newx, center = object$xm,
+    #                 scale = object$xsd) %*% object$coef[which.min(object$GCV)] + object$ym
+    #   ),
+    #   silent = TRUE)
+    #   return(res)
+    # } else {
+       return(res)
+    #}
   }  else {
     return(drop(
       base::scale(newx, center = object$xm,

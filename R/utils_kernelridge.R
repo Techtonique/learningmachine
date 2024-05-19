@@ -7,7 +7,7 @@ fit_matern32_regression <-
            method = "chol", #method = c("chol", "solve", "svd", "eigen"),
            with_kmeans = FALSE,
            centers = NULL,
-           centering = FALSE,
+           #centering = FALSE,
            seed = 123,
            cl = NULL,
            ...)
@@ -34,14 +34,14 @@ fit_matern32_regression <-
     
     
     # centered response?
-    if (centering)
-    {
-      ym <- mean(y)
-      response_y <- y - ym
-    } else {
+    # if (centering)
+    # {
+    #   ym <- mean(y)
+    #   response_y <- y - ym
+    # } else {
       ym <- mean(y)
       response_y <- y
-    }
+    #}
     
     # construct covariance
     x_scaled <- my_scale(x)
@@ -169,12 +169,12 @@ fit_matern32_regression <-
         
         response_y_hat <- K %*% coef
         
-        if (centering)
-        {
-          fitted_values <- drop(ym +  response_y_hat)
-        } else {
+        # if (centering)
+        # {
+        #   fitted_values <- drop(ym +  response_y_hat)
+        # } else {
           fitted_values <- drop(response_y_hat)
-        }
+        #}
         
         resid <- response_y - response_y_hat
         colnames(resid) <- lambda
@@ -200,7 +200,7 @@ fit_matern32_regression <-
           l = l,
           lambda = lambda,
           coef = drop(coef),
-          centering = centering,
+          #centering = centering,
           scales = x_scaled$xsd,
           ym = ym,
           xm = x_scaled$xm,
@@ -376,12 +376,12 @@ fit_matern32_regression <-
           
           response_y_hat <- K_star %*% coef
           
-          if (centering)
-          {
-            fitted_values <- drop(ym +  response_y_hat)
-          } else {
+          # if (centering)
+          # {
+          #   fitted_values <- drop(ym +  response_y_hat)
+          # } else {
             fitted_values <- drop(response_y_hat)
-          }
+          #}
           
           resid <- response_y - response_y_hat
           colnames(resid) <- lambda
@@ -424,7 +424,7 @@ fit_matern32_regression <-
         l = l,
         lambda = lambda,
         coef = drop(coef),
-        centering = centering,
+        #centering = centering,
         scales = scales,
         ym = ym,
         xm = xm,
@@ -464,12 +464,12 @@ fit_matern32_regression <-
           response_y_hat <- K_star %*% coef
         }
         
-        if (centering)
-        {
-          fitted_values <- drop(ym +  response_y_hat)
-        } else {
+        # if (centering)
+        # {
+        #   fitted_values <- drop(ym +  response_y_hat)
+        # } else {
           fitted_values <- drop(response_y_hat)
-        }
+        #}
         
         resid <- response_y - response_y_hat
         
@@ -484,7 +484,7 @@ fit_matern32_regression <-
           l = l,
           lambda = lambda,
           coef = drop(coef),
-          centering = centering,
+          #centering = centering,
           scales = x_scaled$xsd,
           ym = ym,
           xm = x_scaled$xm,
@@ -518,12 +518,12 @@ fit_matern32_regression <-
           response_y_hat <- K_star %*% coefs # coef with s
         }
         
-        if (centering)
-        {
-          fitted_values <- drop(ym +  response_y_hat)
-        } else {
+        # if (centering)
+        # {
+        #   fitted_values <- drop(ym +  response_y_hat)
+        # } else {
           fitted_values <- drop(response_y_hat)
-        }
+        #}
         
         resid <- response_y - response_y_hat
         
@@ -539,7 +539,7 @@ fit_matern32_regression <-
           l = l,
           lambda = lambda,
           coef = drop(coefs),
-          centering = centering,
+          #centering = centering,
           scales = x_scaled$xsd,
           ym = ym,
           xm = x_scaled$xm,
@@ -573,7 +573,7 @@ fit_matern32_classification <-
            method = c("chol", "solve", "svd", "eigen"),
            with_kmeans = FALSE,
            centers = NULL,
-           centering = FALSE,
+           #centering = FALSE,
            seed = 123,
            cl = NULL,
            ...)
@@ -594,14 +594,14 @@ fit_matern32_classification <-
     cclust_obj <- NULL
     
     # centered response?
-    if (centering)
-    {
-      Ym <- colMeans(Y)
-      response_Y <- my_scale(x = Y, xm = Ym)
-    } else {
+    # if (centering)
+    # {
+    #   Ym <- colMeans(Y)
+    #   response_Y <- my_scale(x = Y, xm = Ym)
+    # } else {
       Ym <- colMeans(Y)
       response_Y <- Y
-    }
+    #}
     
     # construct covariance
     x_scaled <- my_scale(x)
@@ -732,12 +732,12 @@ fit_matern32_classification <-
         
         response_Y_hat <- K %*% coef
         
-        if (centering)
-        {
-          fitted_values <- drop(Ym +  response_Y_hat)
-        } else {
+        # if (centering)
+        # {
+        #   fitted_values <- drop(Ym +  response_Y_hat)
+        # } else {
           fitted_values <- drop(response_Y_hat)
-        }
+        #}
         
         resid <- response_Y - response_Y_hat
         # colnames(resid) <- lambda # /!\ can't work
@@ -757,7 +757,7 @@ fit_matern32_classification <-
           l = l,
           lambda = lambda,
           coef = drop(coef),
-          centering = centering,
+          #centering = centering,
           scales = x_scaled$xsd,
           ym = Ym,
           xm = x_scaled$xm,
@@ -933,12 +933,12 @@ fit_matern32_classification <-
           
           response_Y_hat <- K_star %*% coef
           
-          if (centering)
-          {
-            fitted_values <- drop(Ym +  response_Y_hat)
-          } else {
+          # if (centering)
+          # {
+          #   fitted_values <- drop(Ym +  response_Y_hat)
+          # } else {
             fitted_values <- drop(response_Y_hat)
-          }
+          #}
           
           resid <- response_Y - response_Y_hat
           colnames(resid) <- lambda
@@ -981,7 +981,7 @@ fit_matern32_classification <-
         l = l,
         lambda = lambda,
         coef = drop(coef),
-        centering = centering,
+        #centering = centering,
         scales = scales,
         ym = Ym,
         xm = xm,
@@ -1021,12 +1021,12 @@ fit_matern32_classification <-
           response_Y_hat <- K_star %*% coef
         }
         
-        if (centering)
-        {
-          fitted_values <- drop(Ym +  response_Y_hat)
-        } else {
+        # if (centering)
+        # {
+        #   fitted_values <- drop(Ym +  response_Y_hat)
+        # } else {
           fitted_values <- drop(response_Y_hat)
-        }
+        #}
         
         resid <- response_Y - response_Y_hat
         
@@ -1041,7 +1041,7 @@ fit_matern32_classification <-
           l = l,
           lambda = lambda,
           coef = drop(coef),
-          centering = centering,
+          #centering = centering,
           scales = x_scaled$xsd,
           ym = Ym,
           xm = x_scaled$xm,
@@ -1075,12 +1075,12 @@ fit_matern32_classification <-
           response_Y_hat <- K_star %*% coefs # coef with s
         }
         
-        if (centering)
-        {
-          fitted_values <- drop(Ym +  response_Y_hat)
-        } else {
+        # if (centering)
+        # {
+        #   fitted_values <- drop(Ym +  response_Y_hat)
+        # } else {
           fitted_values <- drop(response_Y_hat)
-        }
+        #}
         
         resid <- response_Y - response_Y_hat
         
@@ -1096,7 +1096,7 @@ fit_matern32_classification <-
           l = l,
           lambda = lambda,
           coef = drop(coefs),
-          centering = centering,
+          #centering = centering,
           scales = x_scaled$xsd,
           ym = Ym,
           xm = x_scaled$xm,
@@ -1128,53 +1128,53 @@ predict_matern32 <- function(fit_obj, newx, ci = NULL)
   if (is.vector(newx))
     newx <- t(newx)
   
-  if (fit_obj$centering)
-  {
-    # response was centered
-    if (!is.null(fit_obj$with_kmeans))
-    {
-      K_star <- matern32_kxstar_cpp(
-        newx = as.matrix(my_scale(
-          x = newx,
-          xm = as.matrix(fit_obj$xm),
-          xsd = as.vector(fit_obj$scales)
-        )),
-        x = fit_obj$scaled_x_clust,
-        l = fit_obj$l
-      )
-      
-      #print("here1 -----")
-      try_return <-
-        try(return(drop(crossprod(K_star %*% fit_obj$coef)) + fit_obj$ym),
-            silent = TRUE)
-      if (inherits(try_return, "try-error"))
-      {
-        #print("here2 -----")
-        return(drop(crossprod(K_star %*% fit_obj$coef)) + fit_obj$Ym)
-      }
-    } else {
-      K_star <- matern32_kxstar_cpp(
-        newx = as.matrix(my_scale(
-          x = newx,
-          xm = as.vector(fit_obj$xm),
-          xsd = as.vector(fit_obj$scales)
-        )),
-        x = as.matrix(fit_obj$scaled_x),
-        l = as.vector(fit_obj$l)
-      )
-      
-      #print("here3 -----")
-      try_return <-
-        try(return(drop(K_star %*% fit_obj$coef) + fit_obj$ym),
-            silent = TRUE)
-      if (inherits(try_return, "try-error"))
-      {
-        #print("here4 -----")
-        return(drop(crossprod(K_star %*% fit_obj$coef)) + fit_obj$Ym)
-      }
-    }
-    
-  } else {
+  # if (fit_obj$centering)
+  # {
+  #   # response was centered
+  #   if (!is.null(fit_obj$with_kmeans))
+  #   {
+  #     K_star <- matern32_kxstar_cpp(
+  #       newx = as.matrix(my_scale(
+  #         x = newx,
+  #         xm = as.matrix(fit_obj$xm),
+  #         xsd = as.vector(fit_obj$scales)
+  #       )),
+  #       x = fit_obj$scaled_x_clust,
+  #       l = fit_obj$l
+  #     )
+  #     
+  #     #print("here1 -----")
+  #     try_return <-
+  #       try(return(drop(crossprod(K_star %*% fit_obj$coef)) + fit_obj$ym),
+  #           silent = TRUE)
+  #     if (inherits(try_return, "try-error"))
+  #     {
+  #       #print("here2 -----")
+  #       return(drop(crossprod(K_star %*% fit_obj$coef)) + fit_obj$Ym)
+  #     }
+  #   } else {
+  #     K_star <- matern32_kxstar_cpp(
+  #       newx = as.matrix(my_scale(
+  #         x = newx,
+  #         xm = as.vector(fit_obj$xm),
+  #         xsd = as.vector(fit_obj$scales)
+  #       )),
+  #       x = as.matrix(fit_obj$scaled_x),
+  #       l = as.vector(fit_obj$l)
+  #     )
+  #     
+  #     #print("here3 -----")
+  #     try_return <-
+  #       try(return(drop(K_star %*% fit_obj$coef) + fit_obj$ym),
+  #           silent = TRUE)
+  #     if (inherits(try_return, "try-error"))
+  #     {
+  #       #print("here4 -----")
+  #       return(drop(crossprod(K_star %*% fit_obj$coef)) + fit_obj$Ym)
+  #     }
+  #   }
+  #   
+  # } else {
     # response wasn't centered
     if (fit_obj$with_kmeans)
     {
@@ -1204,6 +1204,6 @@ predict_matern32 <- function(fit_obj, newx, ci = NULL)
       return(drop(K_star %*% fit_obj$coef))
     }
     
-  }
+  #}
   
 }

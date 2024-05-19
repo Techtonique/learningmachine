@@ -12,19 +12,19 @@ fit_func_extratrees_regression <- function(x, y, ...) {
   )
 }
 
-fit_func_extratrees_classification <- function(x, y, ...) {
-  df <-
-    data.frame(y = y, x)  # naming of columns is mandatory for `predict`
-  ranger::ranger(
-    y ~ .,
-    data = df,
-    splitrule = "extratrees",
-    replace = FALSE,
-    sample.fraction = 1,
-    probability = TRUE,
-    ...
-  )
-}
+# fit_func_extratrees_classification <- function(x, y, ...) {
+#   df <-
+#     data.frame(y = y, x)  # naming of columns is mandatory for `predict`
+#   ranger::ranger(
+#     y ~ .,
+#     data = df,
+#     splitrule = "extratrees",
+#     replace = FALSE,
+#     sample.fraction = 1,
+#     probability = TRUE,
+#     ...
+#   )
+# }
 
 predict_func_extratrees <- function(obj, newx, ...) {
   if (is.null(colnames(newx)))
