@@ -17,7 +17,6 @@ Classifier <-
       encoded_factors = NULL,
       class_names = NULL,
       n_classes = NULL,
-      type_split = NULL,
       calib_resids = NULL,
       abs_calib_resids = NULL,
       q_threshold = NULL
@@ -79,7 +78,7 @@ Classifier <-
                             y_train = NULL,
                             pi_method = NULL,
                             level = 95,
-                            type_prediction_set = "score",
+                            type_prediction_set = c("none", "score"),
                             B = 100,
                             nb_hidden = 0,
                             nodes_sim = c("sobol", "halton", "unif"),
@@ -109,7 +108,7 @@ Classifier <-
           params = params,
           seed = seed
         )
-        self$type_prediction_set <- type_prediction_set
+        self$type_prediction_set <- match.arg(type_prediction_set)
       },
       get_type_prediction_set = function() {
         self$type_prediction_set
@@ -127,8 +126,6 @@ Classifier <-
                        "surrsplitconformal",
                        "surrjackknifeplus"
                      ),
-                     type_split = c("stratify",
-                                    "sequential"),
                      B = 100,
                      ...) {
         self$X_train <- X
@@ -139,8 +136,6 @@ Classifier <-
           as.character(levels(unique(private$y)))
         private$n_classes <- length(private$class_names)
         pi_method <- match.arg(pi_method)
-        type_split <- match.arg(type_split)
-        private$type_split <- type_split
         self$pi_method <- pi_method
         self$B <- B
         self$params <- list(...)
@@ -255,7 +250,6 @@ Classifier <-
             private$y,
             p = 0.5,
             seed = self$seed,
-            type_split = private$type_split
           )
           X_train_sc <-
             self$X_train[idx_train_calibration,] # training set
@@ -270,24 +264,13 @@ Classifier <-
                                               y_train_sc,
                                               ...)
           self$set_model(fit_obj_train_sc)
-          if (private$type_split == "sequential")
-          {
-            y_pred_calibration <-
-              self$engine$predict(fit_obj_train_sc, # notice the diff
-                                  X_calibration_sc)
-            private$calib_resids <-
-              one_hot(y_calibration_sc) - y_pred_calibration
-            private$abs_calib_resids <- abs(private$calib_resids)
-            self$set_model(self$engine$fit(X_calibration_sc,
-                                           y_calibration_sc))
-          } else {
-            y_pred_calibration <-
-              self$engine$predict(self$model,  # notice the diff
-                                  X_calibration_sc)
-            private$calib_resids <-
-              one_hot(y_calibration_sc) - y_pred_calibration
-            private$abs_calib_resids <- abs(private$calib_resids)
-          }
+          
+          y_pred_calibration <-
+            self$engine$predict(self$model,  # notice the diff
+                                X_calibration_sc)
+          private$calib_resids <-
+            one_hot(y_calibration_sc) - y_pred_calibration
+          private$abs_calib_resids <- abs(private$calib_resids)
           
           raw_preds <- expit(self$engine$predict(self$model, 
                                                  X_calibration_sc))
@@ -427,7 +410,7 @@ Classifier <-
         
         probs <- self$predict_proba(X)
         
-        if (is.null(level) && is.null(self$level))
+        if (identical(self$pi_method, "none"))
         {
           numeric_factor <- apply(probs, 1, which.max)
           preds <- decode_factors(numeric_factor,
@@ -435,7 +418,7 @@ Classifier <-
           names(preds) <- NULL
           return(preds)
           
-        } else { # !is.null(level) || !is.null(self$level)
+        } else { 
           
           # prediction sets with given 'level'
           if (is.null(self$level) && !is.null(level))
