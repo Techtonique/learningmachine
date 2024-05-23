@@ -159,7 +159,7 @@ Classifier <-
           )
         )
         
-        if (is.null(self$level))
+        if (identical(self$pi_method, "none") && is.null(self$level))
         {
           self$set_model(fit_multitaskregressor(
             x = self$X_train,
@@ -258,13 +258,13 @@ Classifier <-
             type_split = private$type_split
           )
           X_train_sc <-
-            self$X_train[idx_train_calibration,]
+            self$X_train[idx_train_calibration,] # training set
           y_train_sc <-
-            self$y_train[idx_train_calibration]
+            self$y_train[idx_train_calibration] # training set
           X_calibration_sc <-
-            self$X_train[-idx_train_calibration,]
+            self$X_train[-idx_train_calibration,] # calibration set
           y_calibration_sc <-
-            self$y_train[-idx_train_calibration]
+            self$y_train[-idx_train_calibration] # calibration set
           
           fit_obj_train_sc <- self$engine$fit(X_train_sc,
                                               y_train_sc,
@@ -305,19 +305,24 @@ Classifier <-
         return(invisible(self))
       },
       predict_proba = function(X, level=NULL) {
+        
         if (is.null(self$model) || is.null(self$engine))
           stop(paste0(self$name, " must be fitted first"))
+        
         raw_preds <- expit(self$engine$predict(self$model, X))
-        if (is.null(level) && is.null(self$level))
+        
+        if (identical(self$pi_method, "none"))
         {
+          # no prediction interval on probs
           probs <- sweep(x = raw_preds, 
                          MARGIN = 1, 
                          STATS=rowSums(raw_preds),
                          FUN = "/")
-          colnames(probs) <-
-            private$class_names
+          colnames(probs) <- private$class_names
+          
           return(probs)
-        } else { # !is.null(level) || !is.null(self$level))
+          
+        } else { 
           
           if (!is.null(self$level) &&
               !is.null(level) && self$level != level)

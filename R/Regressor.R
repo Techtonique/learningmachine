@@ -138,7 +138,7 @@ Regressor <-
                               method = self$method)
         ))
         
-        if (is.null(self$level))
+        if (identical(self$pi_method, "none") && is.null(self$level))
         {
           self$set_model(fit_regressor(
             x = self$X_train,
@@ -157,34 +157,31 @@ Regressor <-
             type_split = private$type_split
           )
           X_train_sc <-
-            self$X_train[idx_train_calibration,]
+            self$X_train[idx_train_calibration,] # training set 
           y_train_sc <-
-            self$y_train[idx_train_calibration]
+            self$y_train[idx_train_calibration] # training set
           X_calibration_sc <-
-            self$X_train[-idx_train_calibration,]
+            self$X_train[-idx_train_calibration,] # calibration set
           y_calibration_sc <-
-            self$y_train[-idx_train_calibration]
+            self$y_train[-idx_train_calibration] # calibration set
           
           fit_obj_train_sc <- self$engine$fit(X_train_sc,
                                               y_train_sc,
                                               ...)
-          self$set_model(fit_obj_train_sc)
+          self$set_model(fit_obj_train_sc) # /!\ keep 
           if (private$type_split == "sequential")
           {
             y_pred_calibration <-
               self$engine$predict(fit_obj_train_sc, # notice the diff
                                   X_calibration_sc)
-            private$calib_resids <-
-              y_calibration_sc - y_pred_calibration
+            private$calib_resids <- y_calibration_sc - y_pred_calibration
             private$abs_calib_resids <- abs(private$calib_resids)
             self$set_model(self$engine$fit(X_calibration_sc,
                                            y_calibration_sc))
-          } else {
-            y_pred_calibration <-
-              self$engine$predict(self$model,  # notice the diff
+          } else { # not in sequential order 
+            y_pred_calibration <- self$engine$predict(self$model,  # notice the diff
                                   X_calibration_sc)
-            private$calib_resids <-
-              y_calibration_sc - y_pred_calibration
+            private$calib_resids <- y_calibration_sc - y_pred_calibration
             private$abs_calib_resids <- abs(private$calib_resids)
           }
         }
@@ -284,7 +281,7 @@ Regressor <-
         
         preds <- drop(self$engine$predict(self$model, X, ...))
         
-        if (is.null(level) && is.null(self$level))
+        if (identical(self$pi_method, "none"))
         {
           # no prediction interval
           return(preds)
