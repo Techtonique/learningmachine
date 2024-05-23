@@ -36,9 +36,9 @@ Regressor <-
       #' "surrjackknifeplus")
       pi_method = NULL,
       #' @param level an integer; the level of confidence (default is 95, for 95%)
-      level = NULL,
+      level = 95,
       #' @param B an integer; the number of simulations when \code{level} is not \code{NULL}
-      B = NULL,
+      B = 100,
       #' @param nb_hidden number of nodes in the hidden layer, for construction of a quasi-
       #' randomized network 
       nb_hidden = 0,
@@ -69,8 +69,8 @@ Regressor <-
                             X_train = NULL,
                             y_train = NULL,
                             pi_method = NULL,
-                            level = NULL,
-                            B = NULL,
+                            level = 95,
+                            B = 100,
                             nb_hidden = 0,
                             nodes_sim = c("sobol", "halton", "unif"),
                             activ = c("relu", "sigmoid", "tanh",
@@ -138,7 +138,7 @@ Regressor <-
                               method = self$method)
         ))
         
-        if (identical(self$pi_method, "none") && is.null(self$level))
+        if (identical(self$pi_method, "none"))
         {
           self$set_model(fit_regressor(
             x = self$X_train,

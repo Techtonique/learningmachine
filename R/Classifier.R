@@ -43,11 +43,11 @@ Classifier <-
       pi_method = NULL,
       #' @param level an integer; the level of confidence (default is 95, for 95%)
       #' for prediction sets 
-      level = NULL,
+      level = 95,
       #' @param type_prediction_set a string; the type of prediction set (currently, only "score" method)
       type_prediction_set = "score",
       #' @param B an integer; the number of simulations when \code{level} is not \code{NULL}
-      B = NULL,
+      B = 100,
       #' @param nb_hidden number of nodes in the hidden layer, for construction of a quasi-
       #' randomized network 
       nb_hidden = 0,
@@ -78,9 +78,9 @@ Classifier <-
                             X_train = NULL,
                             y_train = NULL,
                             pi_method = NULL,
-                            level = NULL,
+                            level = 95,
                             type_prediction_set = "score",
-                            B = NULL,
+                            B = 100,
                             nb_hidden = 0,
                             nodes_sim = c("sobol", "halton", "unif"),
                             activ = c("relu", "sigmoid", "tanh",
@@ -159,7 +159,7 @@ Classifier <-
           )
         )
         
-        if (identical(self$pi_method, "none") && is.null(self$level))
+        if (identical(self$pi_method, "none"))
         {
           self$set_model(fit_multitaskregressor(
             x = self$X_train,
