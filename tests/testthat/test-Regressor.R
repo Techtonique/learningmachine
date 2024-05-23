@@ -20,6 +20,16 @@ obj5 <- learningmachine::Regressor$new(method = "bcn")
 obj6 <- learningmachine::Regressor$new(method = "glmnet")
 obj7 <- learningmachine::Regressor$new(method = "krr")
 obj8 <- learningmachine::Regressor$new(method = "xgboost")
+obj10 <- learningmachine::Regressor$new(method = "lm", nb_hidden = 3)
+obj11 <- learningmachine::Regressor$new(method = "ranger", nb_hidden = 3)
+obj12 <- learningmachine::Regressor$new(method = "extratrees", nb_hidden = 3)
+obj13 <- learningmachine::Regressor$new(method = "ridge", nb_hidden = 3)
+obj14 <- learningmachine::Regressor$new(method = "bcn", nb_hidden = 3)
+obj15 <- learningmachine::Regressor$new(method = "glmnet", nb_hidden = 3)
+obj16 <- learningmachine::Regressor$new(method = "krr", nb_hidden = 3)
+obj17 <- learningmachine::Regressor$new(method = "xgboost", nb_hidden = 3)
+
+
 
 (params_qrn <- expand.grid(nodes_sim = c("sobol", "halton", "unif"), 
             activ=c("relu", "sigmoid", "tanh", 
@@ -53,6 +63,16 @@ obj7$fit(X_train, y_train, lambda=0.05)
 obj8$fit(X_train, y_train, 
          nrounds=10, verbose=FALSE)
 obj9$fit(X_train, y_train)
+obj10$fit(X_train, y_train)
+obj11$fit(X_train, y_train)
+obj12$fit(X_train, y_train)
+obj13$fit(X_train, y_train)
+#obj14$fit(X_train, y_train, show_progress=FALSE)
+obj15$fit(X_train, y_train)
+obj16$fit(X_train, y_train, lambda=0.05)
+obj17$fit(X_train, y_train, 
+         nrounds=10, verbose=FALSE)
+
 
 (mse1 <- mean((obj1$predict(X_test) - y_test)^2))
 (mse2 <- mean((obj2$predict(X_test) - y_test)^2))
@@ -63,6 +83,14 @@ obj9$fit(X_train, y_train)
 (mse7 <- mean((obj7$predict(X_test) - y_test)^2))
 (mse8 <- mean((obj8$predict(X_test) - y_test)^2))
 (mse9 <- mean((obj9$predict(X_test) - y_test)^2))
+(mse10 <- mean((obj10$predict(X_test) - y_test)^2))
+(mse11 <- mean((obj11$predict(X_test) - y_test)^2))
+(mse12 <- mean((obj12$predict(X_test) - y_test)^2))
+(mse13 <- mean((obj13$predict(X_test) - y_test)^2))
+#(mse14 <- mean((obj14$predict(X_test) - y_test)^2))
+(mse15 <- mean((obj15$predict(X_test) - y_test)^2))
+(mse16 <- mean((obj16$predict(X_test) - y_test)^2))
+(mse17 <- mean((obj17$predict(X_test) - y_test)^2))
 
 mses_qrn <- rep(0, nrow(params_qrn))
 for (i in 1:length(mses_qrn))
@@ -104,4 +132,12 @@ test_that("2 - checks on basic fitting", {
 test_that("3 - checks qrn", {
   expect_equal(round(mse9, 2), 5.93)
   expect_equal(sum(round(mses_qrn, 2)), 94.7)
+  expect_equal(round(mse10, 2), 697.9)
+  expect_equal(round(mse11, 2), 4.42)
+  expect_equal(round(mse12, 2), 6.11)
+  expect_equal(round(mse13, 2), 697.9)
+  #expect_equal(round(mse14, 2), 5.78)
+  expect_equal(round(mse15, 2), 96.63)
+  expect_equal(round(mse16, 2), 3.14)
+  expect_equal(round(mse17, 2), 5.31)
 })
