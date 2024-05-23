@@ -41,10 +41,8 @@ Classifier <-
       #' "surrjackknifeplus")
       pi_method = c(
         "none",
-        "splitconformal",
         "kdesplitconformal",
         "bootsplitconformal",
-        "jackknifeplus",
         "kdejackknifeplus",
         "bootjackknifeplus",
         "surrsplitconformal",
@@ -88,10 +86,8 @@ Classifier <-
                             y_train = NULL,
                             pi_method = c(
                               "none",
-                              "splitconformal",
                               "kdesplitconformal",
                               "bootsplitconformal",
-                              "jackknifeplus",
                               "kdejackknifeplus",
                               "bootjackknifeplus",
                               "surrsplitconformal",
@@ -214,6 +210,12 @@ Classifier <-
             close(pb)
             private$abs_calib_resids <- abs_residuals_loocv
             private$calib_resids <- raw_residuals_loocv
+            self$set_model(fit_multitaskregressor(
+              x = self$X_train,
+              y = self$y_train,
+              method = self$method,
+              ...
+            ))
           } else {
             # self$cl > 1 # parallel execution of the jackknife procedure
             loofunc <- function(idx) {
@@ -250,6 +252,12 @@ Classifier <-
                                        byrow = TRUE)
             private$abs_calib_resids <- residuals_matrix[, 1]
             private$calib_resids <- residuals_matrix[, 2]
+            self$set_model(fit_multitaskregressor(
+              x = self$X_train,
+              y = self$y_train,
+              method = self$method,
+              ...
+            ))
           }
         }
         

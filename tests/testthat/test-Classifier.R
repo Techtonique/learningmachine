@@ -28,6 +28,16 @@ obj13 <- learningmachine::Classifier$new(method = "bcn", nb_hidden = 3)
 obj14 <- learningmachine::Classifier$new(method = "glmnet", nb_hidden = 3)
 obj15 <- learningmachine::Classifier$new(method = "krr", nb_hidden = 3)
 obj16 <- learningmachine::Classifier$new(method = "xgboost", nb_hidden = 3)
+obj17 <- learningmachine::Classifier$new(method = "lm", 
+                                        pi_method="kdesplitconformal")
+obj18 <- learningmachine::Classifier$new(method = "ranger", 
+                                        pi_method="kdejackknifeplus")
+obj19 <- learningmachine::Classifier$new(method = "lm", 
+                                        nb_hidden = 3, 
+                                        pi_method="kdesplitconformal")
+obj20 <- learningmachine::Classifier$new(method = "ranger", 
+                                        nb_hidden = 3, 
+                                        pi_method="kdejackknifeplus")
 
 (obj1$get_type())
 (obj1$get_name())
@@ -58,6 +68,11 @@ obj13$fit(X_train, y_train,
 obj14$fit(X_train, y_train, lambda=0.01)
 obj15$fit(X_train, y_train)
 obj16$fit(X_train, y_train, nrounds=10, verbose=FALSE)
+obj17$fit(X_train, y_train)
+obj18$fit(X_train, y_train)
+obj19$fit(X_train, y_train)
+obj20$fit(X_train, y_train)
+
 
 
 (acc1 <- mean((obj1$predict(X_test) == y_test)))
@@ -76,6 +91,10 @@ obj16$fit(X_train, y_train, nrounds=10, verbose=FALSE)
 (acc14 <- mean((obj14$predict(X_test) == y_test)))
 (acc15 <- mean((obj15$predict(X_test) == y_test)))
 (acc16 <- mean((obj16$predict(X_test) == y_test)))
+obj17$predict(X_test)
+obj18$predict(X_test)
+obj19$predict(X_test)
+obj20$predict(X_test)
 
 (prob1 <- obj1$predict_proba(X_test)[1, 1])
 (prob2 <- obj2$predict_proba(X_test)[1, 1])
@@ -150,4 +169,11 @@ test_that("4 - checks on regression-based probas for qrns", {
   expect_equal(as.numeric(round(prob14, 2)), 0.42)
   expect_equal(as.numeric(round(prob15, 2)), 0.42)
   expect_equal(as.numeric(round(prob16, 2)), 0.42)
+})
+
+test_that("5 - conformal no sims", {
+  expect_equal(round(cv1, 2), 1)
+  expect_equal(round(cv2, 2), 1)
+  expect_equal(round(cv3, 2), 0.57)
+  expect_equal(round(cv4, 2), 1)
 })
