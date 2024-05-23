@@ -265,7 +265,7 @@ Regressor <-
         
       },
       predict = function(X,
-                         level = NULL,
+                         level = 95,
                          ...) {
         if (is.null(self$model) || is.null(self$engine))
           stop(

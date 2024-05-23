@@ -287,7 +287,7 @@ Classifier <-
         
         return(invisible(self))
       },
-      predict_proba = function(X, level=NULL) {
+      predict_proba = function(X, level=95) {
         
         if (is.null(self$model) || is.null(self$engine))
           stop(paste0(self$name, " must be fitted first"))
@@ -406,7 +406,7 @@ Classifier <-
         }
       },
       predict = function(X,
-                         level = NULL) {
+                         level = 95) {
         
         probs <- self$predict_proba(X)
         
