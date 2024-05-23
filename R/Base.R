@@ -39,7 +39,17 @@ Base <-
       #' "kdesplitconformal", "bootsplitconformal", "jackknifeplus",
       #' "kdejackknifeplus", "bootjackknifeplus", "surrsplitconformal",
       #' "surrjackknifeplus")
-      pi_method = NULL,
+      pi_method = c(
+           "none",
+           "splitconformal",
+           "kdesplitconformal",
+           "bootsplitconformal",
+           "jackknifeplus",
+           "kdejackknifeplus",
+           "bootjackknifeplus",
+           "surrsplitconformal",
+           "surrjackknifeplus"
+         ),
       #' @param level an integer; the level of confidence 
       level = NULL,
       #' @param B an integer; the number of simulations when \code{level} is not \code{NULL}
@@ -72,7 +82,17 @@ Base <-
                             method = NULL,
                             X_train = NULL,
                             y_train = NULL,
-                            pi_method = NULL,
+                            pi_method = c(
+                              "none",
+                              "splitconformal",
+                              "kdesplitconformal",
+                              "bootsplitconformal",
+                              "jackknifeplus",
+                              "kdejackknifeplus",
+                              "bootjackknifeplus",
+                              "surrsplitconformal",
+                              "surrjackknifeplus"
+                            ),
                             level = NULL,
                             B = NULL,
                             nb_hidden = 0,
@@ -92,7 +112,7 @@ Base <-
         self$method <- method
         self$X_train <- X_train
         self$y_train <- y_train
-        self$pi_method <- pi_method
+        self$pi_method <- match.arg(pi_method)
         self$level <- level
         self$B <- B
         self$nb_hidden <- nb_hidden

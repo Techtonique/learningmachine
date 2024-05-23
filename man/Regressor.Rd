@@ -63,8 +63,8 @@ Create a new object.
   X_train = NULL,
   y_train = NULL,
   pi_method = NULL,
-  level = NULL,
-  B = NULL,
+  level = 95,
+  B = 100,
   nb_hidden = 0,
   nodes_sim = c("sobol", "halton", "unif"),
   activ = c("relu", "sigmoid", "tanh", "leakyrelu", "elu", "linear"),
@@ -129,16 +129,7 @@ A new `Regressor` object.
 \if{latex}{\out{\hypertarget{method-Regressor-fit}{}}}
 \subsection{Method \code{fit()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Regressor$fit(
-  X,
-  y,
-  pi_method = c("splitconformal", "kdesplitconformal", "bootsplitconformal",
-    "jackknifeplus", "kdejackknifeplus", "bootjackknifeplus", "surrsplitconformal",
-    "surrjackknifeplus"),
-  type_split = c("stratify", "sequential"),
-  B = 100,
-  ...
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Regressor$fit(X, y, type_split = c("stratify", "sequential"), B = 100, ...)}\if{html}{\out{</div>}}
 }
 
 }
@@ -147,7 +138,7 @@ A new `Regressor` object.
 \if{latex}{\out{\hypertarget{method-Regressor-predict}{}}}
 \subsection{Method \code{predict()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Regressor$predict(X, level = NULL, ...)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Regressor$predict(X, level = 95, ...)}\if{html}{\out{</div>}}
 }
 
 }

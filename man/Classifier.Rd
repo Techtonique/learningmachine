@@ -64,10 +64,12 @@ Create a new object.
   method = NULL,
   X_train = NULL,
   y_train = NULL,
-  pi_method = NULL,
-  level = NULL,
-  type_prediction_set = "score",
-  B = NULL,
+  pi_method = c("none", "splitconformal", "kdesplitconformal", "bootsplitconformal",
+    "jackknifeplus", "kdejackknifeplus", "bootjackknifeplus", "surrsplitconformal",
+    "surrjackknifeplus"),
+  level = 95,
+  type_prediction_set = c("none", "score"),
+  B = 100,
   nb_hidden = 0,
   nodes_sim = c("sobol", "halton", "unif"),
   activ = c("relu", "sigmoid", "tanh", "leakyrelu", "elu", "linear"),
@@ -153,15 +155,7 @@ A new `Classifier` object.
 \if{latex}{\out{\hypertarget{method-Classifier-fit}{}}}
 \subsection{Method \code{fit()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Classifier$fit(
-  X,
-  y,
-  pi_method = c("kdesplitconformal", "bootsplitconformal", "kdejackknifeplus",
-    "bootjackknifeplus", "surrsplitconformal", "surrjackknifeplus"),
-  type_split = c("stratify", "sequential"),
-  B = 100,
-  ...
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Classifier$fit(X, y, B = 100, ...)}\if{html}{\out{</div>}}
 }
 
 }
@@ -170,7 +164,7 @@ A new `Classifier` object.
 \if{latex}{\out{\hypertarget{method-Classifier-predict_proba}{}}}
 \subsection{Method \code{predict_proba()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Classifier$predict_proba(X, level = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Classifier$predict_proba(X, level = 95)}\if{html}{\out{</div>}}
 }
 
 }
@@ -179,7 +173,7 @@ A new `Classifier` object.
 \if{latex}{\out{\hypertarget{method-Classifier-predict}{}}}
 \subsection{Method \code{predict()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Classifier$predict(X, level = NULL)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Classifier$predict(X, level = 95)}\if{html}{\out{</div>}}
 }
 
 }

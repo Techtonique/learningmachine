@@ -28,6 +28,17 @@ obj14 <- learningmachine::Regressor$new(method = "bcn", nb_hidden = 3)
 obj15 <- learningmachine::Regressor$new(method = "glmnet", nb_hidden = 3)
 obj16 <- learningmachine::Regressor$new(method = "krr", nb_hidden = 3)
 obj17 <- learningmachine::Regressor$new(method = "xgboost", nb_hidden = 3)
+obj18 <- learningmachine::Regressor$new(method = "lm", 
+                                        pi_method="splitconformal")
+obj19 <- learningmachine::Regressor$new(method = "ranger", 
+                                        pi_method="jackknifeplus")
+obj20 <- learningmachine::Regressor$new(method = "lm", 
+                                        nb_hidden = 3, 
+                                        pi_method="splitconformal")
+obj21 <- learningmachine::Regressor$new(method = "ranger", 
+                                        nb_hidden = 3, 
+                                        pi_method="jackknifeplus")
+
 
 
 
@@ -72,6 +83,11 @@ obj15$fit(X_train, y_train)
 obj16$fit(X_train, y_train, lambda=0.05)
 obj17$fit(X_train, y_train, 
          nrounds=10, verbose=FALSE)
+obj18$fit(X_train, y_train)
+obj19$fit(X_train, y_train)
+obj20$fit(X_train, y_train)
+obj21$fit(X_train, y_train)
+
 
 
 (mse1 <- mean((obj1$predict(X_test) - y_test)^2))
@@ -91,6 +107,15 @@ obj17$fit(X_train, y_train,
 (mse15 <- mean((obj15$predict(X_test) - y_test)^2))
 (mse16 <- mean((obj16$predict(X_test) - y_test)^2))
 (mse17 <- mean((obj17$predict(X_test) - y_test)^2))
+preds_obj18 <- obj18$predict(X_test)
+(cv1 <- mean((preds_obj18$lower <= y_test)*(preds_obj18$upper >= y_test)))
+preds_obj19 <- obj19$predict(X_test)
+(cv2 <- mean((preds_obj19$lower <= y_test)*(preds_obj19$upper >= y_test)))
+preds_obj20 <- obj20$predict(X_test)
+(cv3 <- mean((preds_obj20$lower <= y_test)*(preds_obj20$upper >= y_test)))
+preds_obj21 <- obj21$predict(X_test) 
+(cv4 <- mean((preds_obj21$lower <= y_test)*(preds_obj21$upper >= y_test)))
+
 
 mses_qrn <- rep(0, nrow(params_qrn))
 for (i in 1:length(mses_qrn))
@@ -131,7 +156,7 @@ test_that("2 - checks on basic fitting", {
 
 test_that("3 - checks qrn", {
   expect_equal(round(mse9, 2), 4.83)
-  expect_equal(sum(round(mses_qrn, 2)), 83.14)
+  expect_equal(sum(round(mses_qrn, 2)), 84.5)
   expect_equal(round(mse10, 2), 5.34)
   expect_equal(round(mse11, 2), 4.82)
   expect_equal(round(mse12, 2), 5.36)
@@ -140,4 +165,12 @@ test_that("3 - checks qrn", {
   expect_equal(round(mse15, 2), 6.42)
   expect_equal(round(mse16, 2), 2.2)
   expect_equal(round(mse17, 2), 6.11)
+})
+
+
+test_that("4 - conformal no sims", {
+  expect_equal(round(cv1, 2), 1)
+  expect_equal(round(cv2, 2), 1)
+  expect_equal(round(cv3, 2), 0.57)
+  expect_equal(round(cv4, 2), 1)
 })

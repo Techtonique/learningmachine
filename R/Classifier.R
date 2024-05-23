@@ -39,7 +39,17 @@ Classifier <-
       #' "kdesplitconformal", "bootsplitconformal", "jackknifeplus",
       #' "kdejackknifeplus", "bootjackknifeplus", "surrsplitconformal",
       #' "surrjackknifeplus")
-      pi_method = NULL,
+      pi_method = c(
+        "none",
+        "splitconformal",
+        "kdesplitconformal",
+        "bootsplitconformal",
+        "jackknifeplus",
+        "kdejackknifeplus",
+        "bootjackknifeplus",
+        "surrsplitconformal",
+        "surrjackknifeplus"
+      ),
       #' @param level an integer; the level of confidence (default is 95, for 95%)
       #' for prediction sets 
       level = 95,
@@ -76,7 +86,17 @@ Classifier <-
                             method = NULL,
                             X_train = NULL,
                             y_train = NULL,
-                            pi_method = NULL,
+                            pi_method = c(
+                              "none",
+                              "splitconformal",
+                              "kdesplitconformal",
+                              "bootsplitconformal",
+                              "jackknifeplus",
+                              "kdejackknifeplus",
+                              "bootjackknifeplus",
+                              "surrsplitconformal",
+                              "surrjackknifeplus"
+                            ),
                             level = 95,
                             type_prediction_set = c("none", "score"),
                             B = 100,
@@ -90,6 +110,7 @@ Classifier <-
         
         nodes_sim <- match.arg(nodes_sim)
         activ <- match.arg(activ)
+        pi_method <- match.arg(pi_method)
         
         super$initialize(
           name = name,
@@ -118,14 +139,6 @@ Classifier <-
       },
       fit = function(X,
                      y,
-                     pi_method = c("none",
-                       "kdesplitconformal",
-                       "bootsplitconformal",
-                       "kdejackknifeplus",
-                       "bootjackknifeplus",
-                       "surrsplitconformal",
-                       "surrjackknifeplus"
-                     ),
                      B = 100,
                      ...) {
         self$X_train <- X
@@ -135,8 +148,6 @@ Classifier <-
         private$class_names <-
           as.character(levels(unique(private$y)))
         private$n_classes <- length(private$class_names)
-        pi_method <- match.arg(pi_method)
-        self$pi_method <- pi_method
         self$B <- B
         self$params <- list(...)
         self$set_engine(

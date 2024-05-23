@@ -102,27 +102,15 @@ Regressor <-
       },
       fit = function(X,
                      y,
-                     pi_method = c(
-                       "none",
-                       "splitconformal",
-                       "kdesplitconformal",
-                       "bootsplitconformal",
-                       "jackknifeplus",
-                       "kdejackknifeplus",
-                       "bootjackknifeplus",
-                       "surrsplitconformal",
-                       "surrjackknifeplus"
-                     ),
                      type_split = c("stratify",
                                     "sequential"),
                      B = 100,
                      ...) {
         self$X_train <- X
         self$y_train <- drop(y)
-        pi_method <- match.arg(pi_method)
+        #pi_method <- match.arg(pi_method)
         type_split <- match.arg(type_split)
         private$type_split <- type_split
-        self$pi_method <- pi_method
         self$B <- B
         self$params <- list(...)
         self$set_engine(list(
@@ -222,6 +210,8 @@ Regressor <-
             close(pb)
             private$abs_calib_resids <- abs_residuals_loocv
             private$calib_resids <- raw_residuals_loocv
+            self$set_model(self$engine$fit(self$X_train,
+                                           self$y_train))
           } else {
             # self$cl > 1 # parallel execution of the jackknife procedure
             loofunc <- function(idx) {
@@ -258,6 +248,8 @@ Regressor <-
                                        byrow = TRUE)
             private$abs_calib_resids <- residuals_matrix[, 1]
             private$calib_resids <- residuals_matrix[, 2]
+            self$set_model(self$engine$fit(self$X_train,
+                                           self$y_train))
           }
         }
         
