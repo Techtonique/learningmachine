@@ -103,6 +103,7 @@ Regressor <-
       fit = function(X,
                      y,
                      pi_method = c(
+                       "none",
                        "splitconformal",
                        "kdesplitconformal",
                        "bootsplitconformal",

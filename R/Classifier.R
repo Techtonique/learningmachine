@@ -119,7 +119,7 @@ Classifier <-
       },
       fit = function(X,
                      y,
-                     pi_method = c(
+                     pi_method = c("none",
                        "kdesplitconformal",
                        "bootsplitconformal",
                        "kdejackknifeplus",
@@ -387,18 +387,21 @@ Classifier <-
                          seed = self$seed
                        ))
           }
-          sims <- lapply(seq_len(private$n_classes),
+          sims <- lapply(seq_len(private$n_classes), #Rcpp after fix 
                          function (i)
                            replicate(self$B,
                                      raw_preds[, i]) + sd_raw_residuals[i] * simulated_raw_calibrated_residuals[[i]])
+          debug_print(sims)
           preds_lower <-
             lapply(seq_len(private$n_classes), function(i)
               pmax(0, apply(sims[[i]], 1, function(x)
                 quantile(x, probs = (1 - self$level / 100) / 2))))
+          debug_print(preds_lower)
           preds_upper <-
             lapply(seq_len(private$n_classes), function(i)
               pmin(1, apply(sims[[i]], 1, function(x)
                 quantile(x, probs = 1 - (1 - self$level / 100) / 2))))
+          debug_print(preds_upper)
           if (!is.null(private$class_names))
           {
             names(sims) <- private$class_names
