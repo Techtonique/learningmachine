@@ -224,7 +224,7 @@ encode_factors <- function(y) {
 
 # Expit function -----
 expit <- function(x) {
-  1 / (1 + exp(-x))
+  (1 / (1 + exp(-x)))*(x >= 0) + (exp(x)/(1 + exp(x)))*(x < 0)
 }
 
 

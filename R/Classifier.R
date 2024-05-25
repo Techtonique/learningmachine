@@ -303,16 +303,14 @@ Classifier <-
                          function (i)
                            replicate(self$B,
                                      raw_preds[, i]) + sd_raw_residuals[i] * simulated_raw_calibrated_residuals[[i]])
-          q_lower <- (1 - self$level / 100) / 2
+          q_lower <- 0.5*(1 - self$level / 100)
           q_upper <- 1 - q_lower
           preds_lower <-
             lapply(seq_len(private$n_classes), function(i)
-              apply(sims[[i]], 1, function(x)
-                empirical_quantile_cpp(x, q = q_lower)))
+              row_quantiles_cpp(sims[[i]], q = q_lower))
           preds_upper <-
             lapply(seq_len(private$n_classes), function(i)
-              apply(sims[[i]], 1, function(x)
-                empirical_quantile_cpp(x, q = q_upper)))
+              row_quantiles_cpp(sims[[i]], q = q_upper))
           if (!is.null(private$class_names))
           {
             names(sims) <- private$class_names
