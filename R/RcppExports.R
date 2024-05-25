@@ -49,3 +49,11 @@ find_lam_eigen <- function(Eigenvectors, Eigenvalues, y, lambda_vector) {
     .Call(`_learningmachine_find_lam_eigen`, Eigenvectors, Eigenvalues, y, lambda_vector)
 }
 
+empirical_quantile_cpp <- function(x, q) {
+    .Call(`_learningmachine_empirical_quantile_cpp`, x, q)
+}
+
+row_quantiles_cpp <- function(mat, q) {
+    .Call(`_learningmachine_row_quantiles_cpp`, mat, q)
+}
+

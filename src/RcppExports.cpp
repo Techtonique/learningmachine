@@ -168,6 +168,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// empirical_quantile_cpp
+double empirical_quantile_cpp(Rcpp::NumericVector x, double q);
+RcppExport SEXP _learningmachine_empirical_quantile_cpp(SEXP xSEXP, SEXP qSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type q(qSEXP);
+    rcpp_result_gen = Rcpp::wrap(empirical_quantile_cpp(x, q));
+    return rcpp_result_gen;
+END_RCPP
+}
+// row_quantiles_cpp
+Rcpp::NumericVector row_quantiles_cpp(Rcpp::NumericMatrix mat, double q);
+RcppExport SEXP _learningmachine_row_quantiles_cpp(SEXP matSEXP, SEXP qSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type mat(matSEXP);
+    Rcpp::traits::input_parameter< double >::type q(qSEXP);
+    rcpp_result_gen = Rcpp::wrap(row_quantiles_cpp(mat, q));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_learningmachine_compute_probs_loop_cpp", (DL_FUNC) &_learningmachine_compute_probs_loop_cpp, 5},
@@ -182,6 +206,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_learningmachine_inters2", (DL_FUNC) &_learningmachine_inters2, 5},
     {"_learningmachine_solve_eigen", (DL_FUNC) &_learningmachine_solve_eigen, 4},
     {"_learningmachine_find_lam_eigen", (DL_FUNC) &_learningmachine_find_lam_eigen, 4},
+    {"_learningmachine_empirical_quantile_cpp", (DL_FUNC) &_learningmachine_empirical_quantile_cpp, 2},
+    {"_learningmachine_row_quantiles_cpp", (DL_FUNC) &_learningmachine_row_quantiles_cpp, 2},
     {NULL, NULL, 0}
 };
 

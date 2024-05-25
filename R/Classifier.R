@@ -36,17 +36,13 @@ Classifier <-
       #' @param y_train training set response; do not modify by hand
       y_train = NULL,
       #' @param pi_method type of prediction set in c("splitconformal",
-      #' "kdesplitconformal", "bootsplitconformal", "jackknifeplus",
-      #' "kdejackknifeplus", "bootjackknifeplus", "surrsplitconformal",
-      #' "surrjackknifeplus")
+      #' "kdesplitconformal", "bootsplitconformal", 
+      #' "surrsplitconformal")
       pi_method = c(
         "none",
         "kdesplitconformal",
         "bootsplitconformal",
-        "kdejackknifeplus",
-        "bootjackknifeplus",
-        "surrsplitconformal",
-        "surrjackknifeplus"
+        "surrsplitconformal"
       ),
       #' @param level an integer; the level of confidence (default is 95, for 95%)
       #' for prediction sets 
@@ -88,10 +84,7 @@ Classifier <-
                               "none",
                               "kdesplitconformal",
                               "bootsplitconformal",
-                              "kdejackknifeplus",
-                              "bootjackknifeplus",
-                              "surrsplitconformal",
-                              "surrjackknifeplus"
+                              "surrsplitconformal"
                             ),
                             level = 95,
                             type_prediction_set = c("none", "score"),
@@ -136,6 +129,7 @@ Classifier <-
       fit = function(X,
                      y,
                      B = 100,
+                     cl = NULL,
                      ...) {
         self$X_train <- X
         self$y_train <- y
@@ -161,104 +155,16 @@ Classifier <-
           )
         )
         
+        self$set_model(fit_multitaskregressor(
+          x = self$X_train,
+          y = private$y,
+          method = self$method,
+          ...
+        ))
+        
         if (identical(self$pi_method, "none"))
         {
-          self$set_model(fit_multitaskregressor(
-            x = self$X_train,
-            y = private$y,
-            method = self$method,
-            ...
-          ))
           return (invisible(self))
-        }
-        
-        if (self$pi_method %in% c("kdejackknifeplus",
-                                  "bootjackknifeplus",
-                                  "surrjackknifeplus"))
-        {
-          n_train <- nrow(self$X_train)
-          fit_objs_loocv <-
-            base::vector("list", n_train)
-          abs_residuals_loocv <-
-            rep(0, n_train)
-          raw_residuals_loocv <-
-            rep(0, n_train)
-          
-          # sequential execution of the jackknife procedure
-          if (self$cl %in% c(0, 1) ||
-              is.null(self$cl))
-          {
-            pb <- txtProgressBar(min = 1,
-                                 max = n_train,
-                                 style = 3)
-            for (i in 1:n_train) {
-              left_out_indices <- setdiff(1:n_train, i)
-              obj_jackknife_residuals <-
-                get_jackknife_residuals(
-                  X = self$X_train,
-                  y = self$y_train,
-                  idx = left_out_indices,
-                  fit_func = self$engine$fit,
-                  predict_func = self$engine$predict
-                )
-              abs_residuals_loocv[i] <-
-                obj_jackknife_residuals$abs_residuals
-              raw_residuals_loocv[i] <-
-                obj_jackknife_residuals$raw_residuals
-              setTxtProgressBar(pb, i)
-            }
-            close(pb)
-            private$abs_calib_resids <- abs_residuals_loocv
-            private$calib_resids <- raw_residuals_loocv
-            self$set_model(fit_multitaskregressor(
-              x = self$X_train,
-              y = self$y_train,
-              method = self$method,
-              ...
-            ))
-          } else {
-            # self$cl > 1 # parallel execution of the jackknife procedure
-            loofunc <- function(idx) {
-              left_out_indices <- base::setdiff(1:n_train, idx)
-              obj_jackknife_residuals <-
-                get_jackknife_residuals(
-                  X = self$X_train,
-                  y = self$y_train,
-                  idx = left_out_indices,
-                  fit_func = self$engine$fit,
-                  predict_func = self$engine$predict
-                )
-              return(
-                c(
-                  obj_jackknife_residuals$abs_residuals #/!\ keep, part of loofunc /!\
-                  ,
-                  obj_jackknife_residuals$raw_residuals #/!\ keep, part of loofunc /!\
-                )
-              )
-            }
-            
-            if (is_package_available("doSNOW") == FALSE)
-            {
-              utils::install.packages("doSNOW", repos = "https://cran.rstudio.com/")
-            }
-            
-            residuals_init <- rep(0, 2 * n_train)
-            residuals_vec <- parfor(what = loofunc,
-                                    args = seq_len(n_train),
-                                    cl = self$cl)
-            residuals_matrix <- matrix(residuals_vec,
-                                       nrow = n_train,
-                                       ncol = 2,
-                                       byrow = TRUE)
-            private$abs_calib_resids <- residuals_matrix[, 1]
-            private$calib_resids <- residuals_matrix[, 2]
-            self$set_model(fit_multitaskregressor(
-              x = self$X_train,
-              y = self$y_train,
-              method = self$method,
-              ...
-            ))
-          }
         }
         
         if (self$pi_method %in% c("kdesplitconformal",
@@ -342,7 +248,6 @@ Classifier <-
           {
             self$set_level(level)
           }
-          
           scaled_raw_residuals <- scale(private$calib_resids,
                                         center = TRUE,
                                         scale = TRUE)
@@ -350,7 +255,7 @@ Classifier <-
           
           set.seed(self$seed)
           
-          if (self$pi_method %in% c("kdejackknifeplus", "kdesplitconformal"))
+          if (identical(self$pi_method, "kdesplitconformal"))
           {
             simulated_raw_calibrated_residuals <-
               lapply(seq_len(private$n_classes),
@@ -363,7 +268,7 @@ Classifier <-
                        ))
           }
           
-          if (self$pi_method %in% c("bootjackknifeplus", "bootsplitconformal"))
+          if (identical(self$pi_method, "bootsplitconformal"))
           {
             simulated_raw_calibrated_residuals <-
               lapply(seq_len(private$n_classes),
@@ -376,7 +281,7 @@ Classifier <-
                        ))
           }
           
-          if (self$pi_method %in% c("surrsplitconformal", "surrjackknifeplus"))
+          if (identical(self$pi_method, "surrsplitconformal"))
           {
             if (nrow(raw_preds) > length(private$calib_resids))
             {
@@ -398,17 +303,16 @@ Classifier <-
                          function (i)
                            replicate(self$B,
                                      raw_preds[, i]) + sd_raw_residuals[i] * simulated_raw_calibrated_residuals[[i]])
-          debug_print(sims)
+          q_lower <- (1 - self$level / 100) / 2
+          q_upper <- 1 - q_lower
           preds_lower <-
             lapply(seq_len(private$n_classes), function(i)
-              pmax(0, apply(sims[[i]], 1, function(x)
-                quantile(x, probs = (1 - self$level / 100) / 2))))
-          debug_print(preds_lower)
+              apply(sims[[i]], 1, function(x)
+                empirical_quantile_cpp(x, q = q_lower)))
           preds_upper <-
             lapply(seq_len(private$n_classes), function(i)
-              pmin(1, apply(sims[[i]], 1, function(x)
-                quantile(x, probs = 1 - (1 - self$level / 100) / 2))))
-          debug_print(preds_upper)
+              apply(sims[[i]], 1, function(x)
+                empirical_quantile_cpp(x, q = q_upper)))
           if (!is.null(private$class_names))
           {
             names(sims) <- private$class_names
