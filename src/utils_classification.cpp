@@ -37,3 +37,37 @@ Rcpp::NumericVector row_quantiles_cpp(Rcpp::NumericMatrix mat, double q) {
   
   return quantiles;
 }
+
+// [[Rcpp::export]]
+Rcpp::List calculate_quantiles_cpp(Rcpp::List sims, double level, int n_classes) {
+  double q_lower = 0.5 * (1 - level / 100);
+  double q_upper = 1 - q_lower;
+  
+  Rcpp::List preds_lower(n_classes);
+  Rcpp::List preds_upper(n_classes);
+  
+  for (int i = 0; i < n_classes; ++i) {
+    Rcpp::NumericMatrix sim = sims[i];
+    preds_lower[i] = row_quantiles_cpp(sim, q_lower);
+    preds_upper[i] = row_quantiles_cpp(sim, q_upper);
+  }
+  
+  return Rcpp::List::create(
+    Rcpp::Named("preds_lower") = preds_lower,
+    Rcpp::Named("preds_upper") = preds_upper
+  );
+}
+
+
+// [[Rcpp::export]]
+Rcpp::NumericMatrix simulate_gaussian_mixture_cpp(Rcpp::NumericVector x, 
+                                                  unsigned long int n, 
+                                                  unsigned int p, 
+                                                  double width)
+{
+  Rcpp::NumericMatrix result(n, p);
+  for (unsigned int j = 0; j < p; ++j) {
+    result(Rcpp::_, j) = Rcpp::sample(x, n, true) + Rcpp::rnorm(n, 0.0, width);
+  }
+  return(result);
+}

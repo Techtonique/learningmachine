@@ -192,6 +192,33 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// calculate_quantiles_cpp
+Rcpp::List calculate_quantiles_cpp(Rcpp::List sims, double level, int n_classes);
+RcppExport SEXP _learningmachine_calculate_quantiles_cpp(SEXP simsSEXP, SEXP levelSEXP, SEXP n_classesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type sims(simsSEXP);
+    Rcpp::traits::input_parameter< double >::type level(levelSEXP);
+    Rcpp::traits::input_parameter< int >::type n_classes(n_classesSEXP);
+    rcpp_result_gen = Rcpp::wrap(calculate_quantiles_cpp(sims, level, n_classes));
+    return rcpp_result_gen;
+END_RCPP
+}
+// simulate_gaussian_mixture_cpp
+Rcpp::NumericMatrix simulate_gaussian_mixture_cpp(Rcpp::NumericVector x, unsigned long int n, unsigned int p, double width);
+RcppExport SEXP _learningmachine_simulate_gaussian_mixture_cpp(SEXP xSEXP, SEXP nSEXP, SEXP pSEXP, SEXP widthSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< unsigned long int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type p(pSEXP);
+    Rcpp::traits::input_parameter< double >::type width(widthSEXP);
+    rcpp_result_gen = Rcpp::wrap(simulate_gaussian_mixture_cpp(x, n, p, width));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_learningmachine_compute_probs_loop_cpp", (DL_FUNC) &_learningmachine_compute_probs_loop_cpp, 5},
@@ -208,6 +235,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_learningmachine_find_lam_eigen", (DL_FUNC) &_learningmachine_find_lam_eigen, 4},
     {"_learningmachine_empirical_quantile_cpp", (DL_FUNC) &_learningmachine_empirical_quantile_cpp, 2},
     {"_learningmachine_row_quantiles_cpp", (DL_FUNC) &_learningmachine_row_quantiles_cpp, 2},
+    {"_learningmachine_calculate_quantiles_cpp", (DL_FUNC) &_learningmachine_calculate_quantiles_cpp, 3},
+    {"_learningmachine_simulate_gaussian_mixture_cpp", (DL_FUNC) &_learningmachine_simulate_gaussian_mixture_cpp, 4},
     {NULL, NULL, 0}
 };
 

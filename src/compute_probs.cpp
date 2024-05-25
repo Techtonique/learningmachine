@@ -27,37 +27,3 @@ List compute_probs_loop_cpp(unsigned long int n_x,
   }
   return (res);
 }
-
-/*
-
- compute_probs_list <- function(x) {
- 
-# do this in Rcpp /!\
- n_x <- length(x)
- n <- dim(x[[1]])[1]
- B <- dim(x[[1]])[2]
- res <- x
- 
- for (key in seq_len(n_x)) {
- for (i in seq_len(n)) {
- for (j in seq_len(B)) {
- res[[key]][i, j] <-
- x[[key]][i, j] / sum(sapply(seq_len(n_x), function(k)
- x[[k]][i, j]))
- }
- }
- }
- 
- debug_print(res)
- 
- debug_print(compute_probs_loop_cpp(n_x, n, B, res, x))
- 
- names_x <- try(names(x), silent = TRUE)
- if(!inherits(names_x, "try-error"))
- names(res) <- names_x
- 
-#res$sims <- x
- return(res)
- }
-
-  */

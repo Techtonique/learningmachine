@@ -299,17 +299,17 @@ Classifier <-
                          seed = self$seed
                        ))
           }
+          
           sims <- lapply(seq_len(private$n_classes), #Rcpp after fix 
                          function (i)
                            replicate(self$B,
                                      raw_preds[, i]) + sd_raw_residuals[i] * simulated_raw_calibrated_residuals[[i]])
           q_lower <- 0.5*(1 - self$level / 100)
           q_upper <- 1 - q_lower
-          preds_lower <-
-            lapply(seq_len(private$n_classes), function(i)
+          seq_len_n_classes <- seq_len(private$n_classes)
+          preds_lower <- lapply(seq_len_n_classes, function(i)
               row_quantiles_cpp(sims[[i]], q = q_lower))
-          preds_upper <-
-            lapply(seq_len(private$n_classes), function(i)
+          preds_upper <- lapply(seq_len_n_classes, function(i)
               row_quantiles_cpp(sims[[i]], q = q_upper))
           if (!is.null(private$class_names))
           {

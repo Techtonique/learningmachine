@@ -57,3 +57,11 @@ row_quantiles_cpp <- function(mat, q) {
     .Call(`_learningmachine_row_quantiles_cpp`, mat, q)
 }
 
+calculate_quantiles_cpp <- function(sims, level, n_classes) {
+    .Call(`_learningmachine_calculate_quantiles_cpp`, sims, level, n_classes)
+}
+
+simulate_gaussian_mixture_cpp <- function(x, n, p, width) {
+    .Call(`_learningmachine_simulate_gaussian_mixture_cpp`, x, n, p, width)
+}
+

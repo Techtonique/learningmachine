@@ -1,70 +1,5 @@
 # Useful functions for learningmachine (alphabetical order)
 
-
-# # compute list of all possible combinations -----
-# compute_probs_list <- function(x) {
-#   
-#   # do this in Rcpp /!\
-#   n_x <- length(x)
-#   n <- dim(x[[1]])[1]
-#   B <- dim(x[[1]])[2]
-#   res <- x
-#   
-#   for (key in seq_len(n_x)) {
-#     for (i in seq_len(n)) {
-#       for (j in seq_len(B)) {
-#         res[[key]][i, j] <-
-#           x[[key]][i, j] / sum(sapply(seq_len(n_x), function(k)
-#             x[[k]][i, j]))
-#       }
-#     }
-#   }
-#   
-#   debug_print(res)
-#   
-#   debug_print(compute_probs_loop_cpp(n_x, n, B, res, x))
-#   
-#   names_x <- try(names(x), silent = TRUE)
-#   if(!inherits(names_x, "try-error"))
-#     names(res) <- names_x
-#   
-#   #res$sims <- x
-#   return(res)
-# }
-
-# compute preds and p.i bounds -----
-compute_pis <- function(x, alpha) {
-  # do this in Rcpp /!\
-  n <- dim(x[[1]])[1]
-  B <- dim(x[[1]])[2]
-  n_classes <- length(x)
-  preds <- lower <- upper <- matrix(0, nrow = n,
-                                    ncol = n_classes)
-  for (i in seq_len(n)) {
-    for (j in seq_len(n_classes)) {
-      preds[i, j] <- mean(x[[j]][i, ])
-      lower[i, j] <-
-        pmax(0, pmin(1, quantile(x[[j]][i, ], probs = alpha / 2)))
-      upper[i, j] <-
-        pmax(0, pmin(1, quantile(x[[j]][i, ], probs = 1 - alpha / 2)))
-    }
-  }
-  
-  names_x <- try(names(x), silent = TRUE)
-  if (!inherits(names_x, "try-error")) {
-    colnames(preds) <- names_x
-    colnames(lower) <- names_x
-    colnames(upper) <- names_x
-  }
-  return(list(
-    preds = preds,
-    lower = lower,
-    upper = upper,
-    sims = x
-  ))
-}
-#compute_pis <- memoise::memoize(compute_pis)
-
 # compute scores for conformal "score" method -----
 compute_scores <- function(probs, y_calibration_sc) {
   probs_calibration_sc <- probs*y_calibration_sc
@@ -226,7 +161,7 @@ encode_factors <- function(y) {
 expit <- function(x) {
   (1 / (1 + exp(-x)))*(x >= 0) + (exp(x)/(1 + exp(x)))*(x < 0)
 }
-
+expit <- compiler::cmpfun(expit)
 
 # get classes index -----
 get_classes_idx <- function(new_probs, q_threshold, level) {
@@ -563,16 +498,15 @@ rgaussiandens <- function(x,
   
   width <- z$bw # Kernel width
   
+  set.seed(seed)
   if (p <= 1)
   {
-    set.seed(seed)
     return(sample(x, n, replace = TRUE) + rnorm(n, sd=width))    # Here's the entire algorithm
   } else {
-    return(sapply(1:p,
-                  function(i) {
-                    set.seed(seed + i - 1)
-                    sample(x, n, replace = TRUE) + rnorm(n, sd=width)
-                  }))
+    return(simulate_gaussian_mixture_cpp(x=x, 
+                                         n=n, 
+                                         p=p, 
+                                         width = width))
   }
 }
 
