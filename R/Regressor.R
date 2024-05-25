@@ -34,7 +34,17 @@ Regressor <-
       #' "kdesplitconformal", "bootsplitconformal", "jackknifeplus",
       #' "kdejackknifeplus", "bootjackknifeplus", "surrsplitconformal",
       #' "surrjackknifeplus")
-      pi_method = NULL,
+      pi_method = c(
+        "none",
+        "splitconformal",
+        "jackknifeplus",
+        "kdesplitconformal",
+        "bootsplitconformal",
+        "kdejackknifeplus",
+        "bootjackknifeplus",
+        "surrsplitconformal",
+        "surrjackknifeplus"
+      ),
       #' @param level an integer; the level of confidence (default is 95, for 95%)
       level = 95,
       #' @param B an integer; the number of simulations when \code{level} is not \code{NULL}
@@ -68,7 +78,16 @@ Regressor <-
                             method = NULL,
                             X_train = NULL,
                             y_train = NULL,
-                            pi_method = NULL,
+                            pi_method = c("none",
+                              "splitconformal",
+                              "jackknifeplus",
+                              "kdesplitconformal",
+                              "bootsplitconformal",
+                              "kdejackknifeplus",
+                              "bootjackknifeplus",
+                              "surrsplitconformal",
+                              "surrjackknifeplus"
+                            ),
                             level = 95,
                             B = 100,
                             nb_hidden = 0,
@@ -81,6 +100,7 @@ Regressor <-
         
         nodes_sim <- match.arg(nodes_sim)
         activ <- match.arg(activ)
+        pi_method <- match.arg(pi_method)
         
         super$initialize(
           name = name,
@@ -104,14 +124,12 @@ Regressor <-
                      y,
                      type_split = c("stratify",
                                     "sequential"),
-                     B = 100,
                      ...) {
         self$X_train <- X
         self$y_train <- drop(y)
         #pi_method <- match.arg(pi_method)
         type_split <- match.arg(type_split)
         private$type_split <- type_split
-        self$B <- B
         self$params <- list(...)
         self$set_engine(list(
           fit = function(x, y, ...)
@@ -136,7 +154,8 @@ Regressor <-
           )) 
         }
         
-        if (self$pi_method %in% c("splitconformal", "kdesplitconformal"))
+        if (self$pi_method %in% c("splitconformal", 
+                                  "kdesplitconformal"))
         {
           idx_train_calibration <- split_data(
             self$y_train,
@@ -256,9 +275,7 @@ Regressor <-
         return(invisible(self))
         
       },
-      predict = function(X,
-                         level = 95,
-                         ...) {
+      predict = function(X, ...) {
         if (is.null(self$model) || is.null(self$engine))
           stop(
             paste0(
@@ -278,24 +295,6 @@ Regressor <-
           # no prediction interval
           return(preds)
         } else {
-          # prediction intervals and predictive simulations
-          if (!is.null(self$level) &&
-              !is.null(level) && self$level != level)
-          {
-            warning(paste0(
-              "attribute 'level' has been set to ",
-              level,
-              " instead of ",
-              self$level
-            ))
-            self$set_level(level)
-          }
-          
-          if (is.null(self$level) && !is.null(level))
-          {
-            self$set_level(level)
-          }
-          
           if (self$pi_method %in% c("splitconformal", 
                                     "jackknifeplus"))
           {
@@ -321,6 +320,7 @@ Regressor <-
             scaled_raw_residuals <- scale(private$calib_resids, 
                                           center = TRUE,
                                           scale = TRUE)
+            
             sd_raw_residuals <- sd(private$calib_resids)
             
             set.seed(self$seed)
@@ -353,14 +353,16 @@ Regressor <-
                                                                seed = self$seed)
             }
             
+            q_lower <- 0.5*(1 - self$level / 100)
+            q_upper <- 1 - q_lower
             sims <-
               replicate(self$B, preds) + sd_raw_residuals * simulated_raw_calibrated_residuals
             preds_lower <-
               apply(sims, 1, function(x)
-                quantile(x, probs = (1 - self$level / 100) / 2))
+                empirical_quantile_cpp(x, q = q_lower))
             preds_upper <-
               apply(sims, 1, function(x)
-                quantile(x, probs = 1 - (1 - self$level / 100) / 2))
+                empirical_quantile_cpp(x, q = q_upper))
             return(list(
               preds = apply(sims, 1, mean),
               sims = sims,
@@ -382,6 +384,7 @@ Regressor <-
                              ),
                              level = NULL,
                              pi_method = c(
+                               "none",
                                "splitconformal",
                                "jackknifeplus",
                                "kdesplitconformal",
@@ -398,24 +401,9 @@ Regressor <-
         stopifnot(pct_train >= 0.4 && pct_train < 1)
         stopifnot(length(y) == nrow(X))
         
-        if (!is.null(level) && level != self$level)
-        {
-          warning(paste0(
-            "attribute 'level' has been set to ",
-            level,
-            " instead of ",
-            self$level
-          ))
-          self$level <- level
-        }
-        
-        if (is.null(self$level) && !is.null(level))
-        {
-          self$level <- level
-        }
-        
         self$params <- list(...)
         pi_method <- match.arg(pi_method)
+        self$pi_method <- pi_method
         set.seed(seed)
         train_index <-
           caret::createDataPartition(y, p = pct_train)$Resample1
@@ -488,7 +476,7 @@ Regressor <-
             results$score <- try_res
           }
           
-          results$level <- level
+          results$level <- self$level
           results$pi_method <- pi_method
           results$B <- B
           results$coverage <-

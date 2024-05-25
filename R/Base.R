@@ -51,9 +51,9 @@ Base <-
            "surrjackknifeplus"
          ),
       #' @param level an integer; the level of confidence 
-      level = NULL,
+      level = 95,
       #' @param B an integer; the number of simulations when \code{level} is not \code{NULL}
-      B = NULL,
+      B = 100,
       #' @param nb_hidden number of nodes in the hidden layer, for construction of a quasi-
       #' randomized network 
       nb_hidden = 0,
@@ -65,7 +65,7 @@ Base <-
       #' leakyrelu", "elu", "linear")
       activ = c("relu", "sigmoid", "tanh",
                 "leakyrelu", "elu", "linear"),
-      #' @param engine contains fit and predic lower-level methods for the given \code{method}; 
+      #' @param engine contains fit and predict lower-level methods for the given \code{method}; 
       #' do not modify by hand
       engine = NULL,
       #' @param params additional parameters passed to \code{method} when calling \code{fit}
@@ -93,8 +93,8 @@ Base <-
                               "surrsplitconformal",
                               "surrjackknifeplus"
                             ),
-                            level = NULL,
-                            B = NULL,
+                            level = 95,
+                            B = 100,
                             nb_hidden = 0,
                             nodes_sim = c("sobol", "halton", "unif"),
                             activ = c("relu", "sigmoid", "tanh",
@@ -105,6 +105,7 @@ Base <-
         
         nodes_sim <- match.arg(nodes_sim)
         activ <- match.arg(activ)
+        pi_method <- match.arg(pi_method)
         
         self$name <- name
         self$type <- type
@@ -112,7 +113,7 @@ Base <-
         self$method <- method
         self$X_train <- X_train
         self$y_train <- y_train
-        self$pi_method <- match.arg(pi_method)
+        self$pi_method <- pi_method
         self$level <- level
         self$B <- B
         self$nb_hidden <- nb_hidden

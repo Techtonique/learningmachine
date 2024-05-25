@@ -128,7 +128,6 @@ Classifier <-
       },
       fit = function(X,
                      y,
-                     B = 100,
                      cl = NULL,
                      ...) {
         self$X_train <- X
@@ -138,7 +137,6 @@ Classifier <-
         private$class_names <-
           as.character(levels(unique(private$y)))
         private$n_classes <- length(private$class_names)
-        self$B <- B
         self$params <- list(...)
         self$set_engine(
           list(
@@ -212,7 +210,7 @@ Classifier <-
         
         return(invisible(self))
       },
-      predict_proba = function(X, level=95) {
+      predict_proba = function(X) {
         
         if (is.null(self$model) || is.null(self$engine))
           stop(paste0(self$name, " must be fitted first"))
@@ -232,22 +230,6 @@ Classifier <-
           
         } else { 
           
-          if (!is.null(self$level) &&
-              !is.null(level) && self$level != level)
-          {
-            warning(paste0(
-              "attribute 'level' has been set to ",
-              level,
-              " instead of ",
-              self$level
-            ))
-            self$set_level(level)
-          }
-          
-          if (is.null(self$level) && !is.null(level))
-          {
-            self$set_level(level)
-          }
           scaled_raw_residuals <- scale(private$calib_resids,
                                         center = TRUE,
                                         scale = TRUE)
@@ -326,8 +308,7 @@ Classifier <-
           return(res)
         }
       },
-      predict = function(X,
-                         level = 95) {
+      predict = function(X) {
         
         probs <- self$predict_proba(X)
         
@@ -338,7 +319,6 @@ Classifier <-
                                   private$encoded_factors)
           names(preds) <- NULL
           return(preds)
-          
         } else { 
           
           # prediction sets with given 'level'
