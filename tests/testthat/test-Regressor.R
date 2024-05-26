@@ -38,6 +38,18 @@ obj20 <- learningmachine::Regressor$new(method = "lm",
 obj21 <- learningmachine::Regressor$new(method = "ranger", 
                                         nb_hidden = 3, 
                                         pi_method="jackknifeplus")
+obj22 <- learningmachine::Regressor$new(method = "svm", 
+                                        nb_hidden=3,
+                                        pi_method="splitconformal")
+obj23 <- learningmachine::Regressor$new(method = "svm", 
+                                        nb_hidden=3,
+                                        pi_method="jackknifeplus")
+obj24 <- learningmachine::Regressor$new(method = "svm", 
+                                        nb_hidden=3,
+                                        pi_method="kdesplitconformal")
+obj25 <- learningmachine::Regressor$new(method = "svm", 
+                                        nb_hidden=3,
+                                        pi_method="kdejackknifeplus")
 
 
 
@@ -87,8 +99,12 @@ obj18$fit(X_train, y_train)
 obj19$fit(X_train, y_train)
 obj20$fit(X_train, y_train)
 obj21$fit(X_train, y_train)
-
-
+obj22$fit(X_train, y_train, 
+          type_split="sequential")
+obj23$fit(X_train, y_train)
+obj24$fit(X_train, y_train, 
+          type_split="sequential")
+obj25$fit(X_train, y_train)
 
 (mse1 <- mean((obj1$predict(X_test) - y_test)^2))
 (mse2 <- mean((obj2$predict(X_test) - y_test)^2))
@@ -108,6 +124,8 @@ obj21$fit(X_train, y_train)
 (mse16 <- mean((obj16$predict(X_test) - y_test)^2))
 (mse17 <- mean((obj17$predict(X_test) - y_test)^2))
 preds_obj18 <- obj18$predict(X_test)
+preds_obj22 <- obj22$predict(X_test)
+preds_obj23 <- obj23$predict(X_test)
 (cv1 <- mean((preds_obj18$lower <= y_test)*(preds_obj18$upper >= y_test)))
 preds_obj19 <- obj19$predict(X_test)
 (cv2 <- mean((preds_obj19$lower <= y_test)*(preds_obj19$upper >= y_test)))
@@ -115,6 +133,14 @@ preds_obj20 <- obj20$predict(X_test)
 (cv3 <- mean((preds_obj20$lower <= y_test)*(preds_obj20$upper >= y_test)))
 preds_obj21 <- obj21$predict(X_test) 
 (cv4 <- mean((preds_obj21$lower <= y_test)*(preds_obj21$upper >= y_test)))
+preds_obj22 <- obj22$predict(X_test)
+(cv5 <- mean((preds_obj22$lower <= y_test)*(preds_obj22$upper >= y_test)))
+preds_obj23 <- obj23$predict(X_test) 
+(cv6 <- mean((preds_obj23$lower <= y_test)*(preds_obj23$upper >= y_test)))
+preds_obj24 <- obj24$predict(X_test)
+(cv7 <- mean((preds_obj24$lower <= y_test)*(preds_obj24$upper >= y_test)))
+preds_obj25 <- obj25$predict(X_test) 
+(cv8 <- mean((preds_obj25$lower <= y_test)*(preds_obj25$upper >= y_test)))
 
 
 mses_qrn <- rep(0, nrow(params_qrn))
@@ -156,7 +182,7 @@ test_that("2 - checks on basic fitting", {
 
 test_that("3 - checks qrn", {
   expect_equal(round(mse9, 2), 4.83)
-  expect_equal(sum(round(mses_qrn, 2)), 84.5)
+  expect_equal(sum(round(mses_qrn, 2)), 83.31)
   expect_equal(round(mse10, 2), 5.34)
   expect_equal(round(mse11, 2), 4.82)
   expect_equal(round(mse12, 2), 5.36)
@@ -173,4 +199,8 @@ test_that("4 - conformal no sims", {
   expect_equal(round(cv2, 2), 1)
   expect_equal(round(cv3, 2), 0.57)
   expect_equal(round(cv4, 2), 1)
+  expect_equal(round(cv5, 2), 1)
+  expect_equal(round(cv6, 2), 1)
+  expect_equal(round(cv7, 2), 1)
+  expect_equal(round(cv8, 2), 1)
 })

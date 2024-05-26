@@ -64,9 +64,7 @@ Create a new object.
   method = NULL,
   X_train = NULL,
   y_train = NULL,
-  pi_method = c("none", "splitconformal", "kdesplitconformal", "bootsplitconformal",
-    "jackknifeplus", "kdejackknifeplus", "bootjackknifeplus", "surrsplitconformal",
-    "surrjackknifeplus"),
+  pi_method = c("none", "kdesplitconformal", "bootsplitconformal", "surrsplitconformal"),
   level = 95,
   type_prediction_set = c("none", "score"),
   B = 100,
@@ -96,9 +94,8 @@ Create a new object.
 \item{\code{y_train}}{training set response; do not modify by hand}
 
 \item{\code{pi_method}}{type of prediction set in c("splitconformal",
-"kdesplitconformal", "bootsplitconformal", "jackknifeplus",
-"kdejackknifeplus", "bootjackknifeplus", "surrsplitconformal",
-"surrjackknifeplus")}
+"kdesplitconformal", "bootsplitconformal", 
+"surrsplitconformal")}
 
 \item{\code{level}}{an integer; the level of confidence (default is 95, for 95%)
 for prediction sets}
@@ -155,7 +152,7 @@ A new `Classifier` object.
 \if{latex}{\out{\hypertarget{method-Classifier-fit}{}}}
 \subsection{Method \code{fit()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Classifier$fit(X, y, B = 100, ...)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Classifier$fit(X, y, cl = NULL, ...)}\if{html}{\out{</div>}}
 }
 
 }
@@ -164,7 +161,7 @@ A new `Classifier` object.
 \if{latex}{\out{\hypertarget{method-Classifier-predict_proba}{}}}
 \subsection{Method \code{predict_proba()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Classifier$predict_proba(X, level = 95)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Classifier$predict_proba(X)}\if{html}{\out{</div>}}
 }
 
 }
@@ -173,7 +170,7 @@ A new `Classifier` object.
 \if{latex}{\out{\hypertarget{method-Classifier-predict}{}}}
 \subsection{Method \code{predict()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Classifier$predict(X, level = 95)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Classifier$predict(X)}\if{html}{\out{</div>}}
 }
 
 }

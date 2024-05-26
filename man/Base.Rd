@@ -55,8 +55,8 @@ Create a new object.
   pi_method = c("none", "splitconformal", "kdesplitconformal", "bootsplitconformal",
     "jackknifeplus", "kdejackknifeplus", "bootjackknifeplus", "surrsplitconformal",
     "surrjackknifeplus"),
-  level = NULL,
-  B = NULL,
+  level = 95,
+  B = 100,
   nb_hidden = 0,
   nodes_sim = c("sobol", "halton", "unif"),
   activ = c("relu", "sigmoid", "tanh", "leakyrelu", "elu", "linear"),
@@ -100,7 +100,7 @@ takes values in c("sobol", "halton", "unif")}
 of a quasi-randomized network; takes values in c("relu", "sigmoid", "tanh", "
 leakyrelu", "elu", "linear")}
 
-\item{\code{engine}}{contains fit and predic lower-level methods for the given \code{method}; 
+\item{\code{engine}}{contains fit and predict lower-level methods for the given \code{method}; 
 do not modify by hand}
 
 \item{\code{params}}{additional parameters passed to \code{method} when calling \code{fit}}

@@ -62,7 +62,9 @@ Create a new object.
   method = NULL,
   X_train = NULL,
   y_train = NULL,
-  pi_method = NULL,
+  pi_method = c("none", "splitconformal", "jackknifeplus", "kdesplitconformal",
+    "bootsplitconformal", "kdejackknifeplus", "bootjackknifeplus", "surrsplitconformal",
+    "surrjackknifeplus"),
   level = 95,
   B = 100,
   nb_hidden = 0,
@@ -129,7 +131,7 @@ A new `Regressor` object.
 \if{latex}{\out{\hypertarget{method-Regressor-fit}{}}}
 \subsection{Method \code{fit()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Regressor$fit(X, y, type_split = c("stratify", "sequential"), B = 100, ...)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Regressor$fit(X, y, type_split = c("stratify", "sequential"), ...)}\if{html}{\out{</div>}}
 }
 
 }
@@ -138,7 +140,7 @@ A new `Regressor` object.
 \if{latex}{\out{\hypertarget{method-Regressor-predict}{}}}
 \subsection{Method \code{predict()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Regressor$predict(X, level = 95, ...)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Regressor$predict(X, ...)}\if{html}{\out{</div>}}
 }
 
 }
@@ -154,7 +156,7 @@ A new `Regressor` object.
   score = ifelse(is.factor(y), yes = function(preds, y_test) mean(preds == y_test), no =
     function(preds, y_test) sqrt(mean((preds - y_test)^2))),
   level = NULL,
-  pi_method = c("splitconformal", "jackknifeplus", "kdesplitconformal",
+  pi_method = c("none", "splitconformal", "jackknifeplus", "kdesplitconformal",
     "bootsplitconformal", "kdejackknifeplus", "bootjackknifeplus", "surrsplitconformal",
     "surrjackknifeplus"),
   B = 100,

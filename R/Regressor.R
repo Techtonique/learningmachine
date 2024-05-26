@@ -24,7 +24,8 @@ Regressor <-
       #' @param model fitted model 
       model = NULL,
       #' @param method supervised learning method in c('lm', 'ranger', 
-      #' 'extratrees', 'ridge', 'bcn', 'glmnet', 'krr', 'xgboost') 
+      #' 'extratrees', 'ridge', 'bcn', 'glmnet', 'krr', 
+      #' 'xgboost', 'svm') 
       method = NULL,
       #' @param X_train training set features; do not modify by hand 
       X_train = NULL,
@@ -508,7 +509,8 @@ fit_regressor <- function(x,
                                      "bcn",
                                      "glmnet",
                                      "krr",
-                                     "xgboost"),
+                                     "xgboost", 
+                                     "svm"),
                           nb_hidden = 0,
                           nodes_sim = c("sobol", "halton", "unif"),
                           activ = c("relu", "sigmoid", "tanh",
@@ -535,7 +537,9 @@ fit_regressor <- function(x,
       fit_matern32_regression(x, y,
                               ...),
     xgboost = function(x, y, ...)
-      fit_xgboost_regression(x, y, ...)
+      fit_xgboost_regression(x, y, ...),
+    svm = function(x, y, ...)
+      e1071::svm(x = x, y = y, ...)
   )
   
   if(nb_hidden == 0)
@@ -572,7 +576,8 @@ predict_regressor <- function(obj,
                                          "bcn",
                                          "glmnet",
                                          "krr",
-                                         "xgboost")) {
+                                         "xgboost",
+                                         "svm")) {
   method_choice <- match.arg(method)
   predict_func <- switch(
     method_choice,
@@ -584,7 +589,8 @@ predict_regressor <- function(obj,
     krr = predict_matern32,
     ranger = predict_func_ranger,
     ridge = predict_ridge_regression,
-    xgboost = predict
+    xgboost = predict,
+    svm = predict
   )
   if (is.null(obj$new_predictors))
   {
