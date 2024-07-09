@@ -39,13 +39,12 @@ jobs:
 
     - name: Install R package dependencies
       run: |
-        install.packages('remotes')
-        remotes::install_deps(dependencies = TRUE)
+        Rscript -e 'install.packages("remotes"); remotes::install_deps(dependencies = TRUE)'
 
     - name: Run R CMD build
       run: |
         R CMD build .
 
-    - name: Run R CMD check
+    - name: Run R CMD check without tests
       run: |
-        R CMD check *.tar.gz --as-cran --no-tests --no-manual
+        R CMD check *.tar.gz --no-manual --no-tests --as-cran
