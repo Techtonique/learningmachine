@@ -1,70 +1,5 @@
 # Useful functions for learningmachine (alphabetical order)
 
-
-# # compute list of all possible combinations -----
-# compute_probs_list <- function(x) {
-#   
-#   # do this in Rcpp /!\
-#   n_x <- length(x)
-#   n <- dim(x[[1]])[1]
-#   B <- dim(x[[1]])[2]
-#   res <- x
-#   
-#   for (key in seq_len(n_x)) {
-#     for (i in seq_len(n)) {
-#       for (j in seq_len(B)) {
-#         res[[key]][i, j] <-
-#           x[[key]][i, j] / sum(sapply(seq_len(n_x), function(k)
-#             x[[k]][i, j]))
-#       }
-#     }
-#   }
-#   
-#   debug_print(res)
-#   
-#   debug_print(compute_probs_loop_cpp(n_x, n, B, res, x))
-#   
-#   names_x <- try(names(x), silent = TRUE)
-#   if(!inherits(names_x, "try-error"))
-#     names(res) <- names_x
-#   
-#   #res$sims <- x
-#   return(res)
-# }
-
-# compute preds and p.i bounds -----
-compute_pis <- function(x, alpha) {
-  # do this in Rcpp /!\
-  n <- dim(x[[1]])[1]
-  B <- dim(x[[1]])[2]
-  n_classes <- length(x)
-  preds <- lower <- upper <- matrix(0, nrow = n,
-                                    ncol = n_classes)
-  for (i in seq_len(n)) {
-    for (j in seq_len(n_classes)) {
-      preds[i, j] <- mean(x[[j]][i, ])
-      lower[i, j] <-
-        pmax(0, pmin(1, quantile(x[[j]][i, ], probs = alpha / 2)))
-      upper[i, j] <-
-        pmax(0, pmin(1, quantile(x[[j]][i, ], probs = 1 - alpha / 2)))
-    }
-  }
-  
-  names_x <- try(names(x), silent = TRUE)
-  if (!inherits(names_x, "try-error")) {
-    colnames(preds) <- names_x
-    colnames(lower) <- names_x
-    colnames(upper) <- names_x
-  }
-  return(list(
-    preds = preds,
-    lower = lower,
-    upper = upper,
-    sims = x
-  ))
-}
-#compute_pis <- memoise::memoize(compute_pis)
-
 # compute scores for conformal "score" method -----
 compute_scores <- function(probs, y_calibration_sc) {
   probs_calibration_sc <- probs*y_calibration_sc
@@ -176,6 +111,7 @@ create_new_predictors <- function(x, nb_hidden = 5,
 }
 
 # prehistoric stuff -----
+#' @export
 debug_print <- function(x) {
   cat("\n")
   print(paste0(deparse(substitute(x)), "'s value:"))
@@ -224,9 +160,9 @@ encode_factors <- function(y) {
 
 # Expit function -----
 expit <- function(x) {
-  1 / (1 + exp(-x))
+  (1 / (1 + exp(-x)))*(x >= 0) + (exp(x)/(1 + exp(x)))*(x < 0)
 }
-
+expit <- compiler::cmpfun(expit)
 
 # get classes index -----
 get_classes_idx <- function(new_probs, q_threshold, level) {
@@ -531,13 +467,31 @@ rbootstrap <- function(x,
 }
 
 # Simulate Gaussian kernel density -----
+rkernel <- function(n, width, seed) {
+  set.seed(seed)
+  #method <- match.arg(method)
+  #if (!identical(method, "antithetic"))
+  #{
+  return(stats::rnorm(n, sd = width))
+  # } else {
+  #   half_n <- n %/% 2
+  #   eps <- stats::rnorm(half_n, sd = width)
+  #   if (2 * length(eps) < n)
+  #   {
+  #     return(c(eps,-eps, stats::rnorm(1, sd = width)))
+  #   }
+  #   return(sample(c(eps,-eps),
+  #                 replace = FALSE))
+  # }
+}  # Kernel sampler
+
 rgaussiandens <- function(x,
                           n = length(x),
                           p = 1,
-                          seed = 123,
-                          method = c("antithetic",
-                                     "traditional")) {
-  z <- try(stats::density(x, bw = "sj", kernel = "gaussian"),
+                          seed = 123) {
+  
+  z <- try(stats::density(x, bw = "sj", 
+                          kernel = "gaussian"),
            silent = TRUE)
   
   if (inherits(z, "try-error"))
@@ -545,35 +499,15 @@ rgaussiandens <- function(x,
   
   width <- z$bw # Kernel width
   
-  method <- match.arg(method)
-  
-  rkernel <- function(n, seed) {
-    set.seed(seed)
-    if (!identical(method, "antithetic"))
-    {
-      return(stats::rnorm(n, sd = width))
-    } else {
-      half_n <- n %/% 2
-      eps <- stats::rnorm(half_n, sd = width)
-      if (2 * length(eps) < n)
-      {
-        return(c(eps,-eps, stats::rnorm(1, sd = width)))
-      }
-      return(sample(c(eps,-eps),
-                    replace = FALSE))
-    }
-  }  # Kernel sampler
-  
+  set.seed(seed)
   if (p <= 1)
   {
-    set.seed(seed)
-    return(sample(x, n, replace = TRUE) + rkernel(n, seed))    # Here's the entire algorithm
+    return(sample(x, n, replace = TRUE) + rnorm(n, sd=width))    # Here's the entire algorithm
   } else {
-    return(sapply(1:p,
-                  function(i) {
-                    set.seed(seed + i - 1)
-                    sample(x, n, replace = TRUE) + rkernel(n, seed + i - 1)
-                  }))
+    return(simulate_gaussian_mixture_cpp(x=x, 
+                                         n=n, 
+                                         p=p, 
+                                         width = width))
   }
 }
 

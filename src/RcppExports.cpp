@@ -10,21 +10,6 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// compute_probs_loop_cpp
-List compute_probs_loop_cpp(unsigned long int n_x, unsigned long int n, unsigned long int B, ListOf<NumericMatrix> res, ListOf<NumericMatrix> x);
-RcppExport SEXP _learningmachine_compute_probs_loop_cpp(SEXP n_xSEXP, SEXP nSEXP, SEXP BSEXP, SEXP resSEXP, SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< unsigned long int >::type n_x(n_xSEXP);
-    Rcpp::traits::input_parameter< unsigned long int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< unsigned long int >::type B(BSEXP);
-    Rcpp::traits::input_parameter< ListOf<NumericMatrix> >::type res(resSEXP);
-    Rcpp::traits::input_parameter< ListOf<NumericMatrix> >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(compute_probs_loop_cpp(n_x, n, B, res, x));
-    return rcpp_result_gen;
-END_RCPP
-}
 // crossprod_cpp
 double crossprod_cpp(NumericVector x, NumericVector y);
 RcppExport SEXP _learningmachine_crossprod_cpp(SEXP xSEXP, SEXP ySEXP) {
@@ -168,9 +153,59 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// empirical_quantile_cpp
+double empirical_quantile_cpp(Rcpp::NumericVector x, double q);
+RcppExport SEXP _learningmachine_empirical_quantile_cpp(SEXP xSEXP, SEXP qSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type q(qSEXP);
+    rcpp_result_gen = Rcpp::wrap(empirical_quantile_cpp(x, q));
+    return rcpp_result_gen;
+END_RCPP
+}
+// row_quantiles_cpp
+Rcpp::NumericVector row_quantiles_cpp(Rcpp::NumericMatrix mat, double q);
+RcppExport SEXP _learningmachine_row_quantiles_cpp(SEXP matSEXP, SEXP qSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type mat(matSEXP);
+    Rcpp::traits::input_parameter< double >::type q(qSEXP);
+    rcpp_result_gen = Rcpp::wrap(row_quantiles_cpp(mat, q));
+    return rcpp_result_gen;
+END_RCPP
+}
+// calculate_quantiles_cpp
+Rcpp::List calculate_quantiles_cpp(Rcpp::List sims, double level, int n_classes);
+RcppExport SEXP _learningmachine_calculate_quantiles_cpp(SEXP simsSEXP, SEXP levelSEXP, SEXP n_classesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type sims(simsSEXP);
+    Rcpp::traits::input_parameter< double >::type level(levelSEXP);
+    Rcpp::traits::input_parameter< int >::type n_classes(n_classesSEXP);
+    rcpp_result_gen = Rcpp::wrap(calculate_quantiles_cpp(sims, level, n_classes));
+    return rcpp_result_gen;
+END_RCPP
+}
+// simulate_gaussian_mixture_cpp
+Rcpp::NumericMatrix simulate_gaussian_mixture_cpp(Rcpp::NumericVector x, unsigned long int n, unsigned int p, double width);
+RcppExport SEXP _learningmachine_simulate_gaussian_mixture_cpp(SEXP xSEXP, SEXP nSEXP, SEXP pSEXP, SEXP widthSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< unsigned long int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type p(pSEXP);
+    Rcpp::traits::input_parameter< double >::type width(widthSEXP);
+    rcpp_result_gen = Rcpp::wrap(simulate_gaussian_mixture_cpp(x, n, p, width));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_learningmachine_compute_probs_loop_cpp", (DL_FUNC) &_learningmachine_compute_probs_loop_cpp, 5},
     {"_learningmachine_crossprod_cpp", (DL_FUNC) &_learningmachine_crossprod_cpp, 2},
     {"_learningmachine_l2_norm", (DL_FUNC) &_learningmachine_l2_norm, 1},
     {"_learningmachine_na_matrix", (DL_FUNC) &_learningmachine_na_matrix, 2},
@@ -182,6 +217,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_learningmachine_inters2", (DL_FUNC) &_learningmachine_inters2, 5},
     {"_learningmachine_solve_eigen", (DL_FUNC) &_learningmachine_solve_eigen, 4},
     {"_learningmachine_find_lam_eigen", (DL_FUNC) &_learningmachine_find_lam_eigen, 4},
+    {"_learningmachine_empirical_quantile_cpp", (DL_FUNC) &_learningmachine_empirical_quantile_cpp, 2},
+    {"_learningmachine_row_quantiles_cpp", (DL_FUNC) &_learningmachine_row_quantiles_cpp, 2},
+    {"_learningmachine_calculate_quantiles_cpp", (DL_FUNC) &_learningmachine_calculate_quantiles_cpp, 3},
+    {"_learningmachine_simulate_gaussian_mixture_cpp", (DL_FUNC) &_learningmachine_simulate_gaussian_mixture_cpp, 4},
     {NULL, NULL, 0}
 };
 

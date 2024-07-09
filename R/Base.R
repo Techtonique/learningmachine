@@ -2,6 +2,14 @@
 
 # 1 - Class Base --------------------------------------------------------------
 
+#' `Base` class
+#'
+#' @description
+#' the `Base` class used by other objects; useful 
+#' for extensions of the package, not for basic 
+#' interactions with the package
+#'
+
 Base <-
   R6::R6Class(
     classname = "Base",
@@ -15,31 +23,78 @@ Base <-
       abs_calib_resids = NULL
     ),
     public = list(
+      #' @param name name of the class
       name = "Base",
+      #' @param type type of supervised learning method implemented  
       type = "none",
+      #' @param model fitted model 
       model = NULL,
+      #' @param method supevised learning method 
       method = NULL,
+      #' @param X_train training set features 
       X_train = NULL,
+      #' @param y_train training set response
       y_train = NULL,
-      pi_method = NULL,
-      level = NULL,
-      B = NULL,
+      #' @param pi_method type of prediction interval in c("splitconformal",
+      #' "kdesplitconformal", "bootsplitconformal", "jackknifeplus",
+      #' "kdejackknifeplus", "bootjackknifeplus", "surrsplitconformal",
+      #' "surrjackknifeplus")
+      pi_method = c(
+           "none",
+           "splitconformal",
+           "kdesplitconformal",
+           "bootsplitconformal",
+           "jackknifeplus",
+           "kdejackknifeplus",
+           "bootjackknifeplus",
+           "surrsplitconformal",
+           "surrjackknifeplus"
+         ),
+      #' @param level an integer; the level of confidence 
+      level = 95,
+      #' @param B an integer; the number of simulations when \code{level} is not \code{NULL}
+      B = 100,
+      #' @param nb_hidden number of nodes in the hidden layer, for construction of a quasi-
+      #' randomized network 
       nb_hidden = 0,
+      #' @param nodes_sim type of 'simulations' for hidden nodes, if \code{nb_hidden} > 0; 
+      #' takes values in c("sobol", "halton", "unif") 
       nodes_sim = c("sobol", "halton", "unif"),
+      #' @param activ activation function's name for the hidden layer, in the construction 
+      #' of a quasi-randomized network; takes values in c("relu", "sigmoid", "tanh", "
+      #' leakyrelu", "elu", "linear")
       activ = c("relu", "sigmoid", "tanh",
                 "leakyrelu", "elu", "linear"),
+      #' @param engine contains fit and predict lower-level methods for the given \code{method}; 
+      #' do not modify by hand
       engine = NULL,
+      #' @param params additional parameters passed to \code{method} when calling \code{fit}
       params = NULL,
+      #' @param seed an integer; reproducibility seed for methods that include 
+      #' randomization
       seed = 123,
+      #' @description
+      #' Create a new object.
+      #' @return A new `Base` object.
       initialize = function(name = "Base",
                             type = "none",
                             model = NULL,
                             method = NULL,
                             X_train = NULL,
                             y_train = NULL,
-                            pi_method = NULL,
-                            level = NULL,
-                            B = NULL,
+                            pi_method = c(
+                              "none",
+                              "splitconformal",
+                              "kdesplitconformal",
+                              "bootsplitconformal",
+                              "jackknifeplus",
+                              "kdejackknifeplus",
+                              "bootjackknifeplus",
+                              "surrsplitconformal",
+                              "surrjackknifeplus"
+                            ),
+                            level = 95,
+                            B = 100,
                             nb_hidden = 0,
                             nodes_sim = c("sobol", "halton", "unif"),
                             activ = c("relu", "sigmoid", "tanh",
@@ -50,6 +105,7 @@ Base <-
         
         nodes_sim <- match.arg(nodes_sim)
         activ <- match.arg(activ)
+        pi_method <- match.arg(pi_method)
         
         self$name <- name
         self$type <- type
@@ -247,7 +303,7 @@ Base <-
           if (!is.null(y))
           {
             preds <- self$predict(as.matrix(X))
-            if (!is.null(self$level))
+            if (self$pi_method != "none")
             {
               if (self$type == "regression")
               {

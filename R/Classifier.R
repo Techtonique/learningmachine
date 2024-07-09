@@ -2,6 +2,27 @@
 
 # 1 - Class Classifier --------------------------------------------------------------
 
+#' `Classifier` class
+#'
+#' @description
+#' 
+#' The `Classifier` class contains supervised classification models 
+#' 
+#' @details
+#' 
+#' This class implements models: 
+#' 
+#' \describe{
+#' \item{lm}{Linear model}
+#' \item{bcn}{see https://www.researchgate.net/publication/380760578_Boosted_Configuration_neural_Networks_for_supervised_classification}
+#' \item{extratrees}{Extremely Randomized Trees; see https://link.springer.com/article/10.1007/s10994-006-6226-1}
+#' \item{glmnet}{Elastic Net Regression; see https://glmnet.stanford.edu/}
+#' \item{krr}{Kernel Ridge Regression; see for example https://www.jstatsoft.org/article/view/v079i03}
+#' \item{ranger}{Random Forest; see https://www.jstatsoft.org/article/view/v077i01}
+#' \item{ridge}{Ridge regression; see https://arxiv.org/pdf/1509.09169}
+#' \item{xgboost}{a scalable tree boosting system see https://arxiv.org/abs/1603.02754}
+#' }
+#' 
 Classifier <-
   R6::R6Class(
     classname = "Classifier",
@@ -11,39 +32,78 @@ Classifier <-
       encoded_factors = NULL,
       class_names = NULL,
       n_classes = NULL,
-      type_split = NULL,
       calib_resids = NULL,
       abs_calib_resids = NULL,
       q_threshold = NULL
     ),
     public = list(
+      #' @field name name of the class
       name = "Classifier",
+      #' @field type type of supervised learning method implemented  
       type = "classification",
+      #' @field model fitted model 
       model = NULL,
+      #' @field method supervised learning method in c('lm', 'ranger', 
+      #' 'extratrees', 'ridge', 'bcn', 'glmnet', 'krr', 'xgboost') 
       method = NULL,
+      #' @field X_train training set features; do not modify by hand 
       X_train = NULL,
+      #' @field y_train training set response; do not modify by hand
       y_train = NULL,
-      pi_method = NULL,
-      level = NULL,
+      #' @field pi_method type of prediction set in c("splitconformal",
+      #' "kdesplitconformal", "bootsplitconformal", 
+      #' "surrsplitconformal")
+      pi_method = c(
+        "none",
+        "kdesplitconformal",
+        "bootsplitconformal",
+        "surrsplitconformal"
+      ),
+      #' @field level an integer; the level of confidence (default is 95, for 95%)
+      #' for prediction sets 
+      level = 95,
+      #' @field type_prediction_set a string; the type of prediction set (currently, only "score" method)
       type_prediction_set = "score",
-      B = NULL,
+      #' @field B an integer; the number of simulations when \code{level} is not \code{NULL}
+      B = 100,
+      #' @field nb_hidden number of nodes in the hidden layer, for construction of a quasi-
+      #' randomized network 
       nb_hidden = 0,
+      #' @field nodes_sim type of 'simulations' for hidden nodes, if \code{nb_hidden} > 0; 
+      #' takes values in c("sobol", "halton", "unif") 
       nodes_sim = c("sobol", "halton", "unif"),
+      #' @field activ activation function's name for the hidden layer, in the construction 
+      #' of a quasi-randomized network; takes values in c("relu", "sigmoid", "tanh", "
+      #' leakyrelu", "elu", "linear")
       activ = c("relu", "sigmoid", "tanh",
                 "leakyrelu", "elu", "linear"),
+      #' @field engine contains fit and predic lower-level methods for the given \code{method}; 
+      #' do not modify by hand
       engine = NULL,
+      #' @field params additional parameters passed to \code{method} when calling \code{fit}
+      #' do not modify by hand 
       params = NULL,
+      #' @field seed an integer; reproducibility seed for methods that include 
+      #' randomization
       seed = 123,
+      #' @description
+      #' Create a new object.
+      #' @return A new `Classifier` object.
       initialize = function(name = "Classifier",
                             type = "classification",
                             model = NULL,
                             method = NULL,
                             X_train = NULL,
                             y_train = NULL,
-                            pi_method = NULL,
-                            level = NULL,
-                            type_prediction_set = "score",
-                            B = NULL,
+                            pi_method = c(
+                              "none",
+                              "kdesplitconformal",
+                              "bootsplitconformal",
+                              "surrsplitconformal"
+                            ),
+                            level = 95,
+                            type_prediction_set = c("none", "score"),
+                            B = 100,
                             nb_hidden = 0,
                             nodes_sim = c("sobol", "halton", "unif"),
                             activ = c("relu", "sigmoid", "tanh",
@@ -54,6 +114,7 @@ Classifier <-
         
         nodes_sim <- match.arg(nodes_sim)
         activ <- match.arg(activ)
+        pi_method <- match.arg(pi_method)
         
         super$initialize(
           name = name,
@@ -72,7 +133,7 @@ Classifier <-
           params = params,
           seed = seed
         )
-        self$type_prediction_set <- type_prediction_set
+        self$type_prediction_set <- match.arg(type_prediction_set)
       },
       get_type_prediction_set = function() {
         self$type_prediction_set
@@ -80,19 +141,13 @@ Classifier <-
       set_type_prediction_set = function(type_prediction_set) {
         self$type_prediction_set <- type_prediction_set
       },
+      #' @description Fit model to training set 
+      #' @param X a matrix of covariates (i.e explanatory variables)
+      #' @param y a vector, the response (i.e variable to be explained)
+      #' @param ... additional parameters to learning algorithm (see vignettes)
+      #'
       fit = function(X,
                      y,
-                     pi_method = c(
-                       "kdesplitconformal",
-                       "bootsplitconformal",
-                       "kdejackknifeplus",
-                       "bootjackknifeplus",
-                       "surrsplitconformal",
-                       "surrjackknifeplus"
-                     ),
-                     type_split = c("stratify",
-                                    "sequential"),
-                     B = 100,
                      ...) {
         self$X_train <- X
         self$y_train <- y
@@ -101,11 +156,6 @@ Classifier <-
         private$class_names <-
           as.character(levels(unique(private$y)))
         private$n_classes <- length(private$class_names)
-        pi_method <- match.arg(pi_method)
-        type_split <- match.arg(type_split)
-        private$type_split <- type_split
-        self$pi_method <- pi_method
-        self$B <- B
         self$params <- list(...)
         self$set_engine(
           list(
@@ -122,92 +172,16 @@ Classifier <-
           )
         )
         
-        if (is.null(self$level))
-        {
-          self$set_model(fit_multitaskregressor(
-            x = self$X_train,
-            y = private$y,
-            method = self$method,
-            ...
-          ))
-          return (invisible(self))
-        }
+        self$set_model(fit_multitaskregressor(
+          x = self$X_train,
+          y = private$y,
+          method = self$method,
+          ...
+        ))
         
-        if (self$pi_method %in% c("kdejackknifeplus",
-                                  "bootjackknifeplus",
-                                  "surrjackknifeplus"))
+        if (identical(self$pi_method, "none"))
         {
-          n_train <- nrow(self$X_train)
-          fit_objs_loocv <-
-            base::vector("list", n_train)
-          abs_residuals_loocv <-
-            rep(0, n_train)
-          raw_residuals_loocv <-
-            rep(0, n_train)
-          
-          # sequential execution of the jackknife procedure
-          if (self$cl %in% c(0, 1) ||
-              is.null(self$cl))
-          {
-            pb <- txtProgressBar(min = 1,
-                                 max = n_train,
-                                 style = 3)
-            for (i in 1:n_train) {
-              left_out_indices <- setdiff(1:n_train, i)
-              obj_jackknife_residuals <-
-                get_jackknife_residuals(
-                  X = self$X_train,
-                  y = self$y_train,
-                  idx = left_out_indices,
-                  fit_func = self$engine$fit,
-                  predict_func = self$engine$predict
-                )
-              abs_residuals_loocv[i] <-
-                obj_jackknife_residuals$abs_residuals
-              raw_residuals_loocv[i] <-
-                obj_jackknife_residuals$raw_residuals
-              setTxtProgressBar(pb, i)
-            }
-            close(pb)
-            private$abs_calib_resids <- abs_residuals_loocv
-            private$calib_resids <- raw_residuals_loocv
-          } else {
-            # self$cl > 1 # parallel execution of the jackknife procedure
-            loofunc <- function(idx) {
-              left_out_indices <- base::setdiff(1:n_train, idx)
-              obj_jackknife_residuals <-
-                get_jackknife_residuals(
-                  X = self$X_train,
-                  y = self$y_train,
-                  idx = left_out_indices,
-                  fit_func = self$engine$fit,
-                  predict_func = self$engine$predict
-                )
-              return(
-                c(
-                  obj_jackknife_residuals$abs_residuals #/!\ keep, part of loofunc /!\
-                  ,
-                  obj_jackknife_residuals$raw_residuals #/!\ keep, part of loofunc /!\
-                )
-              )
-            }
-            
-            if (is_package_available("doSNOW") == FALSE)
-            {
-              utils::install.packages("doSNOW", repos = "https://cran.rstudio.com/")
-            }
-            
-            residuals_init <- rep(0, 2 * n_train)
-            residuals_vec <- parfor(what = loofunc,
-                                    args = seq_len(n_train),
-                                    cl = self$cl)
-            residuals_matrix <- matrix(residuals_vec,
-                                       nrow = n_train,
-                                       ncol = 2,
-                                       byrow = TRUE)
-            private$abs_calib_resids <- residuals_matrix[, 1]
-            private$calib_resids <- residuals_matrix[, 2]
-          }
+          return (invisible(self))
         }
         
         if (self$pi_method %in% c("kdesplitconformal",
@@ -218,39 +192,27 @@ Classifier <-
             private$y,
             p = 0.5,
             seed = self$seed,
-            type_split = private$type_split
           )
           X_train_sc <-
-            self$X_train[idx_train_calibration,]
+            self$X_train[idx_train_calibration,] # training set
           y_train_sc <-
-            self$y_train[idx_train_calibration]
+            self$y_train[idx_train_calibration] # training set
           X_calibration_sc <-
-            self$X_train[-idx_train_calibration,]
+            self$X_train[-idx_train_calibration,] # calibration set
           y_calibration_sc <-
-            self$y_train[-idx_train_calibration]
+            self$y_train[-idx_train_calibration] # calibration set
           
           fit_obj_train_sc <- self$engine$fit(X_train_sc,
                                               y_train_sc,
                                               ...)
           self$set_model(fit_obj_train_sc)
-          if (private$type_split == "sequential")
-          {
-            y_pred_calibration <-
-              self$engine$predict(fit_obj_train_sc, # notice the diff
-                                  X_calibration_sc)
-            private$calib_resids <-
-              one_hot(y_calibration_sc) - y_pred_calibration
-            private$abs_calib_resids <- abs(private$calib_resids)
-            self$set_model(self$engine$fit(X_calibration_sc,
-                                           y_calibration_sc))
-          } else {
-            y_pred_calibration <-
-              self$engine$predict(self$model,  # notice the diff
-                                  X_calibration_sc)
-            private$calib_resids <-
-              one_hot(y_calibration_sc) - y_pred_calibration
-            private$abs_calib_resids <- abs(private$calib_resids)
-          }
+          
+          y_pred_calibration <-
+            self$engine$predict(self$model,  # notice the diff
+                                X_calibration_sc)
+          private$calib_resids <-
+            one_hot(y_calibration_sc) - y_pred_calibration
+          private$abs_calib_resids <- abs(private$calib_resids)
           
           raw_preds <- expit(self$engine$predict(self$model, 
                                                  X_calibration_sc))
@@ -267,37 +229,25 @@ Classifier <-
         
         return(invisible(self))
       },
-      predict_proba = function(X, level=NULL) {
+      predict_proba = function(X) {
+        
         if (is.null(self$model) || is.null(self$engine))
           stop(paste0(self$name, " must be fitted first"))
+        
         raw_preds <- expit(self$engine$predict(self$model, X))
-        if (is.null(level) && is.null(self$level))
+        
+        if (identical(self$pi_method, "none"))
         {
+          # no prediction interval on probs
           probs <- sweep(x = raw_preds, 
                          MARGIN = 1, 
                          STATS=rowSums(raw_preds),
                          FUN = "/")
-          colnames(probs) <-
-            private$class_names
+          colnames(probs) <- private$class_names
+          
           return(probs)
-        } else { # !is.null(level) || !is.null(self$level))
           
-          if (!is.null(self$level) &&
-              !is.null(level) && self$level != level)
-          {
-            warning(paste0(
-              "attribute 'level' has been set to ",
-              level,
-              " instead of ",
-              self$level
-            ))
-            self$set_level(level)
-          }
-          
-          if (is.null(self$level) && !is.null(level))
-          {
-            self$set_level(level)
-          }
+        } else { 
           
           scaled_raw_residuals <- scale(private$calib_resids,
                                         center = TRUE,
@@ -306,7 +256,7 @@ Classifier <-
           
           set.seed(self$seed)
           
-          if (self$pi_method %in% c("kdejackknifeplus", "kdesplitconformal"))
+          if (identical(self$pi_method, "kdesplitconformal"))
           {
             simulated_raw_calibrated_residuals <-
               lapply(seq_len(private$n_classes),
@@ -319,7 +269,7 @@ Classifier <-
                        ))
           }
           
-          if (self$pi_method %in% c("bootjackknifeplus", "bootsplitconformal"))
+          if (identical(self$pi_method, "bootsplitconformal"))
           {
             simulated_raw_calibrated_residuals <-
               lapply(seq_len(private$n_classes),
@@ -332,7 +282,7 @@ Classifier <-
                        ))
           }
           
-          if (self$pi_method %in% c("surrsplitconformal", "surrjackknifeplus"))
+          if (identical(self$pi_method, "surrsplitconformal"))
           {
             if (nrow(raw_preds) > length(private$calib_resids))
             {
@@ -350,18 +300,20 @@ Classifier <-
                          seed = self$seed
                        ))
           }
-          sims <- lapply(seq_len(private$n_classes),
+          
+          sims <- lapply(seq_len(private$n_classes), #Rcpp after fix 
                          function (i)
                            replicate(self$B,
                                      raw_preds[, i]) + sd_raw_residuals[i] * simulated_raw_calibrated_residuals[[i]])
-          preds_lower <-
-            lapply(seq_len(private$n_classes), function(i)
-              pmax(0, apply(sims[[i]], 1, function(x)
-                quantile(x, probs = (1 - self$level / 100) / 2))))
-          preds_upper <-
-            lapply(seq_len(private$n_classes), function(i)
-              pmin(1, apply(sims[[i]], 1, function(x)
-                quantile(x, probs = 1 - (1 - self$level / 100) / 2))))
+          
+          q_lower <- 0.5*(1 - self$level / 100)
+          q_upper <- 1 - q_lower
+          seq_len_n_classes <- seq_len(private$n_classes)
+          preds_lower <- lapply(seq_len_n_classes, function(i)
+              row_quantiles_cpp(sims[[i]], q = q_lower))
+          preds_upper <- lapply(seq_len_n_classes, function(i)
+              row_quantiles_cpp(sims[[i]], q = q_upper))
+          
           if (!is.null(private$class_names))
           {
             names(sims) <- private$class_names
@@ -377,40 +329,20 @@ Classifier <-
           return(res)
         }
       },
-      predict = function(X,
-                         level = NULL) {
+      predict = function(X) {
         
         probs <- self$predict_proba(X)
         
-        if (is.null(level) && is.null(self$level))
+        if (identical(self$pi_method, "none"))
         {
+          
           numeric_factor <- apply(probs, 1, which.max)
           preds <- decode_factors(numeric_factor,
                                   private$encoded_factors)
           names(preds) <- NULL
           return(preds)
           
-        } else { # !is.null(level) || !is.null(self$level)
-          
-          # prediction sets with given 'level'
-          if (is.null(self$level) && !is.null(level))
-          {
-            self$set_level(level)
-          }
-          
-          if (!is.null(self$level) && !is.null(level))
-          {
-            if (self$level != level)
-            {
-              warning(paste0(
-                "level parameter has been set to ",
-                level,
-                " instead of ",
-                self$level
-              ))
-            }
-            self$set_level(level)
-          }
+        } else { # prediction sets required
           
           if (self$type_prediction_set == "score")
           {
@@ -520,7 +452,7 @@ predict_multitaskregressor <- function(objs,
       X %*% obj$coefficients,
     bcn = bcn::predict.bcn,
     extratrees = predict_func_extratrees,
-    glmnet = predict,
+    glmnet = glmnet::predict.glmnet,
     krr = predict_matern32,
     ranger = predict_func_ranger,
     ridge = predict_ridge_regression,

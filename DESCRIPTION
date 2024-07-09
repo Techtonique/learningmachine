@@ -1,8 +1,8 @@
 Package: learningmachine
 Type: Package
 Title: Machine Learning with explanations and uncertainty quantification     
-Version: 1.2.0
-Date: 2024-05-12
+Version: 2.0.0
+Date: 2024-07-08
 Author: T. Moudiki
 Maintainer: T. Moudiki <thierry.moudiki@gmail.com>
 Description: Regression-based Machine Learning with explanations and uncertainty quantification.
@@ -14,6 +14,7 @@ RoxygenNote: 7.3.0
 Encoding: UTF-8
 Suggests: 
     caret,
+    e1071,  
     glmnet,
     knitr,
     MASS,

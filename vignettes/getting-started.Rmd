@@ -35,7 +35,7 @@ dim(X_test)
 # 0 lm regression
 
 ```{r}
-obj <- learningmachine::Regressor$new(method = "lm")
+obj <- learningmachine::Regressor$new(method = "lm", pi_method = "splitconformal")
 ```
 
 ```{r}
@@ -46,16 +46,16 @@ obj$get_method()
 
 ```{r}
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train, pi_method = "splitconformal")
+obj$fit(X_train, y_train)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
 ```{r}
-print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
+print(sqrt(mean((obj$predict(X_test)$preds - y_test)^2)))
 ```
 
 ```{r fig.width=7.2}
-res <- obj$predict(X = X_test, level = 95)
+(res <- obj$predict(X = X_test))
 
 plot(c(y_train, res$preds), type='l',
      main="",
@@ -96,7 +96,7 @@ mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 # 1 `ranger` regression
 
 ```{r}
-obj <- learningmachine::Regressor$new(method = "ranger")
+obj <- learningmachine::Regressor$new(method = "ranger", pi_method = "splitconformal")
 obj$get_type()
 obj$get_name()
 ```
@@ -108,13 +108,12 @@ cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
 ```{r}
-print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
+print(sqrt(mean((obj$predict(X_test)$preds - y_test)^2)))
 ```
 
 ```{r fig.width=7.2}
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train,  
-        pi_method = "splitconformal")
+obj$fit(X_train, y_train)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 
 obj$set_level(95)
@@ -168,7 +167,7 @@ y_test <- Boston$medv[-train_idx]
 **`KRR`**
 
 ```{r}
-obj <- learningmachine::Regressor$new(method = "krr")
+obj <- learningmachine::Regressor$new(method = "krr", pi_method = "none")
 obj$get_type()
 obj$get_name()
 obj$get_method()
@@ -181,7 +180,7 @@ cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
 ```{r}
-print(sqrt(mean((obj$predict(X_test, level = 95)$preds - y_test)^2)))
+print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
 ```
 
 ```{r}
@@ -191,7 +190,7 @@ obj$summary(X_test, y=y_test, show_progress=FALSE)
 **`ranger`**
 
 ```{r}
-obj <- learningmachine::Regressor$new(method = "ranger")
+obj <- learningmachine::Regressor$new(method = "ranger", pi_method="splitconformal")
 obj$get_type()
 obj$get_name()
 ```
@@ -204,7 +203,7 @@ cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 
 
 ```{r}
-print(sqrt(mean((obj$predict(X_test, level=95)$preds - y_test)^2)))
+print(sqrt(mean((obj$predict(X_test)$preds - y_test)^2)))
 ```
 
 ```{r}
@@ -230,7 +229,7 @@ dim(X_test)
 ```
 
 ```{r}
-obj <- learningmachine::Regressor$new(method = "krr")
+obj <- learningmachine::Regressor$new(method = "krr", pi_method = "splitconformal")
 obj$get_type()
 obj$get_name()
 ```
@@ -242,16 +241,16 @@ cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
 ```{r}
-print(obj$predict(X_test, level = 95))
+print(obj$predict(X_test))
 ```
 
 ```{r fig.width=7.2}
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train, lambda = 0.1,  
-        pi_method = "splitconformal")
+obj$fit(X_train, y_train, lambda = 0.1)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 
 obj$set_level(95)
+obj$set_pi_method("splitconformal")
 res <- obj$predict(X = X_test)
 
 plot(c(y_train, res$preds), type='l',
@@ -269,11 +268,10 @@ mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 
 ```{r fig.width=7.2}
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train, lambda = 0.1,  
-        pi_method = "splitconformal")
+obj$fit(X_train, y_train, lambda = 0.1)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 
-res <- obj$predict(X = X_test, level= 95)
+res <- obj$predict(X = X_test)
 
 plot(c(y_train, res$preds), type='l',
      main="",
@@ -293,12 +291,12 @@ obj$summary(X_test, y=y_test, show_progress=FALSE)
 ```
 
 ```{r fig.width=7.2}
+obj$set_pi_method("kdejackknifeplus")
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train, lambda = 0.1,  
-        pi_method = "kdejackknifeplus")
+obj$fit(X_train, y_train, lambda = 0.1)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 
-res <- obj$predict(X = X_test, level= 95)
+res <- obj$predict(X = X_test)
 
 plot(c(y_train, res$preds), type='l',
      main="",
@@ -320,7 +318,7 @@ obj$summary(X_test, y=y_test, show_progress=FALSE)
 **`xgboost`**
 
 ```{r}
-obj <- learningmachine::Regressor$new(method = "xgboost")
+obj <- learningmachine::Regressor$new(method = "xgboost", pi_method = "splitconformal")
 obj$get_type()
 obj$get_name()
 ```
@@ -332,7 +330,7 @@ cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
 ```{r}
-print(obj$predict(X_test, level = 95))
+print(obj$predict(X_test))
 ```
 
 ```{r}
@@ -341,8 +339,7 @@ obj$summary(X_test, y=y_test, show_progress=FALSE)
 
 ```{r fig.width=7.2}
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train, nrounds=10, verbose=FALSE,  
-        pi_method = "splitconformal")
+obj$fit(X_train, y_train, nrounds=10, verbose=FALSE)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 
 obj$set_level(95)
@@ -363,9 +360,9 @@ mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 
 
 ```{r fig.width=7.2}
+obj$set_pi_method("kdesplitconformal")
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train, nrounds=10, verbose=FALSE,  
-        pi_method = "kdesplitconformal")
+obj$fit(X_train, y_train, nrounds=10, verbose=FALSE)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 
 obj$set_level(95)
@@ -386,9 +383,9 @@ mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 
 
 ```{r fig.width=7.2}
+obj$set_pi_method("bootjackknifeplus")
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train, nrounds=10, verbose=FALSE,  
-        pi_method = "bootjackknifeplus")
+obj$fit(X_train, y_train, nrounds=10, verbose=FALSE)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 
 obj$set_level(95)
