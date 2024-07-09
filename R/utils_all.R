@@ -111,6 +111,7 @@ create_new_predictors <- function(x, nb_hidden = 5,
 }
 
 # prehistoric stuff -----
+#' @export
 debug_print <- function(x) {
   cat("\n")
   print(paste0(deparse(substitute(x)), "'s value:"))

@@ -303,7 +303,7 @@ Base <-
           if (!is.null(y))
           {
             preds <- self$predict(as.matrix(X))
-            if (!is.null(self$level))
+            if (self$pi_method != "none")
             {
               if (self$type == "regression")
               {

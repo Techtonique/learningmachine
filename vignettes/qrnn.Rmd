@@ -1,5 +1,5 @@
 ---
-title: "Quasi-Randomized Neural Networks"
+title: "Quasi-Randomized _Neural_ Networks"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Getting started}
@@ -35,7 +35,8 @@ dim(X_test)
 # 1 `ranger` regression
 
 ```{r}
-obj <- learningmachine::Regressor$new(method = "ranger", nb_hidden=5L)
+obj <- learningmachine::Regressor$new(method = "ranger", nb_hidden=5L,  
+        pi_method = "splitconformal")
 obj$get_type()
 obj$get_name()
 ```
@@ -47,13 +48,12 @@ cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
 ```{r}
-print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
+print(sqrt(mean((obj$predict(X_test)$preds - y_test)^2)))
 ```
 
 ```{r fig.width=7.2}
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train,  
-        pi_method = "splitconformal")
+obj$fit(X_train, y_train)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 
 obj$set_level(95)
@@ -91,14 +91,14 @@ y_test <- y[-index_train]
 dim(X_train)
 dim(X_test)
 
-obj <- learningmachine::Classifier$new(method = "ranger", nb_hidden=5L)
+obj <- learningmachine::Classifier$new(method = "ranger", nb_hidden=5L, pi_method="kdesplitconformal", type_prediction_set="score")
 obj$get_type()
 obj$get_name()
 obj$set_B(10)
 obj$set_level(95)
 
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train, pi_method="kdesplitconformal")
+obj$fit(X_train, y_train)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 
 probs <- obj$predict_proba(X_test)

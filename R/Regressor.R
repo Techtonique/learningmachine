@@ -3,10 +3,21 @@
 
 #' `Regressor` class
 #'
-#' @description
-#' the `Regressor` class contains supervised regression models 
+#' @description The `Regressor` class contains supervised regression models 
 #' 
-
+#' @details This class implements models: 
+#' 
+#' \describe{
+#' \item{lm}{Linear model}
+#' \item{bcn}{see https://www.researchgate.net/publication/380760578_Boosted_Configuration_neural_Networks_for_supervised_classification}
+#' \item{extratrees}{Extremely Randomized Trees; see https://link.springer.com/article/10.1007/s10994-006-6226-1}
+#' \item{glmnet}{Elastic Net Regression; see https://glmnet.stanford.edu/}
+#' \item{krr}{Kernel Ridge Regression; see for example https://www.jstatsoft.org/article/view/v079i03}
+#' \item{ranger}{Random Forest; see https://www.jstatsoft.org/article/view/v077i01}
+#' \item{ridge}{Ridge regression; see https://arxiv.org/pdf/1509.09169}
+#' \item{xgboost}{a scalable tree boosting system see https://arxiv.org/abs/1603.02754}
+#' }
+#' 
 Regressor <-
   R6::R6Class(
     classname = "Regressor",
@@ -17,21 +28,21 @@ Regressor <-
       abs_calib_resids = NULL
     ),
     public = list(
-      #' @param name name of the class
+      #' @field name name of the class
       name = "Regressor",
-      #' @param type type of supervised learning method implemented  
+      #' @field type type of supervised learning method implemented  
       type = "regression",
-      #' @param model fitted model 
+      #' @field model fitted model 
       model = NULL,
-      #' @param method supervised learning method in c('lm', 'ranger', 
+      #' @field method supervised learning method in c('lm', 'ranger', 
       #' 'extratrees', 'ridge', 'bcn', 'glmnet', 'krr', 
       #' 'xgboost', 'svm') 
       method = NULL,
-      #' @param X_train training set features; do not modify by hand 
+      #' @field X_train training set features; do not modify by hand 
       X_train = NULL,
-      #' @param y_train training set response; do not modify by hand
+      #' @field y_train training set response; do not modify by hand
       y_train = NULL,
-      #' @param pi_method type of prediction interval in c("splitconformal",
+      #' @field pi_method type of prediction interval in c("splitconformal",
       #' "kdesplitconformal", "bootsplitconformal", "jackknifeplus",
       #' "kdejackknifeplus", "bootjackknifeplus", "surrsplitconformal",
       #' "surrjackknifeplus")
@@ -46,28 +57,28 @@ Regressor <-
         "surrsplitconformal",
         "surrjackknifeplus"
       ),
-      #' @param level an integer; the level of confidence (default is 95, for 95%)
+      #' @field level an integer; the level of confidence (default is 95, for 95%)
       level = 95,
-      #' @param B an integer; the number of simulations when \code{level} is not \code{NULL}
+      #' @field B an integer; the number of simulations when 'level' is not NULL
       B = 100,
-      #' @param nb_hidden number of nodes in the hidden layer, for construction of a quasi-
+      #' @field nb_hidden number of nodes in the hidden layer, for construction of a quasi-
       #' randomized network 
       nb_hidden = 0,
-      #' @param nodes_sim type of 'simulations' for hidden nodes, if \code{nb_hidden} > 0; 
+      #' @field nodes_sim type of 'simulations' for hidden nodes, if \code{nb_hidden} > 0; 
       #' takes values in c("sobol", "halton", "unif") 
       nodes_sim = c("sobol", "halton", "unif"),
-      #' @param activ activation function's name for the hidden layer, in the construction 
+      #' @field activ activation function's name for the hidden layer, in the construction 
       #' of a quasi-randomized network; takes values in c("relu", "sigmoid", "tanh", "
       #' leakyrelu", "elu", "linear")
       activ = c("relu", "sigmoid", "tanh",
                 "leakyrelu", "elu", "linear"),
-      #' @param engine contains fit and predic lower-level methods for the given \code{method}; 
+      #' @field engine contains fit and predic lower-level methods for the given \code{method}; 
       #' do not modify by hand
       engine = NULL,
-      #' @param params additional parameters passed to \code{method} when calling \code{fit}
+      #' @field params additional parameters passed to \code{method} when calling \code{fit}
       #' do not modify by hand 
       params = NULL,
-      #' @param seed an integer; reproducibility seed for methods that include 
+      #' @field seed an integer; reproducibility seed for methods that include 
       #' randomization
       seed = 123,
       #' @description
@@ -121,6 +132,14 @@ Regressor <-
           seed = seed
         )
       },
+      #' @description Fit model to training set 
+      #' @param X a matrix of covariates (i.e explanatory variables)
+      #' @param y a vector, the response (i.e variable to be explained)
+      #' @param type_split type of data splitting for split conformal prediction: 
+      #' "stratify" (for classical supervised learning) "sequential" (when 
+      #' the data sequential ordering matters)
+      #' @param ... additional parameters to learning algorithm (see vignettes)
+      #'
       fit = function(X,
                      y,
                      type_split = c("stratify",
@@ -128,7 +147,6 @@ Regressor <-
                      ...) {
         self$X_train <- X
         self$y_train <- drop(y)
-        #pi_method <- match.arg(pi_method)
         type_split <- match.arg(type_split)
         private$type_split <- type_split
         self$params <- list(...)

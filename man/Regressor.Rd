@@ -4,10 +4,71 @@
 \alias{Regressor}
 \title{`Regressor` class}
 \description{
-the `Regressor` class contains supervised regression models
+The `Regressor` class contains supervised regression models
+}
+\details{
+This class implements models: 
+
+\describe{
+\item{lm}{Linear model}
+\item{bcn}{see https://www.researchgate.net/publication/380760578_Boosted_Configuration_neural_Networks_for_supervised_classification}
+\item{extratrees}{Extremely Randomized Trees; see https://link.springer.com/article/10.1007/s10994-006-6226-1}
+\item{glmnet}{Elastic Net Regression; see https://glmnet.stanford.edu/}
+\item{krr}{Kernel Ridge Regression; see for example https://www.jstatsoft.org/article/view/v079i03}
+\item{ranger}{Random Forest; see https://www.jstatsoft.org/article/view/v077i01}
+\item{ridge}{Ridge regression; see https://arxiv.org/pdf/1509.09169}
+\item{xgboost}{a scalable tree boosting system see https://arxiv.org/abs/1603.02754}
+}
 }
 \section{Super class}{
 \code{\link[learningmachine:Base]{learningmachine::Base}} -> \code{Regressor}
+}
+\section{Public fields}{
+\if{html}{\out{<div class="r6-fields">}}
+\describe{
+\item{\code{name}}{name of the class}
+
+\item{\code{type}}{type of supervised learning method implemented}
+
+\item{\code{model}}{fitted model}
+
+\item{\code{method}}{supervised learning method in c('lm', 'ranger', 
+'extratrees', 'ridge', 'bcn', 'glmnet', 'krr', 
+'xgboost', 'svm')}
+
+\item{\code{X_train}}{training set features; do not modify by hand}
+
+\item{\code{y_train}}{training set response; do not modify by hand}
+
+\item{\code{pi_method}}{type of prediction interval in c("splitconformal",
+"kdesplitconformal", "bootsplitconformal", "jackknifeplus",
+"kdejackknifeplus", "bootjackknifeplus", "surrsplitconformal",
+"surrjackknifeplus")}
+
+\item{\code{level}}{an integer; the level of confidence (default is 95, for 95%)}
+
+\item{\code{B}}{an integer; the number of simulations when 'level' is not NULL}
+
+\item{\code{nb_hidden}}{number of nodes in the hidden layer, for construction of a quasi-
+randomized network}
+
+\item{\code{nodes_sim}}{type of 'simulations' for hidden nodes, if \code{nb_hidden} > 0; 
+takes values in c("sobol", "halton", "unif")}
+
+\item{\code{activ}}{activation function's name for the hidden layer, in the construction 
+of a quasi-randomized network; takes values in c("relu", "sigmoid", "tanh", "
+leakyrelu", "elu", "linear")}
+
+\item{\code{engine}}{contains fit and predic lower-level methods for the given \code{method}; 
+do not modify by hand}
+
+\item{\code{params}}{additional parameters passed to \code{method} when calling \code{fit}
+do not modify by hand}
+
+\item{\code{seed}}{an integer; reproducibility seed for methods that include 
+randomization}
+}
+\if{html}{\out{</div>}}
 }
 \section{Methods}{
 \subsection{Public methods}{
@@ -76,52 +137,6 @@ Create a new object.
 )}\if{html}{\out{</div>}}
 }
 
-\subsection{Arguments}{
-\if{html}{\out{<div class="arguments">}}
-\describe{
-\item{\code{name}}{name of the class}
-
-\item{\code{type}}{type of supervised learning method implemented}
-
-\item{\code{model}}{fitted model}
-
-\item{\code{method}}{supervised learning method in c('lm', 'ranger', 
-'extratrees', 'ridge', 'bcn', 'glmnet', 'krr', 'xgboost')}
-
-\item{\code{X_train}}{training set features; do not modify by hand}
-
-\item{\code{y_train}}{training set response; do not modify by hand}
-
-\item{\code{pi_method}}{type of prediction interval in c("splitconformal",
-"kdesplitconformal", "bootsplitconformal", "jackknifeplus",
-"kdejackknifeplus", "bootjackknifeplus", "surrsplitconformal",
-"surrjackknifeplus")}
-
-\item{\code{level}}{an integer; the level of confidence (default is 95, for 95%)}
-
-\item{\code{B}}{an integer; the number of simulations when \code{level} is not \code{NULL}}
-
-\item{\code{nb_hidden}}{number of nodes in the hidden layer, for construction of a quasi-
-randomized network}
-
-\item{\code{nodes_sim}}{type of 'simulations' for hidden nodes, if \code{nb_hidden} > 0; 
-takes values in c("sobol", "halton", "unif")}
-
-\item{\code{activ}}{activation function's name for the hidden layer, in the construction 
-of a quasi-randomized network; takes values in c("relu", "sigmoid", "tanh", "
-leakyrelu", "elu", "linear")}
-
-\item{\code{engine}}{contains fit and predic lower-level methods for the given \code{method}; 
-do not modify by hand}
-
-\item{\code{params}}{additional parameters passed to \code{method} when calling \code{fit}
-do not modify by hand}
-
-\item{\code{seed}}{an integer; reproducibility seed for methods that include 
-randomization}
-}
-\if{html}{\out{</div>}}
-}
 \subsection{Returns}{
 A new `Regressor` object.
 }
@@ -130,10 +145,26 @@ A new `Regressor` object.
 \if{html}{\out{<a id="method-Regressor-fit"></a>}}
 \if{latex}{\out{\hypertarget{method-Regressor-fit}{}}}
 \subsection{Method \code{fit()}}{
+Fit model to training set
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Regressor$fit(X, y, type_split = c("stratify", "sequential"), ...)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{X}}{a matrix of covariates (i.e explanatory variables)}
+
+\item{\code{y}}{a vector, the response (i.e variable to be explained)}
+
+\item{\code{type_split}}{type of data splitting for split conformal prediction: 
+"stratify" (for classical supervised learning) "sequential" (when 
+the data sequential ordering matters)}
+
+\item{\code{...}}{additional parameters to learning algorithm (see vignettes)}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Regressor-predict"></a>}}

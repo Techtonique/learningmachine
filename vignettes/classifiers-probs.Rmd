@@ -40,14 +40,16 @@ y_test <- y[-index_train]
 dim(X_train)
 dim(X_test)
 
-obj <- learningmachine::Classifier$new(method = "ranger")
+obj <- learningmachine::Classifier$new(method = "ranger", 
+                                       pi_method="kdesplitconformal", 
+                                       type_prediction_set="score")
 obj$get_type()
 obj$get_name()
 obj$set_B(10)
 obj$set_level(95)
 
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train, pi_method="kdesplitconformal")
+obj$fit(X_train, y_train)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 
 probs <- obj$predict_proba(X_test)
@@ -66,6 +68,7 @@ ggplot2::ggplot(df, aes(x=prob_setosa, fill=individual)) + geom_density(alpha=.3
 ```
 
 ```{r}
+print(head(X_test))
 obj$summary(X_test, y=y_test, 
             class_name = "setosa",
             show_progress=FALSE)
@@ -74,7 +77,8 @@ obj$summary(X_test, y=y_test,
 # 2 - `ranger` classification
 
 ```{r}
-obj <- learningmachine::Classifier$new(method = "ranger")
+obj <- learningmachine::Classifier$new(method = "ranger", 
+                                       type_prediction_set="score")
 obj$set_level(95)
 obj$set_pi_method("bootsplitconformal")
 t0 <- proc.time()[3]
@@ -111,11 +115,11 @@ obj$summary(X_test, y=y_test,
 # 3 - `extratrees` classification
 
 ```{r}
-obj <- learningmachine::Classifier$new(method = "extratrees")
+obj <- learningmachine::Classifier$new(method = "extratrees", 
+        pi_method = "bootsplitconformal", type_prediction_set="score")
 obj$set_level(95)
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train, 
-        pi_method = "bootsplitconformal")
+obj$fit(X_train, y_train)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
@@ -187,7 +191,8 @@ y_test <- factor(y[-index_train][1:5])
 ```
 
 ```{r}
-obj <- learningmachine::Classifier$new(method = "extratrees")
+obj <- learningmachine::Classifier$new(method = "extratrees", 
+                                       type_prediction_set="score")
 obj$set_pi_method("bootsplitconformal")
 obj$set_level(95)
 obj$set_B(10L)

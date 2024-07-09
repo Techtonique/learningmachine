@@ -5,9 +5,24 @@
 #' `Classifier` class
 #'
 #' @description
-#' the `Classifier` class contains supervised classification models 
 #' 
-
+#' The `Classifier` class contains supervised classification models 
+#' 
+#' @details
+#' 
+#' This class implements models: 
+#' 
+#' \describe{
+#' \item{lm}{Linear model}
+#' \item{bcn}{see https://www.researchgate.net/publication/380760578_Boosted_Configuration_neural_Networks_for_supervised_classification}
+#' \item{extratrees}{Extremely Randomized Trees; see https://link.springer.com/article/10.1007/s10994-006-6226-1}
+#' \item{glmnet}{Elastic Net Regression; see https://glmnet.stanford.edu/}
+#' \item{krr}{Kernel Ridge Regression; see for example https://www.jstatsoft.org/article/view/v079i03}
+#' \item{ranger}{Random Forest; see https://www.jstatsoft.org/article/view/v077i01}
+#' \item{ridge}{Ridge regression; see https://arxiv.org/pdf/1509.09169}
+#' \item{xgboost}{a scalable tree boosting system see https://arxiv.org/abs/1603.02754}
+#' }
+#' 
 Classifier <-
   R6::R6Class(
     classname = "Classifier",
@@ -22,20 +37,20 @@ Classifier <-
       q_threshold = NULL
     ),
     public = list(
-      #' @param name name of the class
+      #' @field name name of the class
       name = "Classifier",
-      #' @param type type of supervised learning method implemented  
+      #' @field type type of supervised learning method implemented  
       type = "classification",
-      #' @param model fitted model 
+      #' @field model fitted model 
       model = NULL,
-      #' @param method supervised learning method in c('lm', 'ranger', 
+      #' @field method supervised learning method in c('lm', 'ranger', 
       #' 'extratrees', 'ridge', 'bcn', 'glmnet', 'krr', 'xgboost') 
       method = NULL,
-      #' @param X_train training set features; do not modify by hand 
+      #' @field X_train training set features; do not modify by hand 
       X_train = NULL,
-      #' @param y_train training set response; do not modify by hand
+      #' @field y_train training set response; do not modify by hand
       y_train = NULL,
-      #' @param pi_method type of prediction set in c("splitconformal",
+      #' @field pi_method type of prediction set in c("splitconformal",
       #' "kdesplitconformal", "bootsplitconformal", 
       #' "surrsplitconformal")
       pi_method = c(
@@ -44,31 +59,31 @@ Classifier <-
         "bootsplitconformal",
         "surrsplitconformal"
       ),
-      #' @param level an integer; the level of confidence (default is 95, for 95%)
+      #' @field level an integer; the level of confidence (default is 95, for 95%)
       #' for prediction sets 
       level = 95,
-      #' @param type_prediction_set a string; the type of prediction set (currently, only "score" method)
+      #' @field type_prediction_set a string; the type of prediction set (currently, only "score" method)
       type_prediction_set = "score",
-      #' @param B an integer; the number of simulations when \code{level} is not \code{NULL}
+      #' @field B an integer; the number of simulations when \code{level} is not \code{NULL}
       B = 100,
-      #' @param nb_hidden number of nodes in the hidden layer, for construction of a quasi-
+      #' @field nb_hidden number of nodes in the hidden layer, for construction of a quasi-
       #' randomized network 
       nb_hidden = 0,
-      #' @param nodes_sim type of 'simulations' for hidden nodes, if \code{nb_hidden} > 0; 
+      #' @field nodes_sim type of 'simulations' for hidden nodes, if \code{nb_hidden} > 0; 
       #' takes values in c("sobol", "halton", "unif") 
       nodes_sim = c("sobol", "halton", "unif"),
-      #' @param activ activation function's name for the hidden layer, in the construction 
+      #' @field activ activation function's name for the hidden layer, in the construction 
       #' of a quasi-randomized network; takes values in c("relu", "sigmoid", "tanh", "
       #' leakyrelu", "elu", "linear")
       activ = c("relu", "sigmoid", "tanh",
                 "leakyrelu", "elu", "linear"),
-      #' @param engine contains fit and predic lower-level methods for the given \code{method}; 
+      #' @field engine contains fit and predic lower-level methods for the given \code{method}; 
       #' do not modify by hand
       engine = NULL,
-      #' @param params additional parameters passed to \code{method} when calling \code{fit}
+      #' @field params additional parameters passed to \code{method} when calling \code{fit}
       #' do not modify by hand 
       params = NULL,
-      #' @param seed an integer; reproducibility seed for methods that include 
+      #' @field seed an integer; reproducibility seed for methods that include 
       #' randomization
       seed = 123,
       #' @description
@@ -126,9 +141,13 @@ Classifier <-
       set_type_prediction_set = function(type_prediction_set) {
         self$type_prediction_set <- type_prediction_set
       },
+      #' @description Fit model to training set 
+      #' @param X a matrix of covariates (i.e explanatory variables)
+      #' @param y a vector, the response (i.e variable to be explained)
+      #' @param ... additional parameters to learning algorithm (see vignettes)
+      #'
       fit = function(X,
                      y,
-                     cl = NULL,
                      ...) {
         self$X_train <- X
         self$y_train <- y
@@ -286,6 +305,7 @@ Classifier <-
                          function (i)
                            replicate(self$B,
                                      raw_preds[, i]) + sd_raw_residuals[i] * simulated_raw_calibrated_residuals[[i]])
+          
           q_lower <- 0.5*(1 - self$level / 100)
           q_upper <- 1 - q_lower
           seq_len_n_classes <- seq_len(private$n_classes)
@@ -293,6 +313,7 @@ Classifier <-
               row_quantiles_cpp(sims[[i]], q = q_lower))
           preds_upper <- lapply(seq_len_n_classes, function(i)
               row_quantiles_cpp(sims[[i]], q = q_upper))
+          
           if (!is.null(private$class_names))
           {
             names(sims) <- private$class_names
@@ -314,32 +335,14 @@ Classifier <-
         
         if (identical(self$pi_method, "none"))
         {
+          
           numeric_factor <- apply(probs, 1, which.max)
           preds <- decode_factors(numeric_factor,
                                   private$encoded_factors)
           names(preds) <- NULL
           return(preds)
-        } else { 
           
-          # prediction sets with given 'level'
-          if (is.null(self$level) && !is.null(level))
-          {
-            self$set_level(level)
-          }
-          
-          if (!is.null(self$level) && !is.null(level))
-          {
-            if (self$level != level)
-            {
-              warning(paste0(
-                "level parameter has been set to ",
-                level,
-                " instead of ",
-                self$level
-              ))
-            }
-            self$set_level(level)
-          }
+        } else { # prediction sets required
           
           if (self$type_prediction_set == "score")
           {

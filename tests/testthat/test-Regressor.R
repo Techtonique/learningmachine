@@ -194,7 +194,7 @@ test_that("3 - checks qrn", {
 })
 
 
-test_that("4 - conformal no sims", {
+test_that("4 - conformal", {
   expect_equal(round(cv1, 2), 1)
   expect_equal(round(cv2, 2), 1)
   expect_equal(round(cv3, 2), 0.57)
