@@ -28,6 +28,16 @@ jobs:
       with:
         r-version: ${{ matrix.r }}
 
+    - name: Debug Information
+      run: |
+        echo "Running on ${{ matrix.os }} with R ${{ matrix.r }}"
+        echo "System Information:"
+        uname -a
+        echo "R Version:"
+        R --version
+        echo "Rscript Version:"
+        Rscript --version
+
     - name: Install system dependencies on macOS
       if: matrix.os == 'macos-latest'
       run: |
@@ -36,6 +46,7 @@ jobs:
     - name: Install system dependencies on Ubuntu
       if: matrix.os == 'ubuntu-latest'
       run: |
+        sudo apt-get update
         sudo apt-get install -y libgit2-dev
 
     - name: Install R package dependencies
@@ -46,6 +57,14 @@ jobs:
       run: |
         R CMD build .
 
+    - name: List built files
+      run: |
+        ls -la
+
     - name: Run R CMD check without tests
       run: |
         R CMD check *.tar.gz --no-manual --no-tests --as-cran
+
+    - name: List check results
+      run: |
+        ls -la
