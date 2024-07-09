@@ -51,7 +51,7 @@ jobs:
 
     - name: Install R package dependencies
       run: |
-        Rscript -e 'install.packages("remotes"); remotes::install_deps(dependencies = TRUE)'
+        Rscript -e 'install.packages("remotes", verbose = TRUE); remotes::install_deps(dependencies = TRUE, verbose = TRUE)'
 
     - name: Run R CMD build
       run: |
