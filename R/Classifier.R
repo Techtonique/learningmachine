@@ -389,7 +389,7 @@ fit_multitaskregressor <- function(x,
                          glmnet="glmnet",
                          xgboost="xgboost",
                          svm="e1071")
-  if (!is_package_available(package_name)) {
+  if (identical(is_package_available(package_name), FALSE)) {
     utils::install.packages(package_name, 
                             repos = c('https://techtonique.r-universe.dev', 
                                       'https://cloud.r-project.org'), 
