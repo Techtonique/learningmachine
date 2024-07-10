@@ -352,6 +352,8 @@ Classifier <-
             list_classes <- decode_factors2(ix_list)
             
             return(impute_classes(list_classes, probs$preds))
+          } else {
+            stop("For now, you must set type_prediction_set = 'score' when pi_method == 'none'")
           }
         }
       }
