@@ -264,8 +264,11 @@ impute_classes <- function(list_classes, probs)
 
 # Check if package is available -----
 is_package_available <- function(pkg_name) {
-  return(pkg_name %in% rownames(utils::installed.packages()))
+  if (!is.null(pkg_name))
+    return(pkg_name %in% rownames(utils::installed.packages()))
+  return(FALSE)
 }
+is_package_available <- memoise::memoise(is_package_available)
 
 # Check is whole number ------
 is_wholenumber <- function(x, tol = .Machine$double.eps ^ 0.5) {

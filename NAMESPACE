@@ -1,5 +1,6 @@
 useDynLib(learningmachine, .registration=TRUE)
 importFrom(Rcpp, evalCpp)
+importFrom("memoise", "memoise")
 importFrom("stats", "median")
 importFrom("stats", "predict")
 importFrom("stats", "quantile")

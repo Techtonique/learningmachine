@@ -12,10 +12,11 @@
 #' \item{bcn}{see https://www.researchgate.net/publication/380760578_Boosted_Configuration_neural_Networks_for_supervised_classification}
 #' \item{extratrees}{Extremely Randomized Trees; see https://link.springer.com/article/10.1007/s10994-006-6226-1}
 #' \item{glmnet}{Elastic Net Regression; see https://glmnet.stanford.edu/}
-#' \item{krr}{Kernel Ridge Regression; see for example https://www.jstatsoft.org/article/view/v079i03}
+#' \item{krr}{Kernel Ridge Regression; see for example https://www.jstatsoft.org/article/view/v079i03} (but the implementation is different)
 #' \item{ranger}{Random Forest; see https://www.jstatsoft.org/article/view/v077i01}
 #' \item{ridge}{Ridge regression; see https://arxiv.org/pdf/1509.09169}
 #' \item{xgboost}{a scalable tree boosting system see https://arxiv.org/abs/1603.02754}
+#' \item{svm}{Support Vector Machines, see https://cran.r-project.org/web/packages/e1071/vignettes/svmdoc.pdf}
 #' }
 #' 
 Regressor <-
@@ -57,7 +58,8 @@ Regressor <-
         "surrsplitconformal",
         "surrjackknifeplus"
       ),
-      #' @field level an integer; the level of confidence (default is 95, for 95%)
+      #' @field level an integer; the level of confidence (default is 95, for 95 per cent)
+      #' for prediction intervals
       level = 95,
       #' @field B an integer; the number of simulations when 'level' is not NULL
       B = 100,
@@ -536,7 +538,19 @@ fit_regressor <- function(x,
                           ...) {
   
   regressor_choice <- match.arg(method)
-  
+  package_name <- switch(regressor_choice,
+                         ranger="ranger",
+                         extratrees="ranger",
+                         bcn="bcn",
+                         glmnet="glmnet",
+                         xgboost="xgboost",
+                         svm="e1071")
+  if (!is_package_available(package_name)) {
+    utils::install.packages(package_name, 
+                            repos = c('https://techtonique.r-universe.dev', 
+                                      'https://cloud.r-project.org'), 
+                            dependencies = TRUE)
+  }
   obj <- switch(
     regressor_choice,
     lm = function(x, y, ...)

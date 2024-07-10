@@ -14,7 +14,7 @@ This class implements models:
 \item{bcn}{see https://www.researchgate.net/publication/380760578_Boosted_Configuration_neural_Networks_for_supervised_classification}
 \item{extratrees}{Extremely Randomized Trees; see https://link.springer.com/article/10.1007/s10994-006-6226-1}
 \item{glmnet}{Elastic Net Regression; see https://glmnet.stanford.edu/}
-\item{krr}{Kernel Ridge Regression; see for example https://www.jstatsoft.org/article/view/v079i03}
+\item{krr}{Kernel Ridge Regression; see for example https://www.jstatsoft.org/article/view/v079i03} (but the implementation is different)
 \item{ranger}{Random Forest; see https://www.jstatsoft.org/article/view/v077i01}
 \item{ridge}{Ridge regression; see https://arxiv.org/pdf/1509.09169}
 \item{xgboost}{a scalable tree boosting system see https://arxiv.org/abs/1603.02754}
@@ -43,7 +43,7 @@ This class implements models:
 "kdesplitconformal", "bootsplitconformal", 
 "surrsplitconformal")}
 
-\item{\code{level}}{an integer; the level of confidence (default is 95, for 95%)
+\item{\code{level}}{an integer; the level of confidence (default is 95, for 95 per cent)
 for prediction sets}
 
 \item{\code{type_prediction_set}}{a string; the type of prediction set (currently, only "score" method)}
