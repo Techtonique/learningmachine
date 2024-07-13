@@ -559,7 +559,7 @@ fit_regressor <- function(x,
     extratrees = function(x, y, ...) fit_func_extratrees_regression(x, y, ...),
     ridge = function(x, y, ...)
       fit_ridge_regression(x, y,
-                           lambda = 10 ^ seq(-10, 10,
+                           reg_lambda = 10 ^ seq(-10, 10,
                                              length.out = 100), ...),
     bcn = function(x, y, ...)
       bcn::bcn(x, y, ...),

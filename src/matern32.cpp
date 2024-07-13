@@ -262,7 +262,7 @@ NumericVector inters2(NumericMatrix x, // matrix of covariates
 List solve_eigen(NumericMatrix Eigenvectors,
                  const NumericVector Eigenvalues,
                  const NumericVector y,
-                 const double lambda)
+                 const double reg_lambda)
 {
   
   unsigned long int N = Eigenvectors.nrow(); //Number observations
@@ -282,7 +282,7 @@ List solve_eigen(NumericMatrix Eigenvectors,
   
   for(unsigned long int i = 0; i < N; ++i){
     for(unsigned long int j = 0; j < N; ++j){
-      temp(j) = sum(Eigenvectors(i, _)*Eigenvectors(j, _)/(lambda + Eigenvalues));
+      temp(j) = sum(Eigenvectors(i, _)*Eigenvectors(j, _)/(reg_lambda + Eigenvalues));
       if (i == j){
         Ginv_diag(j) = temp[j];
       }
@@ -300,7 +300,7 @@ List solve_eigen(NumericMatrix Eigenvectors,
 double find_lam_eigen(NumericMatrix Eigenvectors,
                       const NumericVector Eigenvalues,
                       const NumericVector y,
-                      NumericVector lambda_vector)
+                      NumericVector reg_lambda_vector)
 {
   
   unsigned long int N = Eigenvectors.nrow(); //Number observations
@@ -322,13 +322,13 @@ double find_lam_eigen(NumericMatrix Eigenvectors,
   double rmse_loocv_prev = 1000000;
   //optimal index;
   unsigned long int i_opt;
-  // number of lambdas
-  unsigned long int n_lambdas = lambda_vector.size();
+  // number of reg_lambdas
+  unsigned long int n_reg_lambdas = reg_lambda_vector.size();
   
-  for(unsigned long int i = 0; i < n_lambdas; ++i)
+  for(unsigned long int i = 0; i < n_reg_lambdas; ++i)
   {
     loocv = solve_eigen(Eigenvectors, Eigenvalues,
-                        y, lambda_vector(i))(1);
+                        y, reg_lambda_vector(i))(1);
     
     rmse_loocv = sqrt(sum(pow(loocv, 2)));
     
@@ -340,5 +340,5 @@ double find_lam_eigen(NumericMatrix Eigenvectors,
     rmse_loocv_prev = rmse_loocv;
   }
   
-  return (lambda_vector(i_opt));
+  return (reg_lambda_vector(i_opt));
 }

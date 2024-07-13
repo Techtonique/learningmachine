@@ -1,12 +1,12 @@
 
-fit_ridge_regression <- function(x, y, lambda = 10 ^ seq(-10, 10,
+fit_ridge_regression <- function(x, y, reg_lambda = 10 ^ seq(-10, 10,
                                                          length.out = 100),
                                  ...)
 {
   # adapted from MASS::lm.ridge
   x <- as.matrix(x)
   y <- as.vector(y)
-  nlambda <- length(lambda)
+  nreg_lambda <- length(reg_lambda)
   
   ym <- mean(y)
   centered_y <- y - ym
@@ -19,19 +19,19 @@ fit_ridge_regression <- function(x, y, lambda = 10 ^ seq(-10, 10,
   rhs <- crossprod(Xs$u, centered_y)
   d <- Xs$d
   nb_di <- length(d)
-  div <- d ^ 2 + rep(lambda, rep(nb_di, nlambda))
+  div <- d ^ 2 + rep(reg_lambda, rep(nb_di, nreg_lambda))
   a <- drop(d * rhs) / div
-  dim(a) <- c(nb_di, nlambda)
+  dim(a) <- c(nb_di, nreg_lambda)
   n <- nrow(X)
   
   coef <- crossprod(Xs$vt, a)
-  colnames(coef) <- lambda
+  colnames(coef) <- reg_lambda
   centered_y_hat <- X %*% coef
   
   fitted_values <- drop(ym +  centered_y_hat)
-  if (length(lambda) > 1)
+  if (length(reg_lambda) > 1)
   {
-    colnames(fitted_values) <- lambda
+    colnames(fitted_values) <- reg_lambda
   }
   residuals <- centered_y - centered_y_hat
   GCV <-
@@ -43,8 +43,8 @@ fit_ridge_regression <- function(x, y, lambda = 10 ^ seq(-10, 10,
     ym = ym,
     xm = attrs$`scaled:center`,
     xsd = attrs$`scaled:scale`,
-    lambda = lambda,
-    best_lam = lambda[which.min(GCV)],
+    reg_lambda = reg_lambda,
+    best_lam = reg_lambda[which.min(GCV)],
     fitted_values = fitted_values,
     residuals = drop(centered_y - centered_y_hat),
     GCV = GCV,
@@ -58,7 +58,7 @@ fit_ridge_regression <- function(x, y, lambda = 10 ^ seq(-10, 10,
 
 predict_ridge_regression <- function(object, newx)
 {
-  if (length(object$lambda) > 1)
+  if (length(object$reg_lambda) > 1)
   {
     res <- try(drop(
       base::scale(newx, center = object$xm,
@@ -90,7 +90,7 @@ predict_ridge_multitaskregression <- function(objects, newx)
   j <- 1
   for (object in objects)
   {
-    if (length(object$lambda) > 1)
+    if (length(object$reg_lambda) > 1)
     {
       res <- try(drop(
         base::scale(newx, center = object$xm,
@@ -109,7 +109,7 @@ predict_ridge_multitaskregression <- function(objects, newx)
         preds[, j] <- res
       }
     }  else {
-      # length(object$lambda) <= 1
+      # length(object$reg_lambda) <= 1
       preds[, j] <- drop(
         base::scale(newx, center = object$xm,
                     scale = object$xsd) %*% object$coef + object$ym

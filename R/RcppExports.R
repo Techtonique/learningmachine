@@ -37,12 +37,12 @@ inters2 <- function(x, j1, j2, c, l) {
     .Call(`_learningmachine_inters2`, x, j1, j2, c, l)
 }
 
-solve_eigen <- function(Eigenvectors, Eigenvalues, y, lambda) {
-    .Call(`_learningmachine_solve_eigen`, Eigenvectors, Eigenvalues, y, lambda)
+solve_eigen <- function(Eigenvectors, Eigenvalues, y, reg_lambda) {
+    .Call(`_learningmachine_solve_eigen`, Eigenvectors, Eigenvalues, y, reg_lambda)
 }
 
-find_lam_eigen <- function(Eigenvectors, Eigenvalues, y, lambda_vector) {
-    .Call(`_learningmachine_find_lam_eigen`, Eigenvectors, Eigenvalues, y, lambda_vector)
+find_lam_eigen <- function(Eigenvectors, Eigenvalues, y, reg_lambda_vector) {
+    .Call(`_learningmachine_find_lam_eigen`, Eigenvectors, Eigenvalues, y, reg_lambda_vector)
 }
 
 empirical_quantile_cpp <- function(x, q) {

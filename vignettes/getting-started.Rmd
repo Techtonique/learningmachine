@@ -175,7 +175,7 @@ obj$get_method()
 
 ```{r}
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train, lambda = 0.1)
+obj$fit(X_train, y_train, reg_lambda = 0.1)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
@@ -236,7 +236,7 @@ obj$get_name()
 
 ```{r}
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train, lambda = 0.1)
+obj$fit(X_train, y_train, reg_lambda = 0.1)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
@@ -246,7 +246,7 @@ print(obj$predict(X_test))
 
 ```{r fig.width=7.2}
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train, lambda = 0.1)
+obj$fit(X_train, y_train, reg_lambda = 0.1)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 
 obj$set_level(95)
@@ -268,7 +268,7 @@ mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 
 ```{r fig.width=7.2}
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train, lambda = 0.1)
+obj$fit(X_train, y_train, reg_lambda = 0.1)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 
 res <- obj$predict(X = X_test)
@@ -293,7 +293,7 @@ obj$summary(X_test, y=y_test, show_progress=FALSE)
 ```{r fig.width=7.2}
 obj$set_pi_method("kdejackknifeplus")
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train, lambda = 0.1)
+obj$fit(X_train, y_train, reg_lambda = 0.1)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 
 res <- obj$predict(X = X_test)

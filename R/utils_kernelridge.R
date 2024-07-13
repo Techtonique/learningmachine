@@ -2,7 +2,7 @@
 fit_matern32_regression <-
   function(x,
            y,
-           lambda = 0.1, #lambda = 10 ^ seq(-10, 10, length.out = 100),
+           reg_lambda = 0.1, #reg_lambda = 10 ^ seq(-10, 10, length.out = 100),
            l = NULL,
            method = "chol", #method = c("chol", "solve", "svd", "eigen"),
            with_kmeans = FALSE,
@@ -25,11 +25,11 @@ fit_matern32_regression <-
     ## regression ----
     x <- as.matrix(x)
     y <- as.vector(y)
-    nlambda <- length(lambda)
+    nreg_lambda <- length(reg_lambda)
     n <- dim(x)[1]
     p <- dim(x)[2]
     stopifnot(n == length(y))
-    one_lambda <- (length(lambda) <= 1)
+    one_reg_lambda <- (length(reg_lambda) <= 1)
     cclust_obj <- NULL
     
     
@@ -122,36 +122,36 @@ fit_matern32_regression <-
       
       if (method == "solve")
       {
-        if (one_lambda)
+        if (one_reg_lambda)
         {
-          K_plus <- K + lambda * diag(dim(K)[1])
+          K_plus <- K + reg_lambda * diag(dim(K)[1])
           invK <- solve(K_plus)
           coef <- invK %*% response_y
           loocv <- sum(drop(coef / diag(invK)) ^ 2)
         } else {
-          # length(lambda) > 1
+          # length(reg_lambda) > 1
           
-          get_loocv <- function(lambda_i)
+          get_loocv <- function(reg_lambda_i)
           {
-            K_plus <- K + lambda_i * diag(dim(K)[1])
+            K_plus <- K + reg_lambda_i * diag(dim(K)[1])
             invK <- solve(K_plus)
             coef <- invK %*% response_y
             return(list(coef = coef,
                         loocv = drop(coef / diag(invK))))
           }
           
-          fit_res <- lapply(lambda, function(x)
+          fit_res <- lapply(reg_lambda, function(x)
             get_loocv(x))
           n_fit_res <- length(fit_res)
           
           loocv <- colSums(parfor(args=1:n_fit_res,
                                   function(i)
                                     fit_res[[i]]$loocv) ^ 2)
-          names(loocv) <- lambda
+          names(loocv) <- reg_lambda
           
           coefs <- parfor(args=1:n_fit_res,  function(i)
             fit_res[[i]]$coef)
-          colnames(coefs) <- lambda
+          colnames(coefs) <- reg_lambda
         }
       }
       
@@ -161,11 +161,11 @@ fit_matern32_regression <-
         rhs <- crossprod(Xs$u, response_y)
         d <- Xs$d
         nb_di <- length(d)
-        div <- d ^ 2 + rep(lambda, rep(nb_di, nlambda))
+        div <- d ^ 2 + rep(reg_lambda, rep(nb_di, nreg_lambda))
         a <- drop(d * rhs) / div
-        dim(a) <- c(nb_di, nlambda)
+        dim(a) <- c(nb_di, nreg_lambda)
         coef <- crossprod(Xs$vt, a)
-        colnames(coef) <- lambda
+        colnames(coef) <- reg_lambda
         
         response_y_hat <- K %*% coef
         
@@ -177,12 +177,12 @@ fit_matern32_regression <-
         #}
         
         resid <- response_y - response_y_hat
-        colnames(resid) <- lambda
+        colnames(resid) <- reg_lambda
         GCV <-
           colSums(resid ^ 2) / (nrow(X) - colSums(matrix(d ^ 2 / div,
                                                          nb_di))) ^ 2
         
-        if (length(lambda) > 1)
+        if (length(reg_lambda) > 1)
         {
           RSS <- colSums((y - fitted_values) ^ 2)
         } else {
@@ -191,14 +191,14 @@ fit_matern32_regression <-
         
         TSS <- sum((y - ym) ^ 2)
         R_Squared <- 1 - RSS / TSS
-        names(R_Squared) <- lambda
+        names(R_Squared) <- reg_lambda
         Adj_R_Squared <-
           1 - (1 - R_Squared) * ((n - 1) / (n - p - 1))
         
         res <- list(
           K = K,
           l = l,
-          lambda = lambda,
+          reg_lambda = reg_lambda,
           coef = drop(coef),
           #centering = centering,
           scales = x_scaled$xsd,
@@ -225,42 +225,42 @@ fit_matern32_regression <-
       
       if (method == "chol")
       {
-        if (one_lambda)
+        if (one_reg_lambda)
         {
-          K_plus <- K + lambda * diag(dim(K)[1])
+          K_plus <- K + reg_lambda * diag(dim(K)[1])
           invK <- chol2inv(chol(K_plus))
           coef <- invK %*% response_y
           loocv <- sum(drop(coef / diag(invK)) ^ 2)
         } else {
-          # length(lambda) > 1
+          # length(reg_lambda) > 1
           
-          get_loocv <- function(lambda_i)
+          get_loocv <- function(reg_lambda_i)
           {
-            K_plus <- K + lambda_i * diag(dim(K)[1])
+            K_plus <- K + reg_lambda_i * diag(dim(K)[1])
             invK <- chol2inv(chol(K_plus))
             coef <- invK %*% response_y
             return(list(coef = coef,
                         loocv = drop(coef / diag(invK))))
           }
           
-          fit_res <- lapply(lambda, function(x)
+          fit_res <- lapply(reg_lambda, function(x)
             get_loocv(x))
           n_fit_res <- length(fit_res)
           
           loocv <- colSums(parfor(args=1:n_fit_res,
                                   what=function(i)
                                     fit_res[[i]]$loocv) ^ 2)
-          names(loocv) <- lambda
+          names(loocv) <- reg_lambda
           
           coefs <- parfor(args=1:n_fit_res, what=function(i)
             fit_res[[i]]$coef)
-          colnames(coefs) <- lambda
+          colnames(coefs) <- reg_lambda
         }
       }
       
       if (method == "eigen")
       {
-        if (one_lambda)
+        if (one_reg_lambda)
         {
           eigenK <- base::eigen(K)
           eigen_values <- eigenK$values
@@ -269,15 +269,15 @@ fit_matern32_regression <-
             Eigenvectors = Q,
             Eigenvalues = eigen_values,
             y = response_y,
-            lambda = lambda
+            reg_lambda = reg_lambda
           )
           
           coef <- inv_eigen$coeffs
           loocv <- sum(inv_eigen$loocv ^ 2)
         } else {
-          # length(lambda) > 1
+          # length(reg_lambda) > 1
           
-          get_loocv <- function(lambda_i)
+          get_loocv <- function(reg_lambda_i)
           {
             eigenK <- base::eigen(K)
             eigen_values <- eigenK$values
@@ -286,24 +286,24 @@ fit_matern32_regression <-
               Eigenvectors = Q,
               Eigenvalues = eigen_values,
               y = response_y,
-              lambda = lambda_i
+              reg_lambda = reg_lambda_i
             )
             return(list(coef = inv_eigen$coef,
                         loocv = inv_eigen$loocv))
           }
           
-          fit_res <- lapply(lambda, function(x)
+          fit_res <- lapply(reg_lambda, function(x)
             get_loocv(x))
           n_fit_res <- length(fit_res)
           
           loocv <- colSums(parfor(args=1:n_fit_res,
                                   what=function(i)
                                     fit_res[[i]]$loocv) ^ 2)
-          names(loocv) <- lambda
+          names(loocv) <- reg_lambda
           
           coefs <- parfor(args=1:n_fit_res, what=function(i)
             fit_res[[i]]$coef)
-          colnames(coefs) <- lambda
+          colnames(coefs) <- reg_lambda
           
         }
       }
@@ -316,20 +316,20 @@ fit_matern32_regression <-
         
         if (method %in% c("chol", "solve"))
         {
-          if (one_lambda)
+          if (one_reg_lambda)
           {
-            K_plus <- K + lambda * diag(dim(K)[1])
+            K_plus <- K + reg_lambda * diag(dim(K)[1])
             invK <- switch(method,
                            "solve" = solve(K_plus),
                            "chol" = chol2inv(chol(K_plus)))
             coef <- invK %*% response_y_clust
             loocv <- sum(drop(coef / diag(invK)) ^ 2)
           } else {
-            # length(lambda) > 1
+            # length(reg_lambda) > 1
             
-            get_loocv <- function(lambda_i)
+            get_loocv <- function(reg_lambda_i)
             {
-              K_plus <- K + lambda_i * diag(dim(K)[1])
+              K_plus <- K + reg_lambda_i * diag(dim(K)[1])
               invK <- switch(method,
                              "solve" = solve(K_plus),
                              "chol" = chol2inv(chol(K_plus)))
@@ -338,19 +338,19 @@ fit_matern32_regression <-
                           loocv = drop(coef / diag(invK))))
             }
             
-            fit_res <- lapply(lambda, function(x)
+            fit_res <- lapply(reg_lambda, function(x)
               get_loocv(x))
             n_fit_res <- length(fit_res)
             
             loocv <- colSums(parfor(args=1:n_fit_res,
                                     what=function(i)
                                       fit_res[[i]]$loocv) ^ 2)
-            names(loocv) <- lambda
+            names(loocv) <- reg_lambda
             
             coefs <-
               parfor(args=1:n_fit_res, what=function(i)
                 fit_res[[i]]$coef)
-            colnames(coefs) <- lambda
+            colnames(coefs) <- reg_lambda
           }
         }
         
@@ -360,11 +360,11 @@ fit_matern32_regression <-
           rhs <- crossprod(Xs$u, response_y_clust)
           d <- Xs$d
           nb_di <- length(d)
-          div <- d ^ 2 + rep(lambda, rep(nb_di, nlambda))
+          div <- d ^ 2 + rep(reg_lambda, rep(nb_di, nreg_lambda))
           a <- drop(d * rhs) / div
-          dim(a) <- c(nb_di, nlambda)
+          dim(a) <- c(nb_di, nreg_lambda)
           coef <- crossprod(Xs$vt, a)
-          colnames(coef) <- lambda
+          colnames(coef) <- reg_lambda
           scales <- x_scaled$xsd
           xm <- x_scaled$xm
           
@@ -384,12 +384,12 @@ fit_matern32_regression <-
           #}
           
           resid <- response_y - response_y_hat
-          colnames(resid) <- lambda
+          colnames(resid) <- reg_lambda
           GCV <-
             colSums(resid ^ 2) / (nrow(X) - colSums(matrix(d ^ 2 / div,
                                                            nb_di))) ^ 2
           
-          if (length(lambda) > 1)
+          if (length(reg_lambda) > 1)
           {
             RSS <- colSums((y - fitted_values) ^ 2)
           } else {
@@ -400,7 +400,7 @@ fit_matern32_regression <-
           R_Squared <- 1 - RSS / TSS
           Adj_R_Squared <-
             1 - (1 - R_Squared) * ((n - 1) / (n - p - 1))
-          names(R_Squared) <- lambda
+          names(R_Squared) <- reg_lambda
           
         }
         
@@ -422,7 +422,7 @@ fit_matern32_regression <-
       res <- list(
         K = K,
         l = l,
-        lambda = lambda,
+        reg_lambda = reg_lambda,
         coef = drop(coef),
         #centering = centering,
         scales = scales,
@@ -450,7 +450,7 @@ fit_matern32_regression <-
     # 3 - 2 solve, chol, eigen -----
     if (method %in% c("solve", "chol", "eigen"))
     {
-      if (length(lambda) == 1)
+      if (length(reg_lambda) == 1)
       {
         if (!with_kmeans)
         {
@@ -482,7 +482,7 @@ fit_matern32_regression <-
         res <- list(
           K = K,
           l = l,
-          lambda = lambda,
+          reg_lambda = reg_lambda,
           coef = drop(coef),
           #centering = centering,
           scales = x_scaled$xsd,
@@ -530,14 +530,14 @@ fit_matern32_regression <-
         RSS <- colSums((y - fitted_values) ^ 2)
         TSS <- sum((y - ym) ^ 2)
         R_Squared <- 1 - RSS / TSS
-        names(R_Squared) <- lambda
+        names(R_Squared) <- reg_lambda
         Adj_R_Squared <-
           1 - (1 - R_Squared) * ((n - 1) / (n - p - 1))
         
         res <- list(
           K = K,
           l = l,
-          lambda = lambda,
+          reg_lambda = reg_lambda,
           coef = drop(coefs),
           #centering = centering,
           scales = x_scaled$xsd,
@@ -567,7 +567,7 @@ fit_matern32_regression <-
 fit_matern32_classification <-
   function(x,
            y,
-           lambda = 0.1,
+           reg_lambda = 0.1,
            #10^seq(-5, 4, length.out = 100),
            l = NULL,
            method = c("chol", "solve", "svd", "eigen"),
@@ -578,7 +578,7 @@ fit_matern32_classification <-
            cl = NULL,
            ...)
   {
-    stopifnot(length(lambda) == 1L) # no multiple values of lambda
+    stopifnot(length(reg_lambda) == 1L) # no multiple values of reg_lambda
     
     method <- match.arg(method)
     
@@ -586,11 +586,11 @@ fit_matern32_classification <-
     stopifnot(is.factor(y))
     Y <- one_hot(y)
     n_classes <- dim(Y)[2]
-    nlambda <- length(lambda)
+    nreg_lambda <- length(reg_lambda)
     n <- dim(x)[1]
     p <- dim(x)[2]
     stopifnot(n == nrow(Y))
-    one_lambda <- (length(lambda) <= 1)
+    one_reg_lambda <- (length(reg_lambda) <= 1)
     cclust_obj <- NULL
     
     # centered response?
@@ -676,9 +676,9 @@ fit_matern32_classification <-
       
       if (method == "solve")
       {
-        if (one_lambda)
+        if (one_reg_lambda)
         {
-          K_plus <- K + lambda * diag(dim(K)[1])
+          K_plus <- K + reg_lambda * diag(dim(K)[1])
           invK <- solve(K_plus)
           coef <- invK %*% response_Y
           cat("coef", "\n")
@@ -686,11 +686,11 @@ fit_matern32_classification <-
           cat("\n")
           loocv <- sum(drop(coef / diag(invK)) ^ 2)
         } else {
-          # length(lambda) > 1
+          # length(reg_lambda) > 1
           
-          get_loocv <- function(lambda_i)
+          get_loocv <- function(reg_lambda_i)
           {
-            K_plus <- K + lambda_i * diag(dim(K)[1])
+            K_plus <- K + reg_lambda_i * diag(dim(K)[1])
             invK <- solve(K_plus)
             coef <- invK %*% response_Y
             cat("coef", "\n")
@@ -700,18 +700,18 @@ fit_matern32_classification <-
                         loocv = drop(coef / diag(invK))))
           }
           
-          fit_res <- lapply(lambda, function(x)
+          fit_res <- lapply(reg_lambda, function(x)
             get_loocv(x))
           n_fit_res <- length(fit_res)
           
           loocv <- colSums(parfor(args=1:n_fit_res,
                                   what=function(i)
                                     fit_res[[i]]$loocv) ^ 2)
-          names(loocv) <- lambda
+          names(loocv) <- reg_lambda
           
           coefs <- parfor(args=1:n_fit_res, what=function(i)
             fit_res[[i]]$coef)
-          colnames(coefs) <- lambda
+          colnames(coefs) <- reg_lambda
         }
       }
       
@@ -721,14 +721,14 @@ fit_matern32_classification <-
         rhs <- crossprod(Xs$u, response_Y)
         d <- Xs$d
         nb_di <- length(d)
-        div <- d ^ 2 + rep(lambda, rep(nb_di, nlambda))
+        div <- d ^ 2 + rep(reg_lambda, rep(nb_di, nreg_lambda))
         a <- drop(d * rhs) / div
-        dim(a) <- c(nb_di, nlambda)
+        dim(a) <- c(nb_di, nreg_lambda)
         coef <- crossprod(Xs$vt, a)
         cat("coef", "\n")
         print(coef)
         cat("\n")
-        # colnames(coef) <- lambda # /!\ can't work
+        # colnames(coef) <- reg_lambda # /!\ can't work
         
         response_Y_hat <- K %*% coef
         
@@ -740,7 +740,7 @@ fit_matern32_classification <-
         #}
         
         resid <- response_Y - response_Y_hat
-        # colnames(resid) <- lambda # /!\ can't work
+        # colnames(resid) <- reg_lambda # /!\ can't work
         # GCV <- colSums(resid^2)/(nrow(X) - colSums(matrix(d^2/div,
         #                                                  nb_di)))^2 # /!\ can't work
         
@@ -748,14 +748,14 @@ fit_matern32_classification <-
         RSS <- colSums((Y - fitted_values) ^ 2)
         TSS <- colSums((Y - Ym) ^ 2)
         R_Squared <- 1 - RSS / TSS
-        # names(R_Squared) <- lambda # /!\ can't work
+        # names(R_Squared) <- reg_lambda # /!\ can't work
         Adj_R_Squared <-
           1 - (1 - R_Squared) * ((n - 1) / (n - p - 1))
         
         res <- list(
           K = K,
           l = l,
-          lambda = lambda,
+          reg_lambda = reg_lambda,
           coef = drop(coef),
           #centering = centering,
           scales = x_scaled$xsd,
@@ -782,42 +782,42 @@ fit_matern32_classification <-
       
       if (method == "chol")
       {
-        if (one_lambda)
+        if (one_reg_lambda)
         {
-          K_plus <- K + lambda * diag(dim(K)[1])
+          K_plus <- K + reg_lambda * diag(dim(K)[1])
           invK <- chol2inv(chol(K_plus))
           coef <- invK %*% response_Y
           loocv <- sum(drop(coef / diag(invK)) ^ 2)
         } else {
-          # length(lambda) > 1
+          # length(reg_lambda) > 1
           
-          get_loocv <- function(lambda_i)
+          get_loocv <- function(reg_lambda_i)
           {
-            K_plus <- K + lambda_i * diag(dim(K)[1])
+            K_plus <- K + reg_lambda_i * diag(dim(K)[1])
             invK <- chol2inv(chol(K_plus))
             coef <- invK %*% response_Y
             return(list(coef = coef,
                         loocv = drop(coef / diag(invK))))
           }
           
-          fit_res <- lapply(lambda, function(x)
+          fit_res <- lapply(reg_lambda, function(x)
             get_loocv(x))
           n_fit_res <- length(fit_res)
           
           loocv <- colSums(parfor(args=1:n_fit_res,
                                   what=function(i)
                                     fit_res[[i]]$loocv) ^ 2)
-          names(loocv) <- lambda
+          names(loocv) <- reg_lambda
           
           coefs <- parfor(args=1:n_fit_res, what=function(i)
             fit_res[[i]]$coef)
-          colnames(coefs) <- lambda
+          colnames(coefs) <- reg_lambda
         }
       }
       
       if (method == "eigen")
       {
-        if (one_lambda)
+        if (one_reg_lambda)
         {
           eigenK <- base::eigen(K)
           eigen_values <- eigenK$values
@@ -826,15 +826,15 @@ fit_matern32_classification <-
             Eigenvectors = Q,
             Eigenvalues = eigen_values,
             y = response_Y,
-            lambda = lambda
+            reg_lambda = reg_lambda
           )
           
           coef <- inv_eigen$coeffs
           loocv <- sum(inv_eigen$loocv ^ 2)
         } else {
-          # length(lambda) > 1
+          # length(reg_lambda) > 1
           
-          get_loocv <- function(lambda_i)
+          get_loocv <- function(reg_lambda_i)
           {
             eigenK <- base::eigen(K)
             eigen_values <- eigenK$values
@@ -843,24 +843,24 @@ fit_matern32_classification <-
               Eigenvectors = Q,
               Eigenvalues = eigen_values,
               y = response_Y,
-              lambda = lambda_i
+              reg_lambda = reg_lambda_i
             )
             return(list(coef = inv_eigen$coef,
                         loocv = inv_eigen$loocv))
           }
           
-          fit_res <- lapply(lambda, function(x)
+          fit_res <- lapply(reg_lambda, function(x)
             get_loocv(x))
           n_fit_res <- length(fit_res)
           
           loocv <- colSums(parfor(args=1:n_fit_res,
                                   what=function(i)
                                     fit_res[[i]]$loocv) ^ 2)
-          names(loocv) <- lambda
+          names(loocv) <- reg_lambda
           
           coefs <- parfor(args=1:n_fit_res, what=function(i)
             fit_res[[i]]$coef)
-          colnames(coefs) <- lambda
+          colnames(coefs) <- reg_lambda
           
         }
       }
@@ -873,20 +873,20 @@ fit_matern32_classification <-
         
         if (method %in% c("chol", "solve"))
         {
-          if (one_lambda)
+          if (one_reg_lambda)
           {
-            K_plus <- K + lambda * diag(dim(K)[1])
+            K_plus <- K + reg_lambda * diag(dim(K)[1])
             invK <- switch(method,
                            "solve" = solve(K_plus),
                            "chol" = chol2inv(chol(K_plus)))
             coef <- invK %*% response_Y_clust
             loocv <- sum(drop(coef / diag(invK)) ^ 2)
           } else {
-            # length(lambda) > 1
+            # length(reg_lambda) > 1
             
-            get_loocv <- function(lambda_i)
+            get_loocv <- function(reg_lambda_i)
             {
-              K_plus <- K + lambda_i * diag(dim(K)[1])
+              K_plus <- K + reg_lambda_i * diag(dim(K)[1])
               invK <- switch(method,
                              "solve" = solve(K_plus),
                              "chol" = chol2inv(chol(K_plus)))
@@ -895,19 +895,19 @@ fit_matern32_classification <-
                           loocv = drop(coef / diag(invK))))
             }
             
-            fit_res <- lapply(lambda, function(x)
+            fit_res <- lapply(reg_lambda, function(x)
               get_loocv(x))
             n_fit_res <- length(fit_res)
             
             loocv <- colSums(parfor(args=1:n_fit_res,
                                     what=function(i)
                                       fit_res[[i]]$loocv) ^ 2)
-            names(loocv) <- lambda
+            names(loocv) <- reg_lambda
             
             coefs <-
               parfor(args=1:n_fit_res, what=function(i)
                 fit_res[[i]]$coef)
-            # colnames(coefs) <- lambda # /!\ can't work
+            # colnames(coefs) <- reg_lambda # /!\ can't work
           }
         }
         
@@ -917,11 +917,11 @@ fit_matern32_classification <-
           rhs <- crossprod(Xs$u, response_Y_clust)
           d <- Xs$d
           nb_di <- length(d)
-          div <- d ^ 2 + rep(lambda, rep(nb_di, nlambda))
+          div <- d ^ 2 + rep(reg_lambda, rep(nb_di, nreg_lambda))
           a <- drop(d * rhs) / div
-          dim(a) <- c(nb_di, nlambda)
+          dim(a) <- c(nb_di, nreg_lambda)
           coef <- crossprod(Xs$vt, a)
-          colnames(coef) <- lambda
+          colnames(coef) <- reg_lambda
           scales <- x_scaled$xsd
           xm <- x_scaled$xm
           
@@ -941,12 +941,12 @@ fit_matern32_classification <-
           #}
           
           resid <- response_Y - response_Y_hat
-          colnames(resid) <- lambda
+          colnames(resid) <- reg_lambda
           GCV <-
             colSums(resid ^ 2) / (nrow(X) - colSums(matrix(d ^ 2 / div,
                                                            nb_di))) ^ 2
           
-          if (length(lambda) > 1)
+          if (length(reg_lambda) > 1)
           {
             RSS <- colSums((Y - fitted_values) ^ 2)
           } else {
@@ -957,7 +957,7 @@ fit_matern32_classification <-
           R_Squared <- 1 - RSS / TSS
           Adj_R_Squared <-
             1 - (1 - R_Squared) * ((n - 1) / (n - p - 1))
-          # names(R_Squared) <- lambda # /!\ can't work
+          # names(R_Squared) <- reg_lambda # /!\ can't work
           
         }
         
@@ -979,7 +979,7 @@ fit_matern32_classification <-
       res <- list(
         K = K,
         l = l,
-        lambda = lambda,
+        reg_lambda = reg_lambda,
         coef = drop(coef),
         #centering = centering,
         scales = scales,
@@ -1007,7 +1007,7 @@ fit_matern32_classification <-
     # 3 - 2 solve, chol, eigen -----
     if (method %in% c("solve", "chol", "eigen"))
     {
-      if (length(lambda) == 1)
+      if (length(reg_lambda) == 1)
       {
         if (!with_kmeans)
         {
@@ -1039,7 +1039,7 @@ fit_matern32_classification <-
         res <- list(
           K = K,
           l = l,
-          lambda = lambda,
+          reg_lambda = reg_lambda,
           coef = drop(coef),
           #centering = centering,
           scales = x_scaled$xsd,
@@ -1087,14 +1087,14 @@ fit_matern32_classification <-
         RSS <- colSums((Y - fitted_values) ^ 2)
         TSS <- colSums((Y - Ym) ^ 2)
         R_Squared <- 1 - RSS / TSS
-        # names(R_Squared) <- lambda # /!\ can't work
+        # names(R_Squared) <- reg_lambda # /!\ can't work
         Adj_R_Squared <-
           1 - (1 - R_Squared) * ((n - 1) / (n - p - 1))
         
         res <- list(
           K = K,
           l = l,
-          lambda = lambda,
+          reg_lambda = reg_lambda,
           coef = drop(coefs),
           #centering = centering,
           scales = x_scaled$xsd,

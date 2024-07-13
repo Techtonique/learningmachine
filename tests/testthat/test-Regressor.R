@@ -82,7 +82,7 @@ obj4$fit(X_train, y_train)
 obj5$fit(X_train, y_train, 
          show_progress=FALSE)
 obj6$fit(X_train, y_train)
-obj7$fit(X_train, y_train, lambda=0.05)
+obj7$fit(X_train, y_train, reg_lambda=0.05)
 obj8$fit(X_train, y_train, 
          nrounds=10, verbose=FALSE)
 obj9$fit(X_train, y_train)
@@ -92,7 +92,7 @@ obj12$fit(X_train, y_train)
 obj13$fit(X_train, y_train)
 #obj14$fit(X_train, y_train, show_progress=FALSE)
 obj15$fit(X_train, y_train)
-obj16$fit(X_train, y_train, lambda=0.05)
+obj16$fit(X_train, y_train, reg_lambda=0.05)
 obj17$fit(X_train, y_train, 
          nrounds=10, verbose=FALSE)
 obj18$fit(X_train, y_train)

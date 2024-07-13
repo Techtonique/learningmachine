@@ -126,30 +126,30 @@ BEGIN_RCPP
 END_RCPP
 }
 // solve_eigen
-List solve_eigen(NumericMatrix Eigenvectors, const NumericVector Eigenvalues, const NumericVector y, const double lambda);
-RcppExport SEXP _learningmachine_solve_eigen(SEXP EigenvectorsSEXP, SEXP EigenvaluesSEXP, SEXP ySEXP, SEXP lambdaSEXP) {
+List solve_eigen(NumericMatrix Eigenvectors, const NumericVector Eigenvalues, const NumericVector y, const double reg_lambda);
+RcppExport SEXP _learningmachine_solve_eigen(SEXP EigenvectorsSEXP, SEXP EigenvaluesSEXP, SEXP ySEXP, SEXP reg_lambdaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type Eigenvectors(EigenvectorsSEXP);
     Rcpp::traits::input_parameter< const NumericVector >::type Eigenvalues(EigenvaluesSEXP);
     Rcpp::traits::input_parameter< const NumericVector >::type y(ySEXP);
-    Rcpp::traits::input_parameter< const double >::type lambda(lambdaSEXP);
-    rcpp_result_gen = Rcpp::wrap(solve_eigen(Eigenvectors, Eigenvalues, y, lambda));
+    Rcpp::traits::input_parameter< const double >::type reg_lambda(reg_lambdaSEXP);
+    rcpp_result_gen = Rcpp::wrap(solve_eigen(Eigenvectors, Eigenvalues, y, reg_lambda));
     return rcpp_result_gen;
 END_RCPP
 }
 // find_lam_eigen
-double find_lam_eigen(NumericMatrix Eigenvectors, const NumericVector Eigenvalues, const NumericVector y, NumericVector lambda_vector);
-RcppExport SEXP _learningmachine_find_lam_eigen(SEXP EigenvectorsSEXP, SEXP EigenvaluesSEXP, SEXP ySEXP, SEXP lambda_vectorSEXP) {
+double find_lam_eigen(NumericMatrix Eigenvectors, const NumericVector Eigenvalues, const NumericVector y, NumericVector reg_lambda_vector);
+RcppExport SEXP _learningmachine_find_lam_eigen(SEXP EigenvectorsSEXP, SEXP EigenvaluesSEXP, SEXP ySEXP, SEXP reg_lambda_vectorSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix >::type Eigenvectors(EigenvectorsSEXP);
     Rcpp::traits::input_parameter< const NumericVector >::type Eigenvalues(EigenvaluesSEXP);
     Rcpp::traits::input_parameter< const NumericVector >::type y(ySEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type lambda_vector(lambda_vectorSEXP);
-    rcpp_result_gen = Rcpp::wrap(find_lam_eigen(Eigenvectors, Eigenvalues, y, lambda_vector));
+    Rcpp::traits::input_parameter< NumericVector >::type reg_lambda_vector(reg_lambda_vectorSEXP);
+    rcpp_result_gen = Rcpp::wrap(find_lam_eigen(Eigenvectors, Eigenvalues, y, reg_lambda_vector));
     return rcpp_result_gen;
 END_RCPP
 }
