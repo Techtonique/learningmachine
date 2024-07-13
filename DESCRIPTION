@@ -1,31 +1,32 @@
 Package: learningmachine
 Type: Package
-Title: Machine Learning with explanations and uncertainty quantification     
+Title: Machine Learning with Explanations and Uncertainty Quantification
 Version: 2.0.1
 Date: 2024-07-10
 Author: T. Moudiki
 Maintainer: T. Moudiki <thierry.moudiki@gmail.com>
 Description: Regression-based Machine Learning with explanations and uncertainty quantification.
 License: BSD_3_clause + file LICENSE
-Imports: Rcpp (>= 1.0.10), R6, skimr
-Depends: randtoolbox, tseries, memoise, foreach
+Imports: Rcpp (>= 1.0.10), R6
+Depends: randtoolbox, tseries, memoise, foreach, skimr
 LinkingTo: Rcpp
 RoxygenNote: 7.3.0
 Encoding: UTF-8
 Suggests: 
     caret,
     e1071,  
-    foreach,
+    ggplot2,
     glmnet,
     knitr,
     MASS,
     mlbench,
     palmerpenguins,
     pkgbuild,
+    pROC,
     ranger,
+    reshape2,
     rmarkdown,
     roxygen2,
-    skimr,
     testthat (>= 3.0.0),
     xgboost
 VignetteBuilder: knitr

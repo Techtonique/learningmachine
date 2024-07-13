@@ -64,7 +64,7 @@ create_new_predictors <- function(x, nb_hidden = 5,
   w <- remove_zero_cols(switch(match.arg(nodes_sim),
                                "sobol" = 2*t(randtoolbox::sobol(nb_hidden + 1, p)) - 1,
                                "halton" = 2*t(randtoolbox::halton(nb_hidden, p)) - 1,
-                               "unif" = matrix(runif(nb_hidden*p, min = -1, max = 1),
+                               "unif" = matrix(stats::runif(nb_hidden*p, min = -1, max = 1),
                                                nrow = p, ncol = nb_hidden)))
   
   if((!is.null(nn_xm) && is.null(nn_scales)) || (is.null(nn_xm) && !is.null(nn_scales)))
@@ -508,7 +508,7 @@ rgaussiandens <- function(x,
   set.seed(seed)
   if (p <= 1)
   {
-    return(sample(x, n, replace = TRUE) + rnorm(n, sd=width))    # Here's the entire algorithm
+    return(sample(x, n, replace = TRUE) + stats::rnorm(n, sd=width))    # Here's the entire algorithm
   } else {
     return(simulate_gaussian_mixture_cpp(x=x, 
                                          n=n, 
@@ -550,7 +550,7 @@ remove_nulls <- function(x) {
 scale_matrix <- function(X)
 {
   X_mean <- colMeans(X)
-  X_sd <- apply(X, 2, sd)
+  X_sd <- apply(X, 2, stats::sd)
   X <- sweep(X, 2, X_mean, "-")
   X <- sweep(X, 2, X_sd, "/")
   return(list(X = X, X_mean = X_mean, X_sd = X_sd))
