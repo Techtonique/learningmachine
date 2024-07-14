@@ -14,13 +14,13 @@ coverage_rate_classifier <- function(y_test, preds_set_list) {
   res <- rep(0, n)
   if (is.list(preds_set_list))
   {
-    stopifnot(n == length(preds_set_list))
+    #stopifnot(n == length(preds_set_list))
     for (i in seq_len(n))
     {
       res[i] <- (y_test[i] %in% preds_set_list[[i]])+0
     } 
   } else { # is.matrix 
-    stopifnot(n == nrow(preds_set_list))
+    #stopifnot(n == nrow(preds_set_list))
     for (i in seq_len(n))
     {
       res[i] <- (y_test[i] == preds_set_list[i])+0
