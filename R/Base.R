@@ -193,7 +193,6 @@ Base <-
         self$seed <- seed
       },
       summary = function(X,
-                         level = 95,
                          show_progress = TRUE,
                          class_name = NULL,
                          class_index = NULL, 
@@ -252,10 +251,16 @@ Base <-
             h <- eps_factor * X_ix * cond + zero * (!cond)
             X_plus[, ix] <- X_ix + h
             X_minus[, ix] <- X_ix - h
-            probs_plus <-
-              self$predict_proba(as.matrix(X_plus))$preds[, class_index]
-            probs_minus <-
-              self$predict_proba(as.matrix(X_minus))$preds[, class_index]
+            probs_plus <- try(self$predict_proba(as.matrix(X_plus))$preds[, class_index], silent=TRUE)
+            if (identical(class(probs_plus)[1], "try-error"))
+            {
+              probs_plus <- self$predict_proba(as.matrix(X_plus))[, class_index]
+            }
+            probs_minus <- try(self$predict_proba(as.matrix(X_minus))$preds[, class_index], silent=TRUE)
+            if (identical(class(probs_minus)[1], "try-error"))
+            {
+              probs_minus <- self$predict_proba(as.matrix(X_minus))[, class_index]
+            }
             derived_column <-
               100 * (probs_plus - probs_minus) / (2 * h)
             return (derived_column)
@@ -328,7 +333,7 @@ Base <-
                   effects = my_skim(effects)
                 ))
               }
-            } else { # is.null(self$level)
+            } else { # self$pi_method == "none"
               if (self$type == "regression")
               {
                 R_squared <- 1 - sum((y - preds) ^ 2) / sum((y - mean(y)) ^ 2)
