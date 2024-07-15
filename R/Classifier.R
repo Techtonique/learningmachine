@@ -392,10 +392,17 @@ fit_multitaskregressor <- function(x,
                          xgboost="xgboost",
                          svm="e1071")
   if (identical(is_package_available(package_name), FALSE)) {
-    utils::install.packages(package_name, 
-                            repos = c('https://techtonique.r-universe.dev', 
-                                      'https://cloud.r-project.org'), 
-                            dependencies = TRUE)
+    if (identical(package_name, "bcn"))
+    {
+      utils::install.packages(package_name, 
+        repos = c('https://techtonique.r-universe.dev', 
+                  'https://cloud.r-project.org'), 
+        dependencies = TRUE)
+    } else {
+      utils::install.packages(package_name, 
+        repos = "https://cran.rstudio.com/",
+        dependencies = TRUE)
+    }
   }
   Y <- as.matrix(one_hot(y))
   if (ncol(Y) != n_classes)
