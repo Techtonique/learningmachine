@@ -1,12 +1,20 @@
 
-fit_ridge_regression <- function(x, y, reg_lambda = 10 ^ seq(-10, 10,
-                                                         length.out = 100),
+fit_ridge_regression <- function(x, y, 
                                  ...)
 {
   # adapted from MASS::lm.ridge
   x <- as.matrix(x)
   y <- as.vector(y)
-  nreg_lambda <- length(reg_lambda)
+  input_list <- list(...)
+  if ("reg_lambda" %in% names(input_list))
+  {
+    reg_lambda <- input_list$reg_lambda
+    input_list <- input_list[names(input_list) != "reg_lambda"]
+  } else {
+    reg_lambda <- 0.01
+  }
+  base::stopifnot(length(reg_lambda) == 1)
+  nreg_lambda <- 1
   
   ym <- mean(y)
   centered_y <- y - ym

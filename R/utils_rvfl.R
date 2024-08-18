@@ -1,15 +1,25 @@
 
-fit_rvfl_regression <- function(x, y, reg_lambda = 0.01,
+fit_rvfl_regression <- function(x, y,
                                  ...)
 {
   x <- as.matrix(x)
   y <- as.vector(y)
+  input_list <- list(...)
+  if ("reg_lambda" %in% names(input_list))
+  {
+    reg_lambda <- input_list$reg_lambda
+    input_list <- input_list[names(input_list) != "reg_lambda"]
+  } else {
+    reg_lambda <- 0.01
+  }
+  debug_print(input_list)
   base::stopifnot(length(reg_lambda) == 1)
-  out <- bayesianrvfl::fit_rvfl(x = x, y = y, 
+  out <- do.call(bayesianrvfl::fit_rvfl, c(list(x = x, 
+                                y = y, 
                                 lambda = reg_lambda,
                                 compute_Sigma = FALSE, 
-                                method = "chol",
-                                ...)
+                                method = "chol"),
+                                input_list))
   
   return(structure(out, class = "rvfl"))
 }

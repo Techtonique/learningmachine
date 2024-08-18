@@ -416,7 +416,7 @@ obj$get_name()
 
 ```{r}
 t0 <- proc.time()[3]
-obj$fit(X_train, y_train)
+obj$fit(X_train, y_train, reg_lambda = 0.01)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
@@ -497,4 +497,42 @@ abline(v = length(y_train), lty=2, col="black")
 
 mean((new_y_test >= as.numeric(res$lower)) * (new_y_test <= as.numeric(res$upper)))
 ```
+
+**update RVFL model (Pt.2)**
+
+```{r}
+newx <- X_test[2, ]
+newy <- y_test[2]
+
+new_X_test <- X_test[-c(1, 2), ]
+new_y_test <- y_test[-c(1, 2)]
+
+t0 <- proc.time()[3]
+obj$update(newx, newy)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r}
+obj$summary(new_X_test, y=new_y_test, show_progress=FALSE)
+```
+
+```{r fig.width=7.2}
+res <- obj$predict(X = new_X_test)
+ 
+new_y_train <- c(y_train, y_test[c(1, 2)])
+
+plot(c(new_y_train, res$preds), type='l',
+    main="",
+    ylab="",
+    ylim = c(min(c(res$upper, res$lower, y)),
+             max(c(res$upper, res$lower, y))))
+lines(c(new_y_train, res$upper), col="gray60")
+lines(c(new_y_train, res$lower), col="gray60")
+lines(c(new_y_train, res$preds), col = "red")
+lines(c(new_y_train, new_y_test), col = "blue")
+abline(v = length(y_train), lty=2, col="black")
+
+mean((new_y_test >= as.numeric(res$lower)) * (new_y_test <= as.numeric(res$upper)))
+```
+
 

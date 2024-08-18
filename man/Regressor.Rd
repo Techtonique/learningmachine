@@ -174,15 +174,26 @@ the data sequential ordering matters)}
 \if{html}{\out{<a id="method-Regressor-predict"></a>}}
 \if{latex}{\out{\hypertarget{method-Regressor-predict}{}}}
 \subsection{Method \code{predict()}}{
+Predict model on test set
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Regressor$predict(X, ...)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{X}}{a matrix of covariates (i.e explanatory variables)}
+
+\item{\code{...}}{additional parameters}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Regressor-fit_predict"></a>}}
 \if{latex}{\out{\hypertarget{method-Regressor-fit_predict}{}}}
 \subsection{Method \code{fit_predict()}}{
+Fit model to training set and predict on test set
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Regressor$fit_predict(
   X,

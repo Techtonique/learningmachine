@@ -172,6 +172,9 @@ Regressor <-
             x = self$X_train,
             y = self$y_train,
             method = self$method,
+            nb_hidden = self$nb_hidden,
+            nodes_sim = self$nodes_sim,
+            activ = self$activ,
             ... 
           )) 
         }
@@ -297,6 +300,9 @@ Regressor <-
         return(invisible(self))
         
       },
+      #' @description Predict model on test set 
+      #' @param X a matrix of covariates (i.e explanatory variables)
+      #' @param ... additional parameters 
       predict = function(X, ...) {
         if (is.null(self$model) || is.null(self$engine))
           stop(
@@ -393,6 +399,8 @@ Regressor <-
           }
         }
       },
+      #' @description Fit model to training set and predict on test set
+      #' 
       fit_predict = function(X,
                              y,
                              pct_train = 0.8,
@@ -580,8 +588,7 @@ fit_regressor <- function(x,
     ranger = function(x, y, ...) fit_func_ranger_regression(x, y, ...),
     extratrees = function(x, y, ...) fit_func_extratrees_regression(x, y, ...),
     ridge = function(x, y, ...)
-      fit_ridge_regression(x, y,
-                           reg_lambda = 0.01, ...),
+      fit_ridge_regression(x, y, ...),
     bcn = function(x, y, ...)
       bcn::bcn(x, y, ...),
     glmnet = function(x, y, ...)
@@ -593,9 +600,7 @@ fit_regressor <- function(x,
       fit_xgboost_regression(x, y, ...),
     svm = function(x, y, ...)
       e1071::svm(x = x, y = y, ...),
-    rvfl = function(x, y, ...) fit_rvfl_regression(x, y,
-                                                   reg_lambda = 0.01, 
-                                                      ...)
+    rvfl = function(x, y, ...) fit_rvfl_regression(x, y, ...)
   )
   
   if(nb_hidden == 0)
