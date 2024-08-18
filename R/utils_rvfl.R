@@ -12,7 +12,6 @@ fit_rvfl_regression <- function(x, y,
   } else {
     reg_lambda <- 0.01
   }
-  debug_print(input_list)
   base::stopifnot(length(reg_lambda) == 1)
   out <- do.call(bayesianrvfl::fit_rvfl, c(list(x = x, 
                                 y = y, 
