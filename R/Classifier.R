@@ -21,6 +21,7 @@
 #' \item{ranger}{Random Forest; see https://www.jstatsoft.org/article/view/v077i01}
 #' \item{ridge}{Ridge regression; see https://arxiv.org/pdf/1509.09169}
 #' \item{xgboost}{a scalable tree boosting system see https://arxiv.org/abs/1603.02754}
+#' \item{rvfl}{Random Vector Functional Network, see https://www.researchgate.net/publication/332292006_Online_Bayesian_Quasi-Random_functional_link_networks_application_to_the_optimization_of_black_box_functions}
 #' }
 #' 
 Classifier <-
@@ -372,7 +373,8 @@ fit_multitaskregressor <- function(x,
                                               "krr",
                                               "ranger",
                                               "ridge",
-                                              "xgboost"),
+                                              "xgboost", 
+                                              "rvfl"),
                                    show_progress = FALSE,
                                    nb_hidden = 0,
                                    nodes_sim = c("sobol", "halton", "unif"),
@@ -390,9 +392,10 @@ fit_multitaskregressor <- function(x,
                          bcn="bcn",
                          glmnet="glmnet",
                          xgboost="xgboost",
-                         svm="e1071")
+                         svm="e1071", 
+                         rvfl="bayesianrvfl")
   if (identical(is_package_available(package_name), FALSE)) {
-    if (identical(package_name, "bcn"))
+    if (package_name %in% c("bcn", "bayesianrvfl"))
     {
       utils::install.packages(package_name, 
         repos = c('https://techtonique.r-universe.dev', 
@@ -417,8 +420,7 @@ fit_multitaskregressor <- function(x,
       fit_func_extratrees_regression(x, y, ...),
     ridge = function(x, y, ...)
       fit_ridge_regression(x, y,
-                           reg_lambda = 10 ^ seq(-10, 10,
-                                             length.out = 100), ...),
+                           reg_lambda = 0.01, ...),
     bcn = function(x, y, ...)
       bcn::bcn(x, y, ...),
     glmnet = function(x, y, ...)
@@ -427,7 +429,10 @@ fit_multitaskregressor <- function(x,
       fit_matern32_regression(x, y,
                               ...),
     xgboost = function(x, y, ...)
-      fit_xgboost_regression(x, y, ...)
+      fit_xgboost_regression(x, y, ...), 
+    rvfl = function(x, y, ...)
+      fit_rvfl_regression(x, y,
+                          reg_lambda = 0.01, ...)
   )
   res <- vector("list", length = n_classes)
   names(res) <- class_names
@@ -466,7 +471,8 @@ predict_multitaskregressor <- function(objs,
                                                   "krr",
                                                   "ranger",
                                                   "ridge",
-                                                  "xgboost")) {
+                                                  "xgboost",
+                                                  "rvfl")) {
   method <- match.arg(method)
   predict_func <- switch(
     method,
@@ -478,28 +484,45 @@ predict_multitaskregressor <- function(objs,
     krr = predict_matern32,
     ranger = predict_func_ranger,
     ridge = predict_ridge_regression,
-    xgboost = predict
+    xgboost = predict,
+    rvfl = predict_rvfl_regression
   )
+  
   preds <- matrix(NA, nrow = nrow(X),
                   ncol = length(objs))
-  if (is.null(objs[[1]]$nb_hidden))
+  
+  if (!identical(method, "rvfl"))
   {
+    if (is.null(objs[[1]]$nb_hidden))
+    {
+      
+      for (i in 1:length(objs)) {
+        preds[, i] <- predict_func(objs[[i]], X)
+      }
+      
+    } else {
+      
+      nb_hidden <- objs[[1]]$nb_hidden
+      if (is.null(nb_hidden))
+        nb_hidden <- 0  
+      newX <- create_new_predictors(X, 
+                                    nb_hidden = nb_hidden,
+                                    nodes_sim = objs[[1]]$nodes_sim,
+                                    activ = objs[[1]]$activ,
+                                    nn_xm = objs[[1]]$new_predictors$nn_xm, 
+                                    nn_scales = objs[[1]]$new_predictors$nn_scales)
+      for (i in 1:length(objs)) {
+        preds[, i] <- predict_func(objs[[i]], newX$predictors)
+      }
+    }
+    
+  } else {
+    
     for (i in 1:length(objs)) {
       preds[, i] <- predict_func(objs[[i]], X)
     }
-  } else {
-    nb_hidden <- objs[[1]]$nb_hidden
-    if (is.null(nb_hidden))
-      nb_hidden <- 0  
-    newX <- create_new_predictors(X, 
-                                  nb_hidden = nb_hidden,
-                                  nodes_sim = objs[[1]]$nodes_sim,
-                                  activ = objs[[1]]$activ,
-                                  nn_xm = objs[[1]]$new_predictors$nn_xm, 
-                                  nn_scales = objs[[1]]$new_predictors$nn_scales)
-    for (i in 1:length(objs)) {
-      preds[, i] <- predict_func(objs[[i]], newX$predictors)
-    }
+    
   }
+  
   return(preds)
 }

@@ -32,7 +32,7 @@ dim(X_train)
 dim(X_test)
 ```
 
-# 0 lm regression
+# 0 - lm regression
 
 ```{r}
 obj <- learningmachine::Regressor$new(method = "lm", pi_method = "splitconformal")
@@ -93,7 +93,7 @@ lines(c(y_train, y_test), col = "blue")
 mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 ```
 
-# 1 `ranger` regression
+# 1 - `ranger` regression
 
 ```{r}
 obj <- learningmachine::Regressor$new(method = "ranger", pi_method = "splitconformal")
@@ -149,7 +149,7 @@ lines(c(y_train, y_test), col = "blue")
 mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 ```
 
-# 3 `KRR` & `ranger` regression
+# 2 - `KRR` & `ranger` regression on Boston
 
 ```{r}
 # Boston dataset (dataset has an ethical problem)
@@ -210,7 +210,7 @@ print(sqrt(mean((obj$predict(X_test)$preds - y_test)^2)))
 obj$summary(X_test, y=y_test, show_progress=FALSE)
 ```
 
-# 4 `KRR` regression
+# 3 - `KRR` regression on mtcars
 
 ```{r}
 X <- as.matrix(mtcars[,-1])
@@ -402,5 +402,99 @@ lines(c(y_train, res$preds), col = "red")
 lines(c(y_train, y_test), col = "blue")
 
 mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
+```
+
+# 4 - RVFL regression 
+
+```{r}
+obj <- learningmachine::Regressor$new(method = "rvfl", 
+                                      nb_hidden = 50L,
+                                      pi_method = "splitconformal")
+obj$get_type()
+obj$get_name()
+```
+
+```{r}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r}
+print(obj$predict(X_test))
+```
+
+```{r}
+obj$summary(X_test, y=y_test, show_progress=FALSE)
+```
+
+```{r fig.width=7.2}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+
+obj$set_level(95)
+res <- obj$predict(X = X_test)
+
+plot(c(y_train, res$preds), type='l',
+     main="",
+     ylab="",
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
+lines(c(y_train, res$upper), col="gray60")
+lines(c(y_train, res$lower), col="gray60")
+lines(c(y_train, res$preds), col = "red")
+lines(c(y_train, y_test), col = "blue")
+abline(v = length(y_train), lty=2, col="black")
+
+mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
+```
+
+**update RVFL model**
+
+```{r}
+previous_coefs <- drop(obj$model$coef)
+```
+
+```{r}
+newx <- X_test[1, ]
+newy <- y_test[1]
+
+new_X_test <- X_test[-1, ]
+new_y_test <- y_test[-1]
+
+t0 <- proc.time()[3]
+obj$update(newx, newy)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r fig.width=7.2}
+summary(previous_coefs)
+summary(drop(obj$model$coef) - previous_coefs)
+plot(drop(obj$model$coef) - previous_coefs, type='l')
+abline(h = 0, lty=2, col="red")
+```
+
+```{r}
+obj$summary(new_X_test, y=new_y_test, show_progress=FALSE)
+```
+
+```{r fig.width=7.2}
+res <- obj$predict(X = new_X_test)
+ 
+new_y_train <- c(y_train, newy)
+
+plot(c(new_y_train, res$preds), type='l',
+    main="",
+    ylab="",
+    ylim = c(min(c(res$upper, res$lower, y)),
+             max(c(res$upper, res$lower, y))))
+lines(c(new_y_train, res$upper), col="gray60")
+lines(c(new_y_train, res$lower), col="gray60")
+lines(c(new_y_train, res$preds), col = "red")
+lines(c(new_y_train, new_y_test), col = "blue")
+abline(v = length(y_train), lty=2, col="black")
+
+mean((new_y_test >= as.numeric(res$lower)) * (new_y_test <= as.numeric(res$upper)))
 ```
 
