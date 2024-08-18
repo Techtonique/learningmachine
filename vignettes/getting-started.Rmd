@@ -32,7 +32,7 @@ dim(X_train)
 dim(X_test)
 ```
 
-# 0 lm regression
+# 0 - lm regression
 
 ```{r}
 obj <- learningmachine::Regressor$new(method = "lm", pi_method = "splitconformal")
@@ -93,7 +93,7 @@ lines(c(y_train, y_test), col = "blue")
 mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 ```
 
-# 1 `ranger` regression
+# 1 - `ranger` regression
 
 ```{r}
 obj <- learningmachine::Regressor$new(method = "ranger", pi_method = "splitconformal")
@@ -149,7 +149,7 @@ lines(c(y_train, y_test), col = "blue")
 mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 ```
 
-# 3 `KRR` & `ranger` regression
+# 2 - `KRR` & `ranger` regression on Boston
 
 ```{r}
 # Boston dataset (dataset has an ethical problem)
@@ -210,7 +210,7 @@ print(sqrt(mean((obj$predict(X_test)$preds - y_test)^2)))
 obj$summary(X_test, y=y_test, show_progress=FALSE)
 ```
 
-# 4 `KRR` regression
+# 3 - `KRR` regression on mtcars
 
 ```{r}
 X <- as.matrix(mtcars[,-1])
@@ -386,6 +386,51 @@ mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 obj$set_pi_method("bootjackknifeplus")
 t0 <- proc.time()[3]
 obj$fit(X_train, y_train, nrounds=10, verbose=FALSE)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+
+obj$set_level(95)
+res <- obj$predict(X = X_test)
+
+plot(c(y_train, res$preds), type='l',
+     main="",
+     ylab="",
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
+lines(c(y_train, res$upper), col="gray60")
+lines(c(y_train, res$lower), col="gray60")
+lines(c(y_train, res$preds), col = "red")
+lines(c(y_train, y_test), col = "blue")
+
+mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
+```
+
+# 4 - RVFL regression 
+
+```{r}
+obj <- learningmachine::Regressor$new(method = "rvfl", 
+                                      nb_hidden = 50L,
+                                      pi_method = "splitconformal")
+obj$get_type()
+obj$get_name()
+```
+
+```{r}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r}
+print(obj$predict(X_test))
+```
+
+```{r}
+obj$summary(X_test, y=y_test, show_progress=FALSE)
+```
+
+```{r fig.width=7.2}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 
 obj$set_level(95)

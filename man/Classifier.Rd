@@ -18,6 +18,7 @@ This class implements models:
 \item{ranger}{Random Forest; see https://www.jstatsoft.org/article/view/v077i01}
 \item{ridge}{Ridge regression; see https://arxiv.org/pdf/1509.09169}
 \item{xgboost}{a scalable tree boosting system see https://arxiv.org/abs/1603.02754}
+\item{rvfl}{Random Vector Functional Network, see https://www.researchgate.net/publication/332292006_Online_Bayesian_Quasi-Random_functional_link_networks_application_to_the_optimization_of_black_box_functions}
 }
 }
 \section{Super class}{

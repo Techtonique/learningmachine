@@ -17,6 +17,7 @@
 #' \item{ridge}{Ridge regression; see https://arxiv.org/pdf/1509.09169}
 #' \item{xgboost}{a scalable tree boosting system see https://arxiv.org/abs/1603.02754}
 #' \item{svm}{Support Vector Machines, see https://cran.r-project.org/web/packages/e1071/vignettes/svmdoc.pdf}
+#' \item{rvfl}{Random Vector Functional Network, see https://www.researchgate.net/publication/332292006_Online_Bayesian_Quasi-Random_functional_link_networks_application_to_the_optimization_of_black_box_functions}
 #' }
 #' 
 Regressor <-
@@ -310,7 +311,6 @@ Regressor <-
           )
         
         preds <- drop(self$engine$predict(self$model, X, ...))
-        
         if (identical(self$pi_method, "none"))
         {
           # no prediction interval
@@ -530,7 +530,8 @@ fit_regressor <- function(x,
                                      "glmnet",
                                      "krr",
                                      "xgboost", 
-                                     "svm"),
+                                     "svm", 
+                                     "rvfl"),
                           nb_hidden = 0,
                           nodes_sim = c("sobol", "halton", "unif"),
                           activ = c("relu", "sigmoid", "tanh",
@@ -544,9 +545,10 @@ fit_regressor <- function(x,
                          bcn="bcn",
                          glmnet="glmnet",
                          xgboost="xgboost",
-                         svm="e1071")
+                         svm="e1071",
+                         rvfl="bayesianrvfl")
   if (identical(is_package_available(package_name), FALSE)) {
-    if (identical(package_name, "bcn"))
+    if (package_name %in% c("bcn", "bayesianrvfl"))
     {
       utils::install.packages(package_name, 
         repos = c('https://techtonique.r-universe.dev', 
@@ -566,8 +568,7 @@ fit_regressor <- function(x,
     extratrees = function(x, y, ...) fit_func_extratrees_regression(x, y, ...),
     ridge = function(x, y, ...)
       fit_ridge_regression(x, y,
-                           reg_lambda = 10 ^ seq(-10, 10,
-                                             length.out = 100), ...),
+                           reg_lambda = 0.01, ...),
     bcn = function(x, y, ...)
       bcn::bcn(x, y, ...),
     glmnet = function(x, y, ...)
@@ -578,29 +579,53 @@ fit_regressor <- function(x,
     xgboost = function(x, y, ...)
       fit_xgboost_regression(x, y, ...),
     svm = function(x, y, ...)
-      e1071::svm(x = x, y = y, ...)
+      e1071::svm(x = x, y = y, ...),
+    rvfl = function(x, y, ...) fit_rvfl_regression(x, y,
+                                                      reg_lambda = 0.01, 
+                                                      ...)
   )
   
   if(nb_hidden == 0)
   {
-    return(obj(x = x, 
-               y = y, 
-               ...)) 
-  }
-  else { # nb_hidden > 0
+    
+    if (!identical(regressor_choice, "rvfl"))
+    {
+      return(obj(x = x, 
+                 y = y, 
+                 ...)) 
+    } else {
+      stop("for 'rvfl', must have 'nb_hidden' > 0")
+    }
+    
+  } else { # nb_hidden > 0
+    
     nodes_sim <- match.arg(nodes_sim)
     activ <- match.arg(activ)
-    new_predictors <- create_new_predictors(x, 
-                                            nb_hidden = nb_hidden,
-                                            nodes_sim = nodes_sim,
-                                            activ = activ)
-    obj <- obj(x = new_predictors$predictors, 
-               y = y, 
-               ...)
-    obj$new_predictors <- new_predictors
-    obj$nb_hidden <- nb_hidden
-    obj$nodes_sim <- nodes_sim
-    obj$activ <- activ
+    
+    if (!identical(regressor_choice, "rvfl"))
+    {
+      new_predictors <- create_new_predictors(x, 
+                                              nb_hidden = nb_hidden,
+                                              nodes_sim = nodes_sim,
+                                              activ = activ)
+      obj <- obj(x = new_predictors$predictors, 
+                 y = y, 
+                 ...)
+      obj$new_predictors <- new_predictors
+      obj$nb_hidden <- nb_hidden
+      obj$nodes_sim <- nodes_sim
+      obj$activ <- activ
+      
+    } else { # identical(regressor_choice, "rvfl")
+      
+      obj <- obj(x = x, 
+                 y = y, 
+                 nb_hidden = nb_hidden,
+                 nodes_sim = nodes_sim,
+                 activ = activ,
+                 ...)
+    }
+    
     return(obj) 
   }
 }
@@ -616,7 +641,9 @@ predict_regressor <- function(obj,
                                          "glmnet",
                                          "krr",
                                          "xgboost",
-                                         "svm")) {
+                                         "svm",
+                                         "rvfl"),
+                              ...) {
   method_choice <- match.arg(method)
   predict_func <- switch(
     method_choice,
@@ -629,11 +656,12 @@ predict_regressor <- function(obj,
     ranger = predict_func_ranger,
     ridge = predict_ridge_regression,
     xgboost = predict,
-    svm = predict
+    svm = predict,
+    rvfl = predict_rvfl_regression
   )
   if (is.null(obj$new_predictors))
   {
-    return(predict_func(obj, X))
+    return(predict_func(obj, X, ...)) # '...' for example for bayesianrvfl::predict_rvfl 
   } else {
     newX <- create_new_predictors(X, 
                                   nb_hidden = obj$nb_hidden,

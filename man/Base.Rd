@@ -328,7 +328,6 @@ A new `Base` object.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Base$summary(
   X,
-  level = 95,
   show_progress = TRUE,
   class_name = NULL,
   class_index = NULL,
