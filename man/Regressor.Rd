@@ -80,6 +80,7 @@ randomization}
 \item \href{#method-Regressor-fit}{\code{Regressor$fit()}}
 \item \href{#method-Regressor-predict}{\code{Regressor$predict()}}
 \item \href{#method-Regressor-fit_predict}{\code{Regressor$fit_predict()}}
+\item \href{#method-Regressor-update}{\code{Regressor$update()}}
 \item \href{#method-Regressor-clone}{\code{Regressor$clone()}}
 }
 }
@@ -200,6 +201,25 @@ the data sequential ordering matters)}
 )}\if{html}{\out{</div>}}
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Regressor-update"></a>}}
+\if{latex}{\out{\hypertarget{method-Regressor-update}{}}}
+\subsection{Method \code{update()}}{
+update model in an online fashion (for now, only implemented for 'rvfl' models")
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Regressor$update(newx, newy)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{newx}}{a vector of new covariates (i.e explanatory variables)}
+
+\item{\code{newy}}{a numeric, the new response's observation (i.e variable to be explained)}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Regressor-clone"></a>}}
