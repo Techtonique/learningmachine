@@ -8,6 +8,7 @@ fit_rvfl_regression <- function(x, y, reg_lambda = 0.01,
   out <- bayesianrvfl::fit_rvfl(x = x, y = y, 
                                 lambda = reg_lambda,
                                 compute_Sigma = FALSE, 
+                                method = "chol",
                                 ...)
   
   return(structure(out, class = "rvfl"))
@@ -15,7 +16,19 @@ fit_rvfl_regression <- function(x, y, reg_lambda = 0.01,
 
 predict_rvfl_regression <- function(object, newx, ...)
 {
-  bayesianrvfl::predict_rvfl(fit_obj = object, 
+  preds <- try(bayesianrvfl::predict_rvfl(fit_obj = object, 
                              newx = newx, 
-                             ...)
+                             ...)$mean, silent = TRUE) # NOT clean, instead, must fix compute_Sigma in bayesianrvfl
+  if (inherits(preds, "try-error"))
+  {
+    preds <- bayesianrvfl::predict_rvfl(fit_obj = object, 
+                                            newx = newx, 
+                                            ...)
+  }
+  return (preds)
+}
+
+update_rvfl_regressor <- function(object, newx, newy, method="rvfl")
+{
+  bayesianrvfl::update_params(fit_obj=object, newx=newx, newy=newy)
 }

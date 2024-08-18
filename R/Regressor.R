@@ -514,6 +514,19 @@ Regressor <-
           return(score(fit_obj$predict(X_test), y_test))
         }
         
+      },
+      #' @description update model in an online fashion (for now, only implemented for 'rvfl' models")
+      #' @param newx a vector of new covariates (i.e explanatory variables)
+      #' @param newy a numeric, the new response's observation (i.e variable to be explained)
+      #'
+      update = function(newx, newy)
+      {
+        if(!identical(self$method, "rvfl"))
+        {
+          stop(paste0("As of ", Sys.Date(), ", this method is only implemented for 'rvfl' models"))
+        }
+        self$set_model(update_rvfl_regressor(self$model, 
+          newx=newx, newy=newy, method="rvfl"))
       }
     )
   )
@@ -581,7 +594,7 @@ fit_regressor <- function(x,
     svm = function(x, y, ...)
       e1071::svm(x = x, y = y, ...),
     rvfl = function(x, y, ...) fit_rvfl_regression(x, y,
-                                                      reg_lambda = 0.01, 
+                                                   reg_lambda = 0.01, 
                                                       ...)
   )
   

@@ -445,7 +445,56 @@ lines(c(y_train, res$upper), col="gray60")
 lines(c(y_train, res$lower), col="gray60")
 lines(c(y_train, res$preds), col = "red")
 lines(c(y_train, y_test), col = "blue")
+abline(v = length(y_train), lty=2, col="black")
 
 mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
+```
+
+**update RVFL model**
+
+```{r}
+previous_coefs <- drop(obj$model$coef)
+```
+
+```{r}
+newx <- X_test[1, ]
+newy <- y_test[1]
+
+new_X_test <- X_test[-1, ]
+new_y_test <- y_test[-1]
+
+t0 <- proc.time()[3]
+obj$update(newx, newy)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r fig.width=7.2}
+summary(previous_coefs)
+summary(drop(obj$model$coef) - previous_coefs)
+plot(drop(obj$model$coef) - previous_coefs, type='l')
+abline(h = 0, lty=2, col="red")
+```
+
+```{r}
+obj$summary(new_X_test, y=new_y_test, show_progress=FALSE)
+```
+
+```{r fig.width=7.2}
+res <- obj$predict(X = new_X_test)
+ 
+new_y_train <- c(y_train, newy)
+
+plot(c(new_y_train, res$preds), type='l',
+    main="",
+    ylab="",
+    ylim = c(min(c(res$upper, res$lower, y)),
+             max(c(res$upper, res$lower, y))))
+lines(c(new_y_train, res$upper), col="gray60")
+lines(c(new_y_train, res$lower), col="gray60")
+lines(c(new_y_train, res$preds), col = "red")
+lines(c(new_y_train, new_y_test), col = "blue")
+abline(v = length(y_train), lty=2, col="black")
+
+mean((new_y_test >= as.numeric(res$lower)) * (new_y_test <= as.numeric(res$upper)))
 ```
 
