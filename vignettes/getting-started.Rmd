@@ -210,6 +210,10 @@ print(sqrt(mean((obj$predict(X_test)$preds - y_test)^2)))
 obj$summary(X_test, y=y_test, show_progress=FALSE)
 ```
 
+```{r}
+obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="nonparametric")
+```
+
 # 3 - `KRR` regression on mtcars
 
 ```{r}
@@ -290,6 +294,10 @@ mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 obj$summary(X_test, y=y_test, show_progress=FALSE)
 ```
 
+```{r}
+obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="nonparametric")
+```
+
 ```{r fig.width=7.2}
 obj$set_pi_method("kdejackknifeplus")
 t0 <- proc.time()[3]
@@ -315,6 +323,10 @@ mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 obj$summary(X_test, y=y_test, show_progress=FALSE)
 ```
 
+```{r}
+obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="nonparametric")
+```
+
 **`xgboost`**
 
 ```{r}
@@ -335,6 +347,10 @@ print(obj$predict(X_test))
 
 ```{r}
 obj$summary(X_test, y=y_test, show_progress=FALSE)
+```
+
+```{r}
+obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="nonparametric")
 ```
 
 ```{r fig.width=7.2}
@@ -426,6 +442,10 @@ print(obj$predict(X_test))
 
 ```{r}
 obj$summary(X_test, y=y_test, show_progress=FALSE)
+```
+
+```{r}
+obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="nonparametric")
 ```
 
 ```{r fig.width=7.2}

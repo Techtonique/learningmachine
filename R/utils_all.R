@@ -620,46 +620,173 @@ split_data <- function(y, p = 0.5,
   return(out[[1]])
 }
 
-winkler_score <- function(obj, actual, level = 95) {
+# confidence interval mean ----------
+
+winkler_score <- function(obj, actual, level = 95, scale = FALSE) {
   alpha <- 1 - level / 100
   lt <- obj$lower
   ut <- obj$upper
   n_points <- length(actual)
-  stopifnot((n_points == length(lt)) && (n_points == length(ut)))
+  #stopifnot((n_points == length(lt)) && (n_points == length(ut)))
   diff_lt <- lt - actual
   diff_bounds <- ut - lt
   diff_ut <- actual - ut
   score <-
     diff_bounds + (2 / alpha) * (pmax(diff_lt, 0) + pmax(diff_ut, 0))
-  return(mean(score))
+  if (!scale)
+  {
+    return(mean(score))
+  } else {
+    return(mean(score/diff_bounds))
+  }
 }
 
-# Stratify stuff ----- from https://gist.github.com/mrdwab/6424112 stratified
-# <- function(df, group, size, select = NULL, replace = FALSE, bothSets =
-# FALSE) { if (is.null(select)) { df <- df } else { if (is.null(names(select)))
-# stop(''select' must be a named list') if (!all(names(select) %in% names(df)))
-# stop('Please verify your 'select' argument') temp <- sapply(names(select),
-# function(x) df[[x]] %in% select[[x]]) df <- df[rowSums(temp) ==
-# length(select), ] } df.interaction <- interaction(df[group], drop = TRUE)
-# df.table <- table(df.interaction) df.split <- split(df, df.interaction) if
-# (length(size) > 1) { if (length(size) != length(df.split)) stop('Number of
-# groups is ', length(df.split), ' but number of sizes supplied is ',
-# length(size)) if (is.null(names(size))) { n <- setNames(size,
-# names(df.split)) message(sQuote('size'), ' vector entered as:\n\nsize =
-# structure(c(', paste(n, collapse = ', '), '),\n.Names = c(',
-# paste(shQuote(names(n)), collapse = ', '), ')) \n\n') } else {
-# ifelse(all(names(size) %in% names(df.split)), n <- size[names(df.split)],
-# stop('Named vector supplied with names ', paste(names(size), collapse = ',
-# '), '\n but the names for the group levels are ', paste(names(df.split),
-# collapse = ', '))) } } else if (size < 1) { n <- round(df.table * size,
-# digits = 0) } else if (size >= 1) { if (all(df.table >= size) ||
-# isTRUE(replace)) { n <- setNames(rep(size, length.out = length(df.split)),
-# names(df.split)) } else { # message( # 'Some groups\n---', #
-# paste(names(df.table[df.table < size]), collapse = ', '), # '---\ncontain
-# fewer observations', # ' than desired number of samples.\n', # 'All
-# observations have been returned from those groups.') n <-
-# c(sapply(df.table[df.table >= size], function(x) x = size), df.table[df.table
-# < size]) } } temp <- lapply( names(df.split), function(x)
-# df.split[[x]][sample(df.table[x], n[x], replace = replace), ]) set1 <-
-# do.call('rbind', temp) if (isTRUE(bothSets)) { set2 <- df[!rownames(df) %in%
-# rownames(set1), ] list(SET1 = set1, SET2 = set2) } else { set1 } }
+
+# Define the function to split vector into three equal-sized parts
+stratify_vector_equal_size <- function(vector, seed = 123) {
+  # Set seed for reproducibility
+  set.seed(seed)
+  
+  n <- length(vector)
+  
+  # First split: Create training and remaining (calibration + test)
+  train_index <- drop(caret::createDataPartition(vector, p = 0.3, list = FALSE))
+  train_data <- vector[train_index]
+  remaining_data <- vector[-train_index]
+  
+  # Second split: Create calibration and test sets
+  calib_index <- drop(caret::createDataPartition(remaining_data, p = 0.5, list = FALSE))
+  calib_data <- remaining_data[calib_index]
+  test_data <- remaining_data[-calib_index]
+  
+  # Return results as a list
+  return(list(
+    train = train_data,
+    calib = calib_data,
+    test = test_data
+  ))
+}
+
+inverse_transform_kde <- function(data, n = 1000, ...) {
+  #kde <- density(data, bw = "SJ", kernel = "epanechnikov")
+  kde <- density(data, bw = "SJ", ...)
+  prob <- kde$y / sum(kde$y)
+  cdf <- cumsum(prob)
+  
+  # Ensure x-values and CDF values are unique
+  unique_indices <- !duplicated(cdf)
+  cdf_unique <- cdf[unique_indices]
+  x_unique <- kde$x[unique_indices]
+  
+  # Generate uniform random numbers
+  u <- runif(n)
+  
+  # Perform interpolation using unique CDF values
+  simulated_data <- approx(cdf_unique, x_unique, u)$y
+  
+  # Replace NA values with the median of the interpolated values
+  median_value <- median(simulated_data, na.rm = TRUE)
+  simulated_data[is.na(simulated_data)] <- median_value
+  
+  return(simulated_data)
+}
+
+# Direct Sampling 
+direct_sampling <- function(data = NULL, n = 1000, 
+                            method = c("kde", 
+                                       "surrogate", 
+                                       "bootstrap"),
+                            kde = NULL, 
+                            seed = NULL,
+                            ...) {  
+  method <- match.arg(method)
+  if (!is.null(seed))
+  {
+    set.seed(seed)   
+  }    
+  if (identical(method, "kde"))
+  {
+    if (is.null(kde)) {
+      stopifnot(!is.null(data))
+      kde <- density(data, bw = "SJ", ...)
+    } else if (is.null(data))
+    {
+      stopifnot(!is.null(kde))
+    }
+    prob <- kde$y / sum(kde$y)    
+    return(sample(kde$x, size = n, replace = TRUE, prob = prob))    
+  }
+  
+  if (identical(method, "surrogate"))
+  {
+    return(sample(tseries::surrogate(data, ns = 1, ...), 
+                  size = n, 
+                  replace = TRUE))
+  }                                    
+  
+  if (identical(method, "bootstrap"))
+  {
+    return(sample(tseries::tsbootstrap(data, nb = 1, 
+    type = "block", b = 1, ...), 
+                  size = n, 
+                  replace = TRUE))
+  }
+}
+
+compute_ci_mean <- function(xx, 
+                            type_split = c("random", 
+                                           "sequential"), 
+                            method = c("surrogate", 
+                                       "bootstrap",
+                                       "kde"),                            
+                            level=95, 
+                            kde=NULL,
+                            seed = 123)
+{
+  B <- 250L
+  type_split <- match.arg(type_split)
+  method <- match.arg(method)  
+  upper_prob <- 1 - 0.5*(1 - level/100)
+  
+  if (type_split == "random")
+  {
+    set.seed(seed)
+    z <- stratify_vector_equal_size(xx, seed=seed)
+    x_train <- z$train
+    x_calib <- z$calib
+    x_test <- z$test
+    estimate_x <- base::mean(x_train)
+    sd_x <- sd(x_train)
+    
+    calib_resids <- (x_calib - estimate_x)/sd_x # standardization => distro of gaps to the mean is homoscedastic and centered ('easier' to sample since stationary?)
+    
+    if (!is.null(kde))
+    {
+      sim_calib_resids <- base::replicate(n=B, direct_sampling(calib_resids, 
+                                                            n=length(x_test), 
+                                                            kde=kde, 
+                                                            seed=NULL))
+    } else {
+      sim_calib_resids <- base::replicate(n=B, direct_sampling(calib_resids, 
+                                                            n=length(x_test), 
+                                                            method = method, 
+                                                            seed=NULL))  
+   } 
+           
+  pseudo_obs_x <- x_test + sd_x*sim_calib_resids
+  pseudo_means_x <- colMeans(pseudo_obs_x)
+  estimate <- stats::median(pseudo_means_x)
+  lower <- quantile(pseudo_means_x, probs = 1 - upper_prob)
+  upper <- quantile(pseudo_means_x, probs = upper_prob)
+  mean_xx <- mean(xx)
+  pvalue <- mean((lower > mean_xx) + (mean_xx > upper))
+  #winkler_score_ <- winkler_score(obj = list(lower = lower, upper =  upper), 
+  #actual = pseudo_means_x, level = 95, scale = TRUE)
+
+  return(list(estimate = estimate,
+              lower = lower, 
+              upper = upper,
+              pvalue = pvalue,
+              boxtest = stats::Box.test(xx)$p.value))
+  }
+}

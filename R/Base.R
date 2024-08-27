@@ -197,10 +197,12 @@ Base <-
                          class_name = NULL,
                          class_index = NULL, 
                          y = NULL,
+                         type_ci = c("student", "nonparametric"),
                          cl = NULL) {
-        if (is.null(self$engine) ||
-            is.null(self$model) || is.null(self$type))
+        if (is.null(self$engine) || is.null(self$model) || is.null(self$type))
           stop(paste0(self$name, " must be fitted first (use ", self$name, "$fit())"))
+        
+        type_ci <- match.arg(type_ci)
         
         if (is_package_available("skimr") == FALSE)
         {
@@ -282,7 +284,9 @@ Base <-
         } else {
           colnames(effects) <- paste0("V", seq_len(ncol(X)))
         }
-        foo_tests <- function(x)
+
+        # Student-T tests
+        foo_t_tests <- function(x)
         {
           res <- stats::t.test(x)
           return(c(
@@ -291,6 +295,23 @@ Base <-
             res$p.value
           ))
         }
+
+        # nonparametric tests 
+        foo_nonparam_tests <- function(x)
+        {
+          res <- try(compute_ci_mean(x), 
+                     silent = TRUE)
+          if (!inherits(res, "try-error"))
+          {
+            return(c(
+            as.numeric(res$estimate),
+            as.numeric(res$lower),
+            as.numeric(res$upper)
+           ))
+          } else {
+            return(c(0, NA, NA))
+          }                    
+        }
         
         lower_signif_codes <- c(0, 0.001, 0.01, 0.05, 0.1)
         upper_signif_codes <- c(0.001, 0.01, 0.05, 0.1, 1)
@@ -298,13 +319,23 @@ Base <-
         choice_signif_code <-
           function(x)
             signif_codes[which.max((lower_signif_codes <= x) * (upper_signif_codes > x))]
-        ttests <-
-          try(data.frame(t(apply(effects, 2, foo_tests))), silent = TRUE)
-        if (!inherits(ttests, "try-error"))
+
+        if (identical(type_ci, "student"))
+          citests <- try(data.frame(t(apply(effects, 2, foo_t_tests))), silent = TRUE)
+        
+        if (identical(type_ci, "nonparametric"))
+          citests <- try(data.frame(t(apply(effects, 2, foo_nonparam_tests))), silent = TRUE)
+
+        if (!inherits(citests, "try-error"))
         {
-          colnames(ttests) <- c("estimate", "lower", "upper", "p-value")
-          ttests$signif <-
-            sapply(ttests[, 4], choice_signif_code) # p-values signif.
+          if (identical(type_ci, "student"))
+          {
+            colnames(citests) <- c("estimate", "lower", "upper", "p-value")            
+            citests$signif <- sapply(citests[, 4], choice_signif_code) # p-values signif. column
+          } else {
+            colnames(citests) <- c("estimate", "lower", "upper")            
+          }          
+          
           if (!is.null(y))
           {
             preds <- self$predict(as.matrix(X))
@@ -322,14 +353,14 @@ Base <-
                   R_squared_adj = R_squared_adj,
                   Residuals = summary(Residuals),
                   Coverage_rate = coverage_rate,
-                  ttests = ttests,
+                  citests = citests,
                   effects = my_skim(effects)
                 ))
               } else { # classification
                 probs <- self$predict_proba(as.matrix(X))
                 return(list(
                   Coverage_rate = coverage_rate_classifier(y, preds),
-                  ttests = ttests,
+                  citests = citests,
                   effects = my_skim(effects)
                 ))
               }
@@ -344,19 +375,19 @@ Base <-
                   R_squared = R_squared,
                   R_squared_adj = R_squared_adj,
                   Residuals = summary(Residuals),
-                  ttests = ttests,
+                  citests = citests,
                   effects = my_skim(effects)
                 ))
               } else { # classification
                 return(list(
                   accuracy = mean(y == preds) * 100,
-                  ttests = ttests,
+                  citests = citests,
                   effects = my_skim(effects)
                 ))
               }
             }
           } else {
-            return(list(ttests = ttests,
+            return(list(citests = citests,
                         effects = my_skim(effects)))
           }
         } else {

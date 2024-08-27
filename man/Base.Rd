@@ -332,6 +332,7 @@ A new `Base` object.
   class_name = NULL,
   class_index = NULL,
   y = NULL,
+  type_ci = c("student", "nonparametric"),
   cl = NULL
 )}\if{html}{\out{</div>}}
 }
