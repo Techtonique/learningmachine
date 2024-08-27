@@ -74,6 +74,14 @@ obj$summary(X_test, y=y_test,
             show_progress=FALSE)
 ```
 
+
+```{r}
+print(head(X_test))
+obj$summary(X_test, y=y_test, 
+            class_name = "setosa",
+            show_progress=FALSE, type_ci="nonparametric")
+```
+
 # 2 - `ranger` classification
 
 ```{r}
@@ -109,7 +117,7 @@ obj$summary(X_test, y=y_test,
 ```{r}
 obj$summary(X_test, y=y_test, 
             class_index = 2,
-            show_progress=FALSE)
+            show_progress=FALSE, type_ci="nonparametric")
 ```
 
 # 3 - `extratrees` classification
@@ -143,6 +151,12 @@ ggplot2::ggplot(df, aes(x=prob_virginica, fill=individual)) + geom_density(alpha
 obj$summary(X_test, y=y_test, 
             class_name = "virginica",
             show_progress=FALSE)
+```
+
+```{r}
+obj$summary(X_test, y=y_test, 
+            class_name = "setosa",
+            show_progress=FALSE, type_ci="nonparametric")
 ```
 
 # 4 - Penguins dataset
