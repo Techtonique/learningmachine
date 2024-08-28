@@ -19,7 +19,6 @@ fit_rvfl_regression <- function(x, y,
                                 compute_Sigma = FALSE, 
                                 method = "chol"),
                                 input_list))
-  
   return(structure(out, class = "rvfl"))
 }
 
@@ -37,7 +36,7 @@ predict_rvfl_regression <- function(object, newx, ...)
   return (preds)
 }
 
-update_rvfl_regressor <- function(object, newx, newy, method="rvfl")
+update_rvfl_regressor <- function(object, newx, newy, ...)
 {
-  bayesianrvfl::update_params(fit_obj=object, newx=newx, newy=newy)
+  bayesianrvfl::update_params(fit_obj=object, newx=newx, newy=newy, ...)
 }

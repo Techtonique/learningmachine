@@ -1,8 +1,8 @@
 ---
-title: "Quasi-Randomized _Neural_ Networks"
+title: "Quasi-Randomized -- Neural -- Networks"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{QRNs}
+  %\VignetteIndexEntry{Quasi-Randomized -- Neural -- Networks}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

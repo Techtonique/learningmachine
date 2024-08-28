@@ -1,4 +1,4 @@
-.PHONY: clean docs start setwd check install load render
+.PHONY: buildsite check clean coverage docs getwd initialize install load render setwd start test usegit
 .DEFAULT_GOAL := help
 
 define BROWSER_PYSCRIPT
@@ -25,35 +25,57 @@ export PRINT_HELP_PYSCRIPT
 
 BROWSER := python3 -c "$$BROWSER_PYSCRIPT"
 
-help:
-	@python3 -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
+buildsite: setwd ## create a website for the package
+	Rscript -e "pkgdown::build_site('.')"
 
-clean: ## remove all build, test, coverage and Python artifacts
-	rm -f .Rbuildignore
+check: clean setwd ## check package
+	Rscript -e "try(devtools::check('.'), silent=FALSE)"
+
+clean: ## remove all build, and artifacts
 	rm -f .Rhistory
 	rm -f *.RData
 	rm -f *.Rproj
 	rm -rf .Rproj.user
 
-start: ## start or restart R session
-	Rscript -e "system('R')"
+coverage: ## get test coverage
+	Rscript -e "devtools::test_coverage('.')"
 
-setwd: ## set working directory
-	Rscript -e "setwd(getwd())"
+create: setwd ## create a new package in current directory
+	Rscript -e "usethis::create_package(path = getwd(), rstudio = FALSE)"
+	rm -f .here
 
 docs: clean setwd ## generate docs		
 	Rscript -e "devtools::document('.')"
 
-check: clean setwd ## check package
-	Rscript -e "devtools::check('.')"
+getwd: ## get current directory
+	Rscript -e "getwd()"
 
 install: clean setwd ## install package
-	Rscript -e "devtools::install('.')"	
+	Rscript -e "try(devtools::install('.'), silent = FALSE)"	
+
+initialize: setwd ## initialize: install packages devtools, usethis, pkgdown and rmarkdown
+	Rscript -e "utils::install.packages(c('devtools', 'usethis', 'pkgdown', 'rmarkdown'), repos='https://cloud.r-project.org')"
+
+help: ## print menu with all options
+	@python3 -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
 
 load: clean setwd ## load all (when developing the package)
 	Rscript -e "devtools::load_all('.')"
 
-render: ## run markdown file in /vignettes
+render: ## run R markdown file in /vignettes, open rendered HTML file in the browser
 	@read -p "Enter the name of the Rmd file (without extension): " filename; \
 	Rscript -e "rmarkdown::render(paste0('./vignettes/', '$$filename', '.Rmd'))"; \
 	python3 -c "$$BROWSER_PYSCRIPT" "$$filename.html"
+
+setwd: ## set working directory to current directory
+	Rscript -e "setwd('.')"
+
+start: ## start or restart R session
+	Rscript -e "system('R')"
+
+test: ## runs the the package tests
+	Rscript -e "devtools::test('.')"	
+
+usegit: ## initialize Git repo and initial commit
+	@read -p "Enter the first commit message: " message; \
+	Rscript -e "usethis::use_git('$$message')"

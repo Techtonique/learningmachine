@@ -219,7 +219,7 @@ Fit model to training set and predict on test set
 \subsection{Method \code{update()}}{
 update model in an online fashion (for now, only implemented for 'rvfl' models")
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Regressor$update(newx, newy)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Regressor$update(newx, newy, ...)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -228,6 +228,8 @@ update model in an online fashion (for now, only implemented for 'rvfl' models")
 \item{\code{newx}}{a vector of new covariates (i.e explanatory variables)}
 
 \item{\code{newy}}{a numeric, the new response's observation (i.e variable to be explained)}
+
+\item{\code{...}}{additional parameters to be passed to the underlying model's method `update`}
 }
 \if{html}{\out{</div>}}
 }

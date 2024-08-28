@@ -526,17 +526,19 @@ newy <- y_test[2]
 
 new_X_test <- X_test[-c(1, 2), ]
 new_y_test <- y_test[-c(1, 2)]
+```
 
+```{r eval=TRUE}
 t0 <- proc.time()[3]
 obj$update(newx, newy)
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
-```{r}
+```{r eval=TRUE}
 obj$summary(new_X_test, y=new_y_test, show_progress=FALSE)
 ```
 
-```{r fig.width=7.2}
+```{r fig.width=7.2, eval=TRUE}
 res <- obj$predict(X = new_X_test)
  
 new_y_train <- c(y_train, y_test[c(1, 2)])
