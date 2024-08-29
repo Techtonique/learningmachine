@@ -534,7 +534,7 @@ Regressor <-
           stop(paste0("As of ", Sys.Date(), ", this method is only implemented for 'rvfl' models"))
         }
         self$set_model(update_rvfl_regressor(self$model, 
-          newx=newx, newy=newy, ...))
+          newx=as.numeric(newx), newy=newy, ...))
       }
     )
   )
