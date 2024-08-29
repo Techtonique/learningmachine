@@ -1,3 +1,7 @@
+# version 2.4.0 (2024-08-29)
+
+- add bootstrapped confidence intervals for average effects
+
 # version 2.3.0 (2024-08-27)
 
 - add nonparametric confidence intervals for average effects

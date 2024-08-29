@@ -184,7 +184,15 @@ print(sqrt(mean((obj$predict(X_test) - y_test)^2)))
 ```
 
 ```{r}
+t0 <- proc.time()[3]
 obj$summary(X_test, y=y_test, show_progress=FALSE)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r}
+t0 <- proc.time()[3]
+obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="bootstrap")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
 **`ranger`**
@@ -207,11 +215,15 @@ print(sqrt(mean((obj$predict(X_test)$preds - y_test)^2)))
 ```
 
 ```{r}
+t0 <- proc.time()[3]
 obj$summary(X_test, y=y_test, show_progress=FALSE)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
 ```{r}
-obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="nonparametric")
+t0 <- proc.time()[3]
+obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="bootstrap")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
 # 3 - `KRR` regression on mtcars
@@ -291,11 +303,15 @@ mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 ```
 
 ```{r}
+t0 <- proc.time()[3]
 obj$summary(X_test, y=y_test, show_progress=FALSE)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
 ```{r}
-obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="nonparametric")
+t0 <- proc.time()[3]
+obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="bootstrap")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
 ```{r fig.width=7.2}
@@ -320,11 +336,15 @@ mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
 ```
 
 ```{r}
+t0 <- proc.time()[3]
 obj$summary(X_test, y=y_test, show_progress=FALSE)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
 ```{r}
-obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="nonparametric")
+t0 <- proc.time()[3]
+obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="bootstrap")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
 **`xgboost`**
@@ -346,11 +366,15 @@ print(obj$predict(X_test))
 ```
 
 ```{r}
+t0 <- proc.time()[3]
 obj$summary(X_test, y=y_test, show_progress=FALSE)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
 ```{r}
-obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="nonparametric")
+t0 <- proc.time()[3]
+obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="bootstrap")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
 ```{r fig.width=7.2}
@@ -441,11 +465,15 @@ print(obj$predict(X_test))
 ```
 
 ```{r}
+t0 <- proc.time()[3]
 obj$summary(X_test, y=y_test, show_progress=FALSE)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
 ```{r}
-obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="nonparametric")
+t0 <- proc.time()[3]
+obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="bootstrap")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
 ```{r fig.width=7.2}
@@ -496,7 +524,15 @@ abline(h = 0, lty=2, col="red")
 ```
 
 ```{r}
+start <- proc.time()[3]
 obj$summary(new_X_test, y=new_y_test, show_progress=FALSE)
+cat("Elapsed: ", proc.time()[3] - start, "s \n")
+```
+
+```{r}
+start <- proc.time()[3]
+obj$summary(new_X_test, y=new_y_test, show_progress=FALSE, type_ci="bootstrap")
+cat("Elapsed: ", proc.time()[3] - start, "s \n")
 ```
 
 ```{r fig.width=7.2}
@@ -535,7 +571,15 @@ cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
 ```{r eval=TRUE}
+t0 <- proc.time()[3]
 obj$summary(new_X_test, y=new_y_test, show_progress=FALSE)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r eval=TRUE}
+t0 <- proc.time()[3]
+obj$summary(new_X_test, y=new_y_test, show_progress=FALSE, type_ci="bootstrap")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
 ```{r fig.width=7.2, eval=TRUE}

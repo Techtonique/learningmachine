@@ -4,6 +4,7 @@ pkgdown_sha: ~
 articles:
   classifiers-probs: classifiers-probs.html
   getting-started: getting-started.html
+  getting-updates: getting-updates.html
   qrnn: qrnn.html
-last_built: 2024-08-27T07:58Z
+last_built: 2024-08-28T07:53Z
 

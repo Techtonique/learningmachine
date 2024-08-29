@@ -743,7 +743,7 @@ compute_ci_mean <- function(xx,
                             kde=NULL,
                             seed = 123)
 {
-  B <- 250L
+  B <- 500L
   type_split <- match.arg(type_split)
   method <- match.arg(method)  
   upper_prob <- 1 - 0.5*(1 - level/100)
@@ -789,4 +789,31 @@ compute_ci_mean <- function(xx,
               pvalue = pvalue,
               boxtest = stats::Box.test(xx)$p.value))
   }
+}
+
+
+bootstrap_ci_mean <- function(xx, level = 95, seed = 123) {
+
+  set.seed(seed)
+  B <- 500L
+  alpha <- 1 - level / 100
+
+  bootstrap_means <- rep(0, B)  
+  
+  for (i in 1:B) {
+    set.seed(seed + i)
+    bootstrap_means[i] <- mean(sample(xx, replace = TRUE))
+  }
+  
+  # Step 2: Calculate the confidence interval
+  estimate <- mean(xx)
+  lower_bound <- quantile(bootstrap_means, alpha / 2)
+  upper_bound <- quantile(bootstrap_means, 1 - alpha / 2)  
+  
+  # Step 3: Return a list with estimate, lower bound, and upper bound
+  return(list(
+    estimate = estimate,
+    lower = lower_bound,
+    upper = upper_bound
+  ))
 }

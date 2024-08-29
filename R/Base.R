@@ -197,7 +197,7 @@ Base <-
                          class_name = NULL,
                          class_index = NULL, 
                          y = NULL,
-                         type_ci = c("student", "nonparametric"),
+                         type_ci = c("student", "nonparametric", "bootstrap"),
                          cl = NULL) {
         if (is.null(self$engine) || is.null(self$model) || is.null(self$type))
           stop(paste0(self$name, " must be fitted first (use ", self$name, "$fit())"))
@@ -312,6 +312,23 @@ Base <-
             return(c(0, NA, NA))
           }                    
         }
+
+        # nonparametric tests 
+        foo_bootstrap_tests <- function(x)
+        {
+          res <- try(bootstrap_ci_mean(x), 
+                     silent = TRUE)
+          if (!inherits(res, "try-error"))
+          {
+            return(c(
+            as.numeric(res$estimate),
+            as.numeric(res$lower),
+            as.numeric(res$upper)
+           ))
+          } else {
+            return(c(0, NA, NA))
+          }                    
+        }
         
         lower_signif_codes <- c(0, 0.001, 0.01, 0.05, 0.1)
         upper_signif_codes <- c(0.001, 0.01, 0.05, 0.1, 1)
@@ -325,6 +342,9 @@ Base <-
         
         if (identical(type_ci, "nonparametric"))
           citests <- try(data.frame(t(apply(effects, 2, foo_nonparam_tests))), silent = TRUE)
+        
+        if (identical(type_ci, "bootstrap"))
+          citests <- try(data.frame(t(apply(effects, 2, foo_bootstrap_tests))), silent = TRUE)
 
         if (!inherits(citests, "try-error"))
         {
