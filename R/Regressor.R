@@ -165,8 +165,13 @@ Regressor <-
             predict_regressor(obj, X,
                               method = self$method)
         ))
+
+        if (identical(self$method, "bayesianrvfl"))
+        {
+          self$set_pi_method("bayesian")
+        }
         
-        if (identical(self$pi_method, "none"))
+        if (self$pi_method %in% c("none", "bayesian"))
         {
           self$set_model(fit_regressor(
             x = self$X_train,
@@ -317,9 +322,8 @@ Regressor <-
           )
         
         preds <- drop(self$engine$predict(self$model, X, ...))
-        if (identical(self$pi_method, "none"))
-        {
-          # no prediction interval
+        if (self$pi_method %in% c("none", "bayesian"))
+        {          
           return(preds)
         } else {
           if (self$pi_method %in% c("splitconformal", 
@@ -529,7 +533,7 @@ Regressor <-
       #' @param ... additional parameters to be passed to the underlying model's method `update`
       update = function(newx, newy, ...)
       {
-        if(!identical(self$method, "rvfl"))
+        if(!self$method %in% c("rvfl", "bayesianrvfl"))
         {
           stop(paste0("As of ", Sys.Date(), ", this method is only implemented for 'rvfl' models"))
         }
@@ -552,7 +556,8 @@ fit_regressor <- function(x,
                                      "krr",
                                      "xgboost", 
                                      "svm", 
-                                     "rvfl"),
+                                     "rvfl",
+                                     "bayesianrvfl"),
                           nb_hidden = 0,
                           nodes_sim = c("sobol", "halton", "unif"),
                           activ = c("relu", "sigmoid", "tanh",
@@ -600,13 +605,14 @@ fit_regressor <- function(x,
       fit_xgboost_regression(x, y, ...),
     svm = function(x, y, ...)
       e1071::svm(x = x, y = y, ...),
-    rvfl = function(x, y, ...) fit_rvfl_regression(x, y, ...)
+    rvfl = function(x, y, ...) fit_rvfl_regression(x, y, ...),
+    bayesianrvfl = function(x, y, ...) fit_bayesianrvfl_regression(x, y, ...)
   )
   
   if(nb_hidden == 0)
   {
     
-    if (!identical(regressor_choice, "rvfl"))
+    if (!(regressor_choice %in% c("bayesianrvfl", "rvfl")))
     {
       return(obj(x = x, 
                  y = y, 
@@ -620,7 +626,7 @@ fit_regressor <- function(x,
     nodes_sim <- match.arg(nodes_sim)
     activ <- match.arg(activ)
     
-    if (!identical(regressor_choice, "rvfl"))
+    if (!(regressor_choice %in% c("bayesianrvfl", "rvfl")))
     {
       new_predictors <- create_new_predictors(x, 
                                               nb_hidden = nb_hidden,
@@ -634,7 +640,7 @@ fit_regressor <- function(x,
       obj$nodes_sim <- nodes_sim
       obj$activ <- activ
       
-    } else { # identical(regressor_choice, "rvfl")
+    } else { # regressor_choice %in% c("bayesianrvfl", "rvfl")
       
       obj <- obj(x = x, 
                  y = y, 
@@ -660,13 +666,13 @@ predict_regressor <- function(obj,
                                          "krr",
                                          "xgboost",
                                          "svm",
-                                         "rvfl"),
+                                         "rvfl", 
+                                         "bayesianrvfl"),
                               ...) {
   method_choice <- match.arg(method)
   predict_func <- switch(
     method_choice,
-    lm = function(object, X)
-      X %*% object$coefficients,
+    lm = function(object, X) X %*% object$coefficients,
     bcn = bcn::predict.bcn,
     extratrees = predict_func_extratrees,
     glmnet = predict,
@@ -675,7 +681,8 @@ predict_regressor <- function(obj,
     ridge = predict_ridge_regression,
     xgboost = predict,
     svm = predict,
-    rvfl = predict_rvfl_regression
+    rvfl = predict_rvfl_regression,
+    bayesianrvfl = predict_bayesianrvfl_regression
   )
   if (is.null(obj$new_predictors))
   {

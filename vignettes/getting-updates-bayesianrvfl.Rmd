@@ -1,0 +1,279 @@
+---
+title: "Getting updates"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting updates}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## 0 - **Packages and data**
+
+```{r}
+library(learningmachine)
+library(caret)
+library(mlbench)
+library(palmerpenguins)
+```
+
+```{r}
+X <- as.matrix(mtcars[,-1])
+y <- mtcars$mpg
+```
+
+```{r}
+set.seed(123)
+(index_train <- base::sample.int(n = nrow(X),
+                                 size = floor(0.6*nrow(X)),
+                                 replace = FALSE))
+X_train <- X[index_train, ]
+y_train <- y[index_train]
+X_test <- X[-index_train, ]
+y_test <- y[-index_train]
+dim(X_train)
+dim(X_test)
+```
+
+```{r}
+obj_GCV <- bayesianrvfl::fit_rvfl(x = X_train, y = y_train)
+(best_lambda <- obj_GCV$lambda[which.min(obj_GCV$GCV)])
+```
+
+## 1 - **RVFL regression** updates
+
+```{r}
+obj <- learningmachine::Regressor$new(method = "bayesianrvfl", 
+                                      nb_hidden = 5L)
+obj$get_type()
+obj$get_name()
+```
+
+```{r}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train, reg_lambda = best_lambda)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r}
+print(obj$predict(X_test))
+```
+
+```{r}
+obj$summary(X_test, y=y_test, show_progress=FALSE)
+```
+
+```{r fig.width=7.2}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+
+obj$set_level(95)
+res <- obj$predict(X = X_test)
+
+plot(c(y_train, res$preds), type='l',
+     main="",
+     ylab="",
+     ylim = c(min(c(res$upper, res$lower, y)),
+              max(c(res$upper, res$lower, y))))
+lines(c(y_train, res$upper), col="gray60")
+lines(c(y_train, res$lower), col="gray60")
+lines(c(y_train, res$preds), col = "red")
+lines(c(y_train, y_test), col = "blue")
+abline(v = length(y_train), lty=2, col="black")
+
+mean((y_test >= as.numeric(res$lower)) * (y_test <= as.numeric(res$upper)))
+```
+
+**update RVFL model**
+
+```{r}
+previous_coefs <- drop(obj$model$coef)
+```
+
+```{r}
+newx <- X_test[1, ]
+newy <- y_test[1]
+
+new_X_test <- X_test[-1, ]
+new_y_test <- y_test[-1]
+
+t0 <- proc.time()[3]
+obj$update(newx, newy)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r fig.width=7.2}
+summary(previous_coefs)
+summary(drop(obj$model$coef) - previous_coefs)
+plot(drop(obj$model$coef) - previous_coefs, type='l')
+abline(h = 0, lty=2, col="red")
+```
+
+```{r}
+obj$summary(new_X_test, y=new_y_test, show_progress=FALSE)
+```
+
+```{r fig.width=7.2}
+res <- obj$predict(X = new_X_test)
+ 
+new_y_train <- c(y_train, newy)
+
+plot(c(new_y_train, res$preds), type='l',
+    main="",
+    ylab="",
+    ylim = c(min(c(res$upper, res$lower, y)),
+             max(c(res$upper, res$lower, y))))
+lines(c(new_y_train, res$upper), col="gray60")
+lines(c(new_y_train, res$lower), col="gray60")
+lines(c(new_y_train, res$preds), col = "red")
+lines(c(new_y_train, new_y_test), col = "blue")
+abline(v = length(y_train), lty=2, col="black")
+
+mean((new_y_test >= as.numeric(res$lower)) * (new_y_test <= as.numeric(res$upper)))
+```
+
+**update RVFL model (Pt.2)**
+
+```{r}
+newx <- X_test[2, ]
+newy <- y_test[2]
+
+new_X_test <- X_test[-c(1, 2), ]
+new_y_test <- y_test[-c(1, 2)]
+```
+
+```{r eval=TRUE}
+t0 <- proc.time()[3]
+obj$update(newx, newy)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r eval=TRUE}
+obj$summary(new_X_test, y=new_y_test, show_progress=FALSE)
+```
+
+```{r fig.width=7.2, eval=TRUE}
+res <- obj$predict(X = new_X_test)
+ 
+new_y_train <- c(y_train, y_test[c(1, 2)])
+
+plot(c(new_y_train, res$preds), type='l',
+    main="",
+    ylab="",
+    ylim = c(min(c(res$upper, res$lower, y)),
+             max(c(res$upper, res$lower, y))))
+lines(c(new_y_train, res$upper), col="gray60")
+lines(c(new_y_train, res$lower), col="gray60")
+lines(c(new_y_train, res$preds), col = "red")
+lines(c(new_y_train, new_y_test), col = "blue")
+abline(v = length(y_train), lty=2, col="black")
+
+mean((new_y_test >= as.numeric(res$lower)) * (new_y_test <= as.numeric(res$upper)))
+```
+
+
+## 2 - **update RVFL model using Polyak averaging**
+
+```{r}
+obj <- learningmachine::Regressor$new(method = "bayesianrvfl", 
+                                      nb_hidden = 5L)
+obj$get_type()
+obj$get_name()
+```
+
+```{r}
+obj_GCV <- bayesianrvfl::fit_rvfl(x = X_train, y = y_train)
+(best_lambda <- obj_GCV$lambda[which.min(obj_GCV$GCV)])
+```
+
+```{r}
+t0 <- proc.time()[3]
+obj$fit(X_train, y_train, reg_lambda = best_lambda)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r}
+previous_coefs <- drop(obj$model$coef)
+```
+
+```{r}
+newx <- X_test[1, ]
+newy <- y_test[1]
+
+new_X_test <- X_test[-1, ]
+new_y_test <- y_test[-1]
+
+t0 <- proc.time()[3]
+obj$update(newx, newy, method = "polyak", alpha = 0.6)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r fig.width=7.2}
+summary(previous_coefs)
+summary(drop(obj$model$coef) - previous_coefs)
+plot(drop(obj$model$coef) - previous_coefs, type='l')
+abline(h = 0, lty=2, col="red")
+```
+
+```{r}
+obj$summary(new_X_test, y=new_y_test, show_progress=FALSE)
+```
+
+```{r fig.width=7.2}
+res <- obj$predict(X = new_X_test)
+ 
+new_y_train <- c(y_train, newy)
+
+plot(c(new_y_train, res$preds), type='l',
+    main="",
+    ylab="",
+    ylim = c(min(c(res$upper, res$lower, y)),
+             max(c(res$upper, res$lower, y))))
+lines(c(new_y_train, res$upper), col="gray60")
+lines(c(new_y_train, res$lower), col="gray60")
+lines(c(new_y_train, res$preds), col = "red")
+lines(c(new_y_train, new_y_test), col = "blue")
+abline(v = length(y_train), lty=2, col="black")
+
+mean((new_y_test >= as.numeric(res$lower)) * (new_y_test <= as.numeric(res$upper)))
+```
+
+**update RVFL model using Polyak averaging (Pt.2)**
+
+```{r}
+newx <- X_test[2, ]
+newy <- y_test[2]
+
+new_X_test <- X_test[-c(1, 2), ]
+new_y_test <- y_test[-c(1, 2)]
+```
+
+```{r eval=TRUE}
+t0 <- proc.time()[3]
+obj$update(newx, newy, method = "polyak", alpha = 0.9)
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r eval=TRUE}
+obj$summary(new_X_test, y=new_y_test, show_progress=FALSE)
+```
+
+```{r fig.width=7.2, eval=TRUE}
+res <- obj$predict(X = new_X_test)
+ 
+new_y_train <- c(y_train, y_test[c(1, 2)])
+
+plot(c(new_y_train, res$preds), type='l',
+    main="",
+    ylab="",
+    ylim = c(min(c(res$upper, res$lower, y)),
+             max(c(res$upper, res$lower, y))))
+lines(c(new_y_train, res$upper), col="gray60")
+lines(c(new_y_train, res$lower), col="gray60")
+lines(c(new_y_train, res$preds), col = "red")
+lines(c(new_y_train, new_y_test), col = "blue")
+abline(v = length(y_train), lty=2, col="black")
+
+mean((new_y_test >= as.numeric(res$lower)) * (new_y_test <= as.numeric(res$upper)))
+```
+

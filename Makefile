@@ -51,7 +51,7 @@ getwd: ## get current directory
 	Rscript -e "getwd()"
 
 install: clean setwd ## install package
-	Rscript -e "try(devtools::install('.'), silent = FALSE)"	
+	Rscript -e "try(devtools::install('.'), silent = FALSE)"
 
 initialize: setwd ## initialize: install packages devtools, usethis, pkgdown and rmarkdown
 	Rscript -e "utils::install.packages(c('devtools', 'usethis', 'pkgdown', 'rmarkdown'), repos='https://cloud.r-project.org')"
