@@ -27,6 +27,7 @@ BROWSER := python3 -c "$$BROWSER_PYSCRIPT"
 
 buildsite: setwd ## create a website for the package
 	Rscript -e "pkgdown::build_site('.')"
+	cp -rf docs/* ~/Documents/Pro_Website/Techtonique.github.io/learningmachine 
 
 check: clean setwd ## check package
 	Rscript -e "try(devtools::check('.'), silent=FALSE)"

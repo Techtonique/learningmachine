@@ -4,7 +4,8 @@ pkgdown_sha: ~
 articles:
   classifiers-probs: classifiers-probs.html
   getting-started: getting-started.html
+  getting-updates-bayesianrvfl: getting-updates-bayesianrvfl.html
   getting-updates: getting-updates.html
   qrnn: qrnn.html
-last_built: 2024-08-28T07:53Z
+last_built: 2024-08-30T12:12Z
 

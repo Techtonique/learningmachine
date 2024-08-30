@@ -12,3 +12,4 @@ src/*.dll
 learningmachine.Rcheck/
 learningmachine*.tar.gz
 learningmachine*.tgz
+docs/
