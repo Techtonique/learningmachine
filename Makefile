@@ -1,5 +1,8 @@
-.PHONY: buildsite check clean coverage docs getwd initialize install load render setwd start test usegit
+.PHONY: build buildsite check clean coverage docs getwd initialize install installcranpkg installgithubpkg installedpkgs load removepkg render setwd start test usegit
 .DEFAULT_GOAL := help
+
+# The directory where R files are stored
+R_DIR = ./R
 
 define BROWSER_PYSCRIPT
 import os, webbrowser, sys
@@ -25,12 +28,18 @@ export PRINT_HELP_PYSCRIPT
 
 BROWSER := python3 -c "$$BROWSER_PYSCRIPT"
 
+build: setwd ## build package
+	Rscript -e "devtools::build('.')"
+
 buildsite: setwd ## create a website for the package
 	Rscript -e "pkgdown::build_site('.')"
-	cp -rf docs/* ~/Documents/Pro_Website/Techtonique.github.io/learningmachine 
 
-check: clean setwd ## check package
-	Rscript -e "try(devtools::check('.'), silent=FALSE)"
+check: clean setwd ## check package 
+	@read -p "Enter options (e.g: --no-tests --no-examples) or leave empty: " pckgcheckoptions; \
+	if [ -z "$$pckgcheckoptions" ]; then \
+		Rscript -e "try(devtools::check('.'), silent=TRUE)" && exit 0; \
+	fi; \
+	Rscript -e "try(devtools::check('.', args=base::strsplit('$$pckgcheckoptions', ' ')[[1]]), silent=TRUE)";
 
 clean: ## remove all build, and artifacts
 	rm -f .Rhistory
@@ -51,11 +60,30 @@ docs: clean setwd ## generate docs
 getwd: ## get current directory
 	Rscript -e "getwd()"
 
-install: clean setwd ## install package
+install: clean setwd ## install current package
 	Rscript -e "try(devtools::install('.'), silent = FALSE)"
 
+installcranpkg: setwd ## install a package
+	@read -p "Enter the name of package to be installed: " pckg; \
+	if [ -z "$$pckg" ]; then \
+		echo "Package name cannot be empty."; \
+		exit 1; \
+	fi; \
+	Rscript -e "utils::install.packages('$$pckg', repos='https://cloud.r-project.org')";
+
+installgithubpkg: setwd ## install a package from GitHub ('repository/pkgname')
+	@read -p "Enter the name of package to be installed ('repository/pkgname'): " pckg; \
+	if [ -z "$$pckg" ]; then \
+		echo "Package name cannot be empty."; \
+		exit 1; \
+	fi; \
+	Rscript -e "devtools::install_github('$$pckg')";
+
+installedpkgs: ## list of installed packages
+	Rscript -e "utils::installed.packages()[,c(10, 16)]"
+
 initialize: setwd ## initialize: install packages devtools, usethis, pkgdown and rmarkdown
-	Rscript -e "utils::install.packages(c('devtools', 'usethis', 'pkgdown', 'rmarkdown'), repos='https://cloud.r-project.org')"
+	Rscript -e "utils::install.packages(c('devtools', 'remotes', 'roxygen2', 'usethis', 'pkgdown', 'rmarkdown'), repos='https://cloud.r-project.org')"
 
 help: ## print menu with all options
 	@python3 -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
@@ -63,8 +91,26 @@ help: ## print menu with all options
 load: clean setwd ## load all (when developing the package)
 	Rscript -e "devtools::load_all('.')"
 
-render: ## run R markdown file in /vignettes, open rendered HTML file in the browser
-	@read -p "Enter the name of the Rmd file (without extension): " filename; \
+removepkg: ## remove package
+	@read -p "Enter the name of package to be removed: " pckg; \
+	if [ -z "$$pckg" ]; then \
+		echo "Package name cannot be empty."; \
+		exit 1; \
+	fi; \
+	Rscript -e "utils::remove.packages('$$pckg')"; \
+	Rscript -e "base::unlink(paste0(.libPaths()[1], '/$$pckg'), recursive = TRUE, force = TRUE)"
+
+render: ## run R markdown file in /vignettes, open rendered HTML
+	@files=$$(ls -1 ./vignettes/*.Rmd | sort); \
+	i=0; \
+	echo "Available Rmd files:"; \
+	for file in $$files; do \
+		echo "$$i: $$(basename $$file .Rmd)"; \
+		i=$$((i+1)); \
+	done; \
+	read -p "Enter the number of the Rmd file to render: " filenum; \
+	filename=$$(echo $$files | cut -d' ' -f$$((filenum+1))); \
+	filename=$$(basename $$filename .Rmd); \
 	Rscript -e "rmarkdown::render(paste0('./vignettes/', '$$filename', '.Rmd'))"; \
 	python3 -c "$$BROWSER_PYSCRIPT" "$$filename.html"
 
@@ -74,9 +120,15 @@ setwd: ## set working directory to current directory
 start: ## start or restart R session
 	Rscript -e "system('R')"
 
-test: ## runs the the package tests
+test: ## runs package tests
 	Rscript -e "devtools::test('.')"	
 
 usegit: ## initialize Git repo and initial commit
 	@read -p "Enter the first commit message: " message; \
-	Rscript -e "usethis::use_git('$$message')"
+	if [ -z "$$message" ]; then \
+		echo "Commit message cannot be empty."; \
+		exit 1; \
+	fi; \
+	Rscript -e "usethis::use_git('$$message')"; \
+	git add .; \
+	git commit -m "$$message"

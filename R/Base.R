@@ -305,11 +305,12 @@ Base <-
           {
             return(c(
             as.numeric(res$estimate),
-            as.numeric(res$lower),
-            as.numeric(res$upper)
-           ))
+            res$lower,
+            res$upper,
+            res$pvalue
+          ))
           } else {
-            return(c(0, NA, NA))
+            return(c(0, NA, NA, NA))
           }                    
         }
 
@@ -322,11 +323,12 @@ Base <-
           {
             return(c(
             as.numeric(res$estimate),
-            as.numeric(res$lower),
-            as.numeric(res$upper)
-           ))
+            res$lower,
+            res$upper,
+            res$pvalue
+          ))
           } else {
-            return(c(0, NA, NA))
+            return(c(0, NA, NA, NA))
           }                    
         }
         
@@ -345,16 +347,13 @@ Base <-
         
         if (identical(type_ci, "bootstrap"))
           citests <- try(data.frame(t(apply(effects, 2, foo_bootstrap_tests))), silent = TRUE)
+        
+        #misc::debug_print(citests)
 
         if (!inherits(citests, "try-error"))
         {
-          if (identical(type_ci, "student"))
-          {
-            colnames(citests) <- c("estimate", "lower", "upper", "p-value")            
-            citests$signif <- sapply(citests[, 4], choice_signif_code) # p-values signif. column
-          } else {
-            colnames(citests) <- c("estimate", "lower", "upper")            
-          }          
+          colnames(citests) <- c("estimate", "lower", "upper", "p-value")                                     
+          citests$signif <- sapply(citests[, 4], choice_signif_code) # p-values signif. column       
           
           if (!is.null(y))
           {
@@ -374,6 +373,7 @@ Base <-
                   Residuals = summary(Residuals),
                   Coverage_rate = coverage_rate,
                   citests = citests,
+                  signif_codes = "Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1",
                   effects = my_skim(effects)
                 ))
               } else { # classification
@@ -381,6 +381,7 @@ Base <-
                 return(list(
                   Coverage_rate = coverage_rate_classifier(y, preds),
                   citests = citests,
+                  signif_codes = "Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1",
                   effects = my_skim(effects)
                 ))
               }
@@ -396,18 +397,21 @@ Base <-
                   R_squared_adj = R_squared_adj,
                   Residuals = summary(Residuals),
                   citests = citests,
+                  signif_codes = "Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1",
                   effects = my_skim(effects)
                 ))
               } else { # classification
                 return(list(
                   accuracy = mean(y == preds) * 100,
                   citests = citests,
+                  signif_codes = "Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1",
                   effects = my_skim(effects)
                 ))
               }
             }
           } else {
             return(list(citests = citests,
+                        signif_codes = "Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1",
                         effects = my_skim(effects)))
           }
         } else {

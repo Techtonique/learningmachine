@@ -1,8 +1,8 @@
 Package: learningmachine
 Type: Package
 Title: Machine Learning with Explanations and Uncertainty Quantification
-Version: 2.5.0
-Date: 2024-08-30
+Version: 2.6.0
+Date: 2024-09-20
 Author: T. Moudiki
 Maintainer: T. Moudiki <thierry.moudiki@gmail.com>
 Description: Regression-based Machine Learning with explanations and uncertainty quantification.

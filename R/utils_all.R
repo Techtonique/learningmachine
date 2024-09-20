@@ -620,25 +620,22 @@ split_data <- function(y, p = 0.5,
   return(out[[1]])
 }
 
-# confidence interval mean ----------
-
-winkler_score <- function(obj, actual, level = 95, scale = FALSE) {
-  alpha <- 1 - level / 100
-  lt <- obj$lower
-  ut <- obj$upper
-  n_points <- length(actual)
-  #stopifnot((n_points == length(lt)) && (n_points == length(ut)))
-  diff_lt <- lt - actual
-  diff_bounds <- ut - lt
-  diff_ut <- actual - ut
-  score <-
-    diff_bounds + (2 / alpha) * (pmax(diff_lt, 0) + pmax(diff_ut, 0))
-  if (!scale)
-  {
-    return(mean(score))
-  } else {
-    return(mean(score/diff_bounds))
-  }
+#  winkler_score testing ----------
+rescaled_winkler_score_test <- function(actual, lower, upper, level = 95) {
+  diff_bounds <- upper - lower
+  score <- diff_bounds # base score
+  penalty_factor <- (2 / (1 - level / 100))
+  score <- score + penalty_factor * pmax(lower - actual, 0) # penalty
+  score <- score + penalty_factor * pmax(actual - upper, 0) # penalty
+  stats <- 1 - score/diff_bounds
+  res <- t.test(stats)
+  return(list(
+    pvalue = res$p.value,
+    statistic = res$statistic,
+    est = res$estimate,
+    low = res$conf.int[1],
+    up = res$conf.int[2]
+  ))
 }
 
 
@@ -733,6 +730,24 @@ direct_sampling <- function(data = NULL, n = 1000,
   }
 }
 
+t_test_from_ci <- function(mean_estimate, lower_bound, upper_bound, df, conf_level = 0.95, mu_0 = 0) {
+  # Calculate the critical value of the t-distribution
+  alpha <- 1 - conf_level
+  t_alpha <- qt(1 - alpha / 2, df = Inf)  # df = Inf for large sample approximation (Z-distribution)
+  
+  # Compute the standard error (SE)
+  SE <- (upper_bound - lower_bound) / (2 * t_alpha)
+  
+  # Compute the t-statistic
+  t_stat <- (mean_estimate - mu_0) / SE
+  
+  # Calculate the p-value for the two-tailed test
+  p_value <- 2 * pt(-abs(t_stat), df = df)
+  
+  # Return the p-value
+  return(p_value)
+}
+
 compute_ci_mean <- function(xx, 
                             type_split = c("random", 
                                            "sequential"), 
@@ -778,16 +793,19 @@ compute_ci_mean <- function(xx,
   estimate <- stats::median(pseudo_means_x)
   lower <- quantile(pseudo_means_x, probs = 1 - upper_prob)
   upper <- quantile(pseudo_means_x, probs = upper_prob)
-  mean_xx <- mean(xx)
-  pvalue <- mean((lower > mean_xx) + (mean_xx > upper))
-  #winkler_score_ <- winkler_score(obj = list(lower = lower, upper =  upper), 
-  #actual = pseudo_means_x, level = 95, scale = TRUE)
+  pvalue <- t_test_from_ci(mean_estimate = estimate, 
+                           lower_bound = lower, 
+                           upper_bound = upper, 
+                           df = length(pseudo_means_x) - 1,
+                           conf_level = level/100, 
+                           mu_0 = 0)
 
-  return(list(estimate = estimate,
-              lower = lower, 
-              upper = upper,
-              pvalue = pvalue,
-              boxtest = stats::Box.test(xx)$p.value))
+  return(list(
+    estimate = estimate,
+    lower = lower,
+    upper = upper,
+    pvalue = pvalue))
+
   }
 }
 
@@ -809,11 +827,16 @@ bootstrap_ci_mean <- function(xx, level = 95, seed = 123) {
   estimate <- mean(xx)
   lower_bound <- quantile(bootstrap_means, alpha / 2)
   upper_bound <- quantile(bootstrap_means, 1 - alpha / 2)  
-  
-  # Step 3: Return a list with estimate, lower bound, and upper bound
+  pvalue <- t_test_from_ci(mean_estimate = estimate, 
+                           lower_bound = lower_bound, 
+                           upper_bound = upper_bound, 
+                           df = length(xx) - 1,
+                           conf_level = level/100, 
+                           mu_0 = 0)
+
   return(list(
     estimate = estimate,
     lower = lower_bound,
-    upper = upper_bound
-  ))
+    upper = upper_bound,    
+    pvalue = pvalue))
 }

@@ -386,7 +386,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb31-2"><a href="#cb31-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">fit</span>(X_train, y_train)</span>
 <span id="cb31-3"><a href="#cb31-3" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.033 s</code></pre>
+<pre><code>## Elapsed:  0.02 s</code></pre>
 <div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">sqrt</span>(<span class="fu">mean</span>((obj<span class="sc">$</span><span class="fu">predict</span>(X_test)<span class="sc">$</span>preds <span class="sc">-</span> y_test)<span class="sc">^</span><span class="dv">2</span>)))</span></code></pre></div>
 <pre><code>## [1] 3.548852</code></pre>
 <div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" tabindex="-1"></a>(res <span class="ot">&lt;-</span> obj<span class="sc">$</span><span class="fu">predict</span>(<span class="at">X =</span> X_test))</span></code></pre></div>
@@ -423,7 +423,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <span id="cb40-2"><a href="#cb40-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">fit</span>(X_train, y_train, </span>
 <span id="cb40-3"><a href="#cb40-3" tabindex="-1"></a>        <span class="at">pi_method =</span> <span class="st">&quot;jackknifeplus&quot;</span>)</span>
 <span id="cb40-4"><a href="#cb40-4" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.252 s</code></pre>
+<pre><code>## Elapsed:  0.104 s</code></pre>
 <div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">set_level</span>(<span class="dv">95</span><span class="dt">L</span>)</span>
 <span id="cb42-2"><a href="#cb42-2" tabindex="-1"></a></span>
 <span id="cb42-3"><a href="#cb42-3" tabindex="-1"></a>res <span class="ot">&lt;-</span> obj<span class="sc">$</span><span class="fu">predict</span>(<span class="at">X =</span> X_test)</span>
@@ -451,13 +451,13 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb49-2"><a href="#cb49-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">fit</span>(X_train, y_train)</span>
 <span id="cb49-3"><a href="#cb49-3" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  1.764 s</code></pre>
+<pre><code>## Elapsed:  1.685 s</code></pre>
 <div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">sqrt</span>(<span class="fu">mean</span>((obj<span class="sc">$</span><span class="fu">predict</span>(X_test)<span class="sc">$</span>preds <span class="sc">-</span> y_test)<span class="sc">^</span><span class="dv">2</span>)))</span></code></pre></div>
 <pre><code>## [1] 2.344976</code></pre>
 <div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb53-2"><a href="#cb53-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">fit</span>(X_train, y_train)</span>
 <span id="cb53-3"><a href="#cb53-3" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.032 s</code></pre>
+<pre><code>## Elapsed:  0.026 s</code></pre>
 <div class="sourceCode" id="cb55"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">set_level</span>(<span class="dv">95</span>)</span>
 <span id="cb55-2"><a href="#cb55-2" tabindex="-1"></a></span>
 <span id="cb55-3"><a href="#cb55-3" tabindex="-1"></a>res <span class="ot">&lt;-</span> obj<span class="sc">$</span><span class="fu">predict</span>(<span class="at">X =</span> X_test)</span>
@@ -513,7 +513,7 @@ Boston</h1>
 <div class="sourceCode" id="cb68"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb68-2"><a href="#cb68-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">fit</span>(X_train, y_train, <span class="at">reg_lambda =</span> <span class="fl">0.1</span>)</span>
 <span id="cb68-3"><a href="#cb68-3" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.154 s</code></pre>
+<pre><code>## Elapsed:  0.143 s</code></pre>
 <div class="sourceCode" id="cb70"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">sqrt</span>(<span class="fu">mean</span>((obj<span class="sc">$</span><span class="fu">predict</span>(X_test) <span class="sc">-</span> y_test)<span class="sc">^</span><span class="dv">2</span>)))</span></code></pre></div>
 <pre><code>## [1] 2.888748</code></pre>
 <div class="sourceCode" id="cb72"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
@@ -543,6 +543,9 @@ Boston</h1>
 ## ptratio -0.4819300831  -0.582754790 -0.3811053766 1.242164e-15    ***
 ## black   -0.0002461991  -0.001967809  0.0014754112 7.772335e-01       
 ## lstat   -0.4091458985  -0.475209948 -0.3430818492 9.126116e-22    ***
+## 
+## $codes
+## [1] &quot;Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1&quot;
 ## 
 ## $effects
 ## ── Data Summary ────────────────────────
@@ -586,7 +589,7 @@ Boston</h1>
 ## 12  0.0391  ▁▇▇▁▁
 ## 13  0.0311  ▁▁▂▆▇</code></pre>
 <div class="sourceCode" id="cb74"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  1.33 s</code></pre>
+<pre><code>## Elapsed:  1.61 s</code></pre>
 <div class="sourceCode" id="cb76"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb76-2"><a href="#cb76-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">summary</span>(X_test, <span class="at">y=</span>y_test, <span class="at">show_progress=</span><span class="cn">FALSE</span>, <span class="at">type_ci=</span><span class="st">&quot;bootstrap&quot;</span>)</span></code></pre></div>
 <pre><code>## $R_squared
@@ -600,20 +603,23 @@ Boston</h1>
 ## -8.33671 -1.10461 -0.02411  0.12105  1.46980  9.29398 
 ## 
 ## $citests
-##              estimate         lower        upper
-## crim    -0.0544164530  -0.077388205 -0.033868739
-## zn      -0.0046418100  -0.008950983  0.000193778
-## indus   -0.0245357110  -0.049120109  0.000544111
-## chas     7.1730075477   6.366223778  7.870788737
-## nox     -9.4958030753 -12.303031437 -7.145086697
-## rm       4.7080249286   3.856816287  5.491698401
-## age     -0.0439718628  -0.053220093 -0.035161838
-## dis     -1.4214523042  -1.569696745 -1.285297810
-## rad      0.1810040336   0.155700757  0.206461984
-## tax     -0.0115644823  -0.013086037 -0.010031979
-## ptratio -0.4819300831  -0.582929860 -0.390711993
-## black   -0.0002461991  -0.001876356  0.001546006
-## lstat   -0.4091458985  -0.478128045 -0.343430510
+##              estimate         lower        upper      p-value signif
+## crim    -0.0544164530  -0.077388205 -0.033868739 3.636383e-06    ***
+## zn      -0.0046418100  -0.008950983  0.000193778 4.932471e-02      *
+## indus   -0.0245357110  -0.049120109  0.000544111 5.559257e-02      .
+## chas     7.1730075477   6.366223778  7.870788737 1.484058e-34    ***
+## nox     -9.4958030753 -12.303031437 -7.145086697 1.011413e-10    ***
+## rm       4.7080249286   3.856816287  5.491698401 1.329440e-19    ***
+## age     -0.0439718628  -0.053220093 -0.035161838 9.023576e-16    ***
+## dis     -1.4214523042  -1.569696745 -1.285297810 3.493404e-36    ***
+## rad      0.1810040336   0.155700757  0.206461984 2.383885e-25    ***
+## tax     -0.0115644823  -0.013086037 -0.010031979 3.950118e-27    ***
+## ptratio -0.4819300831  -0.582929860 -0.390711993 2.146847e-16    ***
+## black   -0.0002461991  -0.001876356  0.001546006 7.785258e-01       
+## lstat   -0.4091458985  -0.478128045 -0.343430510 6.000266e-21    ***
+## 
+## $codes
+## [1] &quot;Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1&quot;
 ## 
 ## $effects
 ## ── Data Summary ────────────────────────
@@ -657,7 +663,7 @@ Boston</h1>
 ## 12  0.0391  ▁▇▇▁▁
 ## 13  0.0311  ▁▁▂▆▇</code></pre>
 <div class="sourceCode" id="cb78"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  1.43 s</code></pre>
+<pre><code>## Elapsed:  2.167 s</code></pre>
 <p><strong><code>ranger</code></strong></p>
 <div class="sourceCode" id="cb80"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1" tabindex="-1"></a>obj <span class="ot">&lt;-</span> learningmachine<span class="sc">::</span>Regressor<span class="sc">$</span><span class="fu">new</span>(<span class="at">method =</span> <span class="st">&quot;ranger&quot;</span>, <span class="at">pi_method=</span><span class="st">&quot;splitconformal&quot;</span>)</span>
 <span id="cb80-2"><a href="#cb80-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">get_type</span>()</span></code></pre></div>
@@ -667,7 +673,7 @@ Boston</h1>
 <div class="sourceCode" id="cb84"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb84-2"><a href="#cb84-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">fit</span>(X_train, y_train)</span>
 <span id="cb84-3"><a href="#cb84-3" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.094 s</code></pre>
+<pre><code>## Elapsed:  0.166 s</code></pre>
 <div class="sourceCode" id="cb86"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb86-1"><a href="#cb86-1" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">sqrt</span>(<span class="fu">mean</span>((obj<span class="sc">$</span><span class="fu">predict</span>(X_test)<span class="sc">$</span>preds <span class="sc">-</span> y_test)<span class="sc">^</span><span class="dv">2</span>)))</span></code></pre></div>
 <pre><code>## [1] 3.79469</code></pre>
 <div class="sourceCode" id="cb88"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb88-1"><a href="#cb88-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
@@ -700,6 +706,9 @@ Boston</h1>
 ## ptratio  -32.87462570  -38.77698867  -26.97226272 4.440300e-19    ***
 ## black     -0.26384711   -0.49997135   -0.02772287 2.889086e-02      *
 ## lstat    -44.64193590  -57.99309865  -31.29077315 1.652805e-09    ***
+## 
+## $codes
+## [1] &quot;Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1&quot;
 ## 
 ## $effects
 ## ── Data Summary ────────────────────────
@@ -743,7 +752,7 @@ Boston</h1>
 ## 12 ▁▂▃▇▂
 ## 13 ▁▁▁▃▇</code></pre>
 <div class="sourceCode" id="cb90"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb90-1"><a href="#cb90-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  1.09 s</code></pre>
+<pre><code>## Elapsed:  1.181 s</code></pre>
 <div class="sourceCode" id="cb92"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb92-1"><a href="#cb92-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb92-2"><a href="#cb92-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">summary</span>(X_test, <span class="at">y=</span>y_test, <span class="at">show_progress=</span><span class="cn">FALSE</span>, <span class="at">type_ci=</span><span class="st">&quot;bootstrap&quot;</span>)</span></code></pre></div>
 <pre><code>## $R_squared
@@ -760,20 +769,23 @@ Boston</h1>
 ## [1] 100
 ## 
 ## $citests
-##              estimate        lower         upper
-## crim     -46.07120224 -226.0963824   86.64772635
-## zn        -0.01770371   -0.1911345    0.16043942
-## indus    -15.27494058  -27.0066412   -4.76012553
-## chas       0.00000000    0.0000000    0.00000000
-## nox     -521.68056125 -694.5379226 -351.49586075
-## rm       275.37923329  225.1057152  332.38712155
-## age       -1.75704619   -2.5409652   -1.08938031
-## dis       20.57598690   -3.0778308   44.65777193
-## rad        2.13991832    0.4743989    4.36379845
-## tax       -0.60978051   -0.7988964   -0.42355307
-## ptratio  -32.87462570  -38.9972525  -27.71671691
-## black     -0.26384711   -0.4737498   -0.03739985
-## lstat    -44.64193590  -57.9757644  -32.27758919
+##              estimate        lower         upper      p-value signif
+## crim     -46.07120224 -226.0963824   86.64772635 5.649169e-01       
+## zn        -0.01770371   -0.1911345    0.16043942 8.439189e-01       
+## indus    -15.27494058  -27.0066412   -4.76012553 8.326543e-03     **
+## chas       0.00000000    0.0000000    0.00000000          NaN       
+## nox     -521.68056125 -694.5379226 -351.49586075 3.697818e-08    ***
+## rm       275.37923329  225.1057152  332.38712155 6.551598e-17    ***
+## age       -1.75704619   -2.5409652   -1.08938031 6.883580e-06    ***
+## dis       20.57598690   -3.0778308   44.65777193 9.417985e-02      .
+## rad        2.13991832    0.4743989    4.36379845 3.340076e-02      *
+## tax       -0.60978051   -0.7988964   -0.42355307 5.710666e-09    ***
+## ptratio  -32.87462570  -38.9972525  -27.71671691 6.732061e-20    ***
+## black     -0.26384711   -0.4737498   -0.03739985 1.967444e-02      *
+## lstat    -44.64193590  -57.9757644  -32.27758919 7.154857e-10    ***
+## 
+## $codes
+## [1] &quot;Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1&quot;
 ## 
 ## $effects
 ## ── Data Summary ────────────────────────
@@ -817,7 +829,7 @@ Boston</h1>
 ## 12 ▁▂▃▇▂
 ## 13 ▁▁▁▃▇</code></pre>
 <div class="sourceCode" id="cb94"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb94-1"><a href="#cb94-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.841 s</code></pre>
+<pre><code>## Elapsed:  1.896 s</code></pre>
 </div>
 <div id="krr-regression-on-mtcars" class="section level1">
 <h1>3 - <code>KRR</code> regression on mtcars</h1>
@@ -845,7 +857,7 @@ Boston</h1>
 <div class="sourceCode" id="cb106"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb106-1"><a href="#cb106-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb106-2"><a href="#cb106-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">fit</span>(X_train, y_train, <span class="at">reg_lambda =</span> <span class="fl">0.1</span>)</span>
 <span id="cb106-3"><a href="#cb106-3" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.005 s</code></pre>
+<pre><code>## Elapsed:  0.028 s</code></pre>
 <div class="sourceCode" id="cb108"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb108-1"><a href="#cb108-1" tabindex="-1"></a><span class="fu">print</span>(obj<span class="sc">$</span><span class="fu">predict</span>(X_test))</span></code></pre></div>
 <pre><code>## $preds
 ##  [1] 22.151349 21.802194 12.541365 10.124759 13.408181 14.155816  7.421184
@@ -861,7 +873,7 @@ Boston</h1>
 <div class="sourceCode" id="cb110"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb110-1"><a href="#cb110-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb110-2"><a href="#cb110-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">fit</span>(X_train, y_train, <span class="at">reg_lambda =</span> <span class="fl">0.1</span>)</span>
 <span id="cb110-3"><a href="#cb110-3" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.005 s</code></pre>
+<pre><code>## Elapsed:  0.014 s</code></pre>
 <div class="sourceCode" id="cb112"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb112-1"><a href="#cb112-1" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">set_level</span>(<span class="dv">95</span>)</span>
 <span id="cb112-2"><a href="#cb112-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">set_pi_method</span>(<span class="st">&quot;splitconformal&quot;</span>)</span>
 <span id="cb112-3"><a href="#cb112-3" tabindex="-1"></a>res <span class="ot">&lt;-</span> obj<span class="sc">$</span><span class="fu">predict</span>(<span class="at">X =</span> X_test)</span>
@@ -881,7 +893,7 @@ Boston</h1>
 <div class="sourceCode" id="cb115"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb115-1"><a href="#cb115-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb115-2"><a href="#cb115-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">fit</span>(X_train, y_train, <span class="at">reg_lambda =</span> <span class="fl">0.1</span>)</span>
 <span id="cb115-3"><a href="#cb115-3" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.005 s</code></pre>
+<pre><code>## Elapsed:  0.014 s</code></pre>
 <div class="sourceCode" id="cb117"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb117-1"><a href="#cb117-1" tabindex="-1"></a>res <span class="ot">&lt;-</span> obj<span class="sc">$</span><span class="fu">predict</span>(<span class="at">X =</span> X_test)</span>
 <span id="cb117-2"><a href="#cb117-2" tabindex="-1"></a></span>
 <span id="cb117-3"><a href="#cb117-3" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">c</span>(y_train, res<span class="sc">$</span>preds), <span class="at">type=</span><span class="st">&#39;l&#39;</span>,</span>
@@ -924,6 +936,9 @@ Boston</h1>
 ## gear  191.57905165  134.3446800  248.8134233 3.424783e-05    ***
 ## carb    3.39227959  -22.2875140   29.0720732 7.718555e-01       
 ## 
+## $codes
+## [1] &quot;Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1&quot;
+## 
 ## $effects
 ## ── Data Summary ────────────────────────
 ##                            Values 
@@ -960,7 +975,7 @@ Boston</h1>
 ##  9 ▂▇▃▂▂
 ## 10 ▃▁▆▂▇</code></pre>
 <div class="sourceCode" id="cb122"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb122-1"><a href="#cb122-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.189 s</code></pre>
+<pre><code>## Elapsed:  1.493 s</code></pre>
 <div class="sourceCode" id="cb124"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb124-1"><a href="#cb124-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb124-2"><a href="#cb124-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">summary</span>(X_test, <span class="at">y=</span>y_test, <span class="at">show_progress=</span><span class="cn">FALSE</span>, <span class="at">type_ci=</span><span class="st">&quot;bootstrap&quot;</span>)</span></code></pre></div>
 <pre><code>## $R_squared
@@ -977,17 +992,20 @@ Boston</h1>
 ## [1] 100
 ## 
 ## $citests
-##           estimate        lower        upper
-## cyl   -23.98943109  -40.5922255   -6.2447901
-## disp   -0.61133395   -0.9172916   -0.3424231
-## hp     -0.07828878   -0.3397646    0.1496909
-## drat  310.94399534  179.0656056  417.8607418
-## wt   -197.39979731 -231.8809681 -164.5228586
-## qsec  -19.50660485  -44.6930749    9.1315753
-## vs     69.84795566  -48.5034409  190.0256695
-## am    137.97019623   27.1241565  250.3954442
-## gear  191.57905165  147.4748755  241.7819503
-## carb    3.39227959  -17.8115551   22.1933920
+##           estimate        lower        upper      p-value signif
+## cyl   -23.98943109  -40.5922255   -6.2447901 2.292950e-02      *
+## disp   -0.61133395   -0.9172916   -0.3424231 2.416713e-03     **
+## hp     -0.07828878   -0.3397646    0.1496909 5.462365e-01       
+## drat  310.94399534  179.0656056  417.8607418 6.414323e-04    ***
+## wt   -197.39979731 -231.8809681 -164.5228586 1.115553e-06    ***
+## qsec  -19.50660485  -44.6930749    9.1315753 1.891311e-01       
+## vs     69.84795566  -48.5034409  190.0256695 2.806199e-01       
+## am    137.97019623   27.1241565  250.3954442 3.846436e-02      *
+## gear  191.57905165  147.4748755  241.7819503 2.296739e-05    ***
+## carb    3.39227959  -17.8115551   22.1933920 7.472011e-01       
+## 
+## $codes
+## [1] &quot;Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1&quot;
 ## 
 ## $effects
 ## ── Data Summary ────────────────────────
@@ -1025,13 +1043,13 @@ Boston</h1>
 ##  9 ▂▇▃▂▂
 ## 10 ▃▁▆▂▇</code></pre>
 <div class="sourceCode" id="cb126"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb126-1"><a href="#cb126-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.266 s</code></pre>
+<pre><code>## Elapsed:  0.947 s</code></pre>
 <div class="sourceCode" id="cb128"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb128-1"><a href="#cb128-1" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">set_pi_method</span>(<span class="st">&quot;kdejackknifeplus&quot;</span>)</span>
 <span id="cb128-2"><a href="#cb128-2" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb128-3"><a href="#cb128-3" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">fit</span>(X_train, y_train, <span class="at">reg_lambda =</span> <span class="fl">0.1</span>)</span></code></pre></div>
 <pre><code>##   |                                                                              |                                                                      |   0%  |                                                                              |===                                                                   |   5%  |                                                                              |=======                                                               |  10%  |                                                                              |==========                                                            |  14%  |                                                                              |=============                                                         |  19%  |                                                                              |=================                                                     |  24%  |                                                                              |====================                                                  |  29%  |                                                                              |=======================                                               |  33%  |                                                                              |===========================                                           |  38%  |                                                                              |==============================                                        |  43%  |                                                                              |=================================                                     |  48%  |                                                                              |=====================================                                 |  52%  |                                                                              |========================================                              |  57%  |                                                                              |===========================================                           |  62%  |                                                                              |===============================================                       |  67%  |                                                                              |==================================================                    |  71%  |                                                                              |=====================================================                 |  76%  |                                                                              |=========================================================             |  81%  |                                                                              |============================================================          |  86%  |                                                                              |===============================================================       |  90%  |                                                                              |===================================================================   |  95%  |                                                                              |======================================================================| 100%</code></pre>
 <div class="sourceCode" id="cb130"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb130-1"><a href="#cb130-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.02 s</code></pre>
+<pre><code>## Elapsed:  0.093 s</code></pre>
 <div class="sourceCode" id="cb132"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb132-1"><a href="#cb132-1" tabindex="-1"></a>res <span class="ot">&lt;-</span> obj<span class="sc">$</span><span class="fu">predict</span>(<span class="at">X =</span> X_test)</span>
 <span id="cb132-2"><a href="#cb132-2" tabindex="-1"></a></span>
 <span id="cb132-3"><a href="#cb132-3" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">c</span>(y_train, res<span class="sc">$</span>preds), <span class="at">type=</span><span class="st">&#39;l&#39;</span>,</span>
@@ -1074,6 +1092,9 @@ Boston</h1>
 ## gear  264.4099446  185.2573493 343.5625399 3.479849e-05    ***
 ## carb  -24.1859057  -56.7206453   8.3488338 1.269314e-01       
 ## 
+## $codes
+## [1] &quot;Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1&quot;
+## 
 ## $effects
 ## ── Data Summary ────────────────────────
 ##                            Values 
@@ -1110,7 +1131,7 @@ Boston</h1>
 ##  9 ▇▇▇▁▂
 ## 10 ▇▇▁▂▇</code></pre>
 <div class="sourceCode" id="cb137"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb137-1"><a href="#cb137-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.45 s</code></pre>
+<pre><code>## Elapsed:  1.1 s</code></pre>
 <div class="sourceCode" id="cb139"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb139-1"><a href="#cb139-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb139-2"><a href="#cb139-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">summary</span>(X_test, <span class="at">y=</span>y_test, <span class="at">show_progress=</span><span class="cn">FALSE</span>, <span class="at">type_ci=</span><span class="st">&quot;bootstrap&quot;</span>)</span></code></pre></div>
 <pre><code>## $R_squared
@@ -1127,17 +1148,20 @@ Boston</h1>
 ## [1] 100
 ## 
 ## $citests
-##          estimate        lower       upper
-## cyl   -36.7817740  -45.3808553 -26.1949547
-## disp   -0.2133047   -0.5752521   0.1492085
-## hp     -0.2920633   -0.7217967   0.1034058
-## drat  259.9789584  162.2017490 343.4030751
-## wt   -125.6032827 -152.6736671 -98.7351447
-## qsec    6.1547882  -14.7007260  29.0726634
-## vs     35.1176737  -62.1816637 130.3916175
-## am     85.8109695  -10.0596731 174.5354755
-## gear  264.4099446  208.5642717 335.6537285
-## carb  -24.1859057  -50.4118778   2.2305024
+##          estimate        lower       upper      p-value signif
+## cyl   -36.7817740  -45.3808553 -26.1949547 3.635150e-05    ***
+## disp   -0.2133047   -0.5752521   0.1492085 2.781632e-01       
+## hp     -0.2920633   -0.7217967   0.1034058 1.987160e-01       
+## drat  259.9789584  162.2017490 343.4030751 3.241203e-04    ***
+## wt   -125.6032827 -152.6736671 -98.7351447 7.604780e-06    ***
+## qsec    6.1547882  -14.7007260  29.0726634 5.949372e-01       
+## vs     35.1176737  -62.1816637 130.3916175 4.928333e-01       
+## am     85.8109695  -10.0596731 174.5354755 1.017444e-01       
+## gear  264.4099446  208.5642717 335.6537285 1.897459e-05    ***
+## carb  -24.1859057  -50.4118778   2.2305024 1.052301e-01       
+## 
+## $codes
+## [1] &quot;Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1&quot;
 ## 
 ## $effects
 ## ── Data Summary ────────────────────────
@@ -1175,7 +1199,7 @@ Boston</h1>
 ##  9 ▇▇▇▁▂
 ## 10 ▇▇▁▂▇</code></pre>
 <div class="sourceCode" id="cb141"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb141-1"><a href="#cb141-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.465 s</code></pre>
+<pre><code>## Elapsed:  1.458 s</code></pre>
 <p><strong><code>xgboost</code></strong></p>
 <div class="sourceCode" id="cb143"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb143-1"><a href="#cb143-1" tabindex="-1"></a>obj <span class="ot">&lt;-</span> learningmachine<span class="sc">::</span>Regressor<span class="sc">$</span><span class="fu">new</span>(<span class="at">method =</span> <span class="st">&quot;xgboost&quot;</span>, <span class="at">pi_method =</span> <span class="st">&quot;splitconformal&quot;</span>)</span>
 <span id="cb143-2"><a href="#cb143-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">get_type</span>()</span></code></pre></div>
@@ -1185,7 +1209,7 @@ Boston</h1>
 <div class="sourceCode" id="cb147"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb147-1"><a href="#cb147-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb147-2"><a href="#cb147-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">fit</span>(X_train, y_train, <span class="at">nrounds=</span><span class="dv">10</span>, <span class="at">verbose=</span><span class="cn">FALSE</span>)</span>
 <span id="cb147-3"><a href="#cb147-3" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.099 s</code></pre>
+<pre><code>## Elapsed:  0.529 s</code></pre>
 <div class="sourceCode" id="cb149"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb149-1"><a href="#cb149-1" tabindex="-1"></a><span class="fu">print</span>(obj<span class="sc">$</span><span class="fu">predict</span>(X_test))</span></code></pre></div>
 <pre><code>## $preds
 ##  [1] 18.13500 18.13500 17.13105 17.13105 14.64118 14.64118 14.03685 21.29947
@@ -1226,6 +1250,9 @@ Boston</h1>
 ## gear  0.0000000         NaN        NaN       NaN       
 ## carb  0.0000000         NaN        NaN       NaN       
 ## 
+## $codes
+## [1] &quot;Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1&quot;
+## 
 ## $effects
 ## ── Data Summary ────────────────────────
 ##                            Values 
@@ -1251,7 +1278,7 @@ Boston</h1>
 ##  9 gear           0      0       0      0   0   0   0  ▁▁▇▁▁
 ## 10 carb           0      0       0      0   0   0   0  ▁▁▇▁▁</code></pre>
 <div class="sourceCode" id="cb153"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb153-1"><a href="#cb153-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.282 s</code></pre>
+<pre><code>## Elapsed:  1.675 s</code></pre>
 <div class="sourceCode" id="cb155"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb155-1"><a href="#cb155-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb155-2"><a href="#cb155-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">summary</span>(X_test, <span class="at">y=</span>y_test, <span class="at">show_progress=</span><span class="cn">FALSE</span>, <span class="at">type_ci=</span><span class="st">&quot;bootstrap&quot;</span>)</span></code></pre></div>
 <pre><code>## $R_squared
@@ -1268,17 +1295,20 @@ Boston</h1>
 ## [1] 100
 ## 
 ## $citests
-##        estimate      lower    upper
-## cyl   0.0000000  0.0000000  0.00000
-## disp -0.1859971 -0.5579912  0.00000
-## hp    0.0000000  0.0000000  0.00000
-## drat 28.9866074  0.0000000 77.01909
-## wt    0.0000000  0.0000000  0.00000
-## qsec -1.7295559 -5.1886676  0.00000
-## vs    0.0000000  0.0000000  0.00000
-## am    0.0000000  0.0000000  0.00000
-## gear  0.0000000  0.0000000  0.00000
-## carb  0.0000000  0.0000000  0.00000
+##        estimate      lower    upper   p-value signif
+## cyl   0.0000000  0.0000000  0.00000       NaN       
+## disp -0.1859971 -0.5579912  0.00000 0.2237346       
+## hp    0.0000000  0.0000000  0.00000       NaN       
+## drat 28.9866074  0.0000000 77.01909 0.1742390       
+## wt    0.0000000  0.0000000  0.00000       NaN       
+## qsec -1.7295559 -5.1886676  0.00000 0.2237346       
+## vs    0.0000000  0.0000000  0.00000       NaN       
+## am    0.0000000  0.0000000  0.00000       NaN       
+## gear  0.0000000  0.0000000  0.00000       NaN       
+## carb  0.0000000  0.0000000  0.00000       NaN       
+## 
+## $codes
+## [1] &quot;Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1&quot;
 ## 
 ## $effects
 ## ── Data Summary ────────────────────────
@@ -1305,11 +1335,11 @@ Boston</h1>
 ##  9 gear           0      0       0      0   0   0   0  ▁▁▇▁▁
 ## 10 carb           0      0       0      0   0   0   0  ▁▁▇▁▁</code></pre>
 <div class="sourceCode" id="cb157"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb157-1"><a href="#cb157-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.409 s</code></pre>
+<pre><code>## Elapsed:  2.031 s</code></pre>
 <div class="sourceCode" id="cb159"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb159-1"><a href="#cb159-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb159-2"><a href="#cb159-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">fit</span>(X_train, y_train, <span class="at">nrounds=</span><span class="dv">10</span>, <span class="at">verbose=</span><span class="cn">FALSE</span>)</span>
 <span id="cb159-3"><a href="#cb159-3" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.018 s</code></pre>
+<pre><code>## Elapsed:  0.108 s</code></pre>
 <div class="sourceCode" id="cb161"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb161-1"><a href="#cb161-1" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">set_level</span>(<span class="dv">95</span>)</span>
 <span id="cb161-2"><a href="#cb161-2" tabindex="-1"></a>res <span class="ot">&lt;-</span> obj<span class="sc">$</span><span class="fu">predict</span>(<span class="at">X =</span> X_test)</span>
 <span id="cb161-3"><a href="#cb161-3" tabindex="-1"></a></span>
@@ -1329,7 +1359,7 @@ Boston</h1>
 <span id="cb164-2"><a href="#cb164-2" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb164-3"><a href="#cb164-3" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">fit</span>(X_train, y_train, <span class="at">nrounds=</span><span class="dv">10</span>, <span class="at">verbose=</span><span class="cn">FALSE</span>)</span>
 <span id="cb164-4"><a href="#cb164-4" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.016 s</code></pre>
+<pre><code>## Elapsed:  0.032 s</code></pre>
 <div class="sourceCode" id="cb166"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb166-1"><a href="#cb166-1" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">set_level</span>(<span class="dv">95</span>)</span>
 <span id="cb166-2"><a href="#cb166-2" tabindex="-1"></a>res <span class="ot">&lt;-</span> obj<span class="sc">$</span><span class="fu">predict</span>(<span class="at">X =</span> X_test)</span>
 <span id="cb166-3"><a href="#cb166-3" tabindex="-1"></a></span>
@@ -1349,7 +1379,7 @@ Boston</h1>
 <span id="cb169-2"><a href="#cb169-2" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb169-3"><a href="#cb169-3" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">fit</span>(X_train, y_train, <span class="at">nrounds=</span><span class="dv">10</span>, <span class="at">verbose=</span><span class="cn">FALSE</span>)</span>
 <span id="cb169-4"><a href="#cb169-4" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.003 s</code></pre>
+<pre><code>## Elapsed:  0.009 s</code></pre>
 <div class="sourceCode" id="cb171"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb171-1"><a href="#cb171-1" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">set_level</span>(<span class="dv">95</span>)</span>
 <span id="cb171-2"><a href="#cb171-2" tabindex="-1"></a>res <span class="ot">&lt;-</span> obj<span class="sc">$</span><span class="fu">predict</span>(<span class="at">X =</span> X_test)</span>
 <span id="cb171-3"><a href="#cb171-3" tabindex="-1"></a></span>
@@ -1378,7 +1408,7 @@ Boston</h1>
 <div class="sourceCode" id="cb178"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb178-1"><a href="#cb178-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb178-2"><a href="#cb178-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">fit</span>(X_train, y_train, <span class="at">reg_lambda =</span> <span class="fl">0.01</span>)</span>
 <span id="cb178-3"><a href="#cb178-3" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.045 s</code></pre>
+<pre><code>## Elapsed:  0.205 s</code></pre>
 <div class="sourceCode" id="cb180"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb180-1"><a href="#cb180-1" tabindex="-1"></a><span class="fu">print</span>(obj<span class="sc">$</span><span class="fu">predict</span>(X_test))</span></code></pre></div>
 <pre><code>## $preds
 ##           Mazda RX4       Mazda RX4 Wag      Hornet 4 Drive             Valiant 
@@ -1431,6 +1461,9 @@ Boston</h1>
 ## gear   52.646721   -6.640614  111.9340567 7.547657e-02      .
 ## carb  -17.100561  -87.819649   53.6185270 5.976705e-01       
 ## 
+## $codes
+## [1] &quot;Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1&quot;
+## 
 ## $effects
 ## ── Data Summary ────────────────────────
 ##                            Values 
@@ -1467,7 +1500,7 @@ Boston</h1>
 ##  9 ▂▅▅▅▇
 ## 10 ▇▂▁▁▂</code></pre>
 <div class="sourceCode" id="cb184"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb184-1"><a href="#cb184-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.236 s</code></pre>
+<pre><code>## Elapsed:  0.536 s</code></pre>
 <div class="sourceCode" id="cb186"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb186-1"><a href="#cb186-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb186-2"><a href="#cb186-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">summary</span>(X_test, <span class="at">y=</span>y_test, <span class="at">show_progress=</span><span class="cn">FALSE</span>, <span class="at">type_ci=</span><span class="st">&quot;bootstrap&quot;</span>)</span></code></pre></div>
 <pre><code>## $R_squared
@@ -1484,17 +1517,20 @@ Boston</h1>
 ## [1] 100
 ## 
 ## $citests
-##         estimate       lower         upper
-## cyl   137.649985   67.927710  224.49681122
-## disp   -2.406399   -4.543447   -0.83146440
-## hp     -0.527573   -1.228274    0.08917815
-## drat  707.372951  379.807480 1129.02366858
-## wt   -500.429007 -557.338124 -452.13988493
-## qsec  -89.930939 -115.877565  -59.82831064
-## vs    234.198406  -17.180072  581.09310604
-## am   -235.789718 -437.517547   13.80315000
-## gear   52.646721    6.427697   94.54115818
-## carb  -17.100561  -69.147781   45.17009752
+##         estimate       lower         upper      p-value signif
+## cyl   137.649985   67.927710  224.49681122 7.317784e-03     **
+## disp   -2.406399   -4.543447   -0.83146440 3.164812e-02      *
+## hp     -0.527573   -1.228274    0.08917815 1.509239e-01       
+## drat  707.372951  379.807480 1129.02366858 4.912929e-03     **
+## wt   -500.429007 -557.338124 -452.13988493 1.682493e-08    ***
+## qsec  -89.930939 -115.877565  -59.82831064 1.427513e-04    ***
+## vs    234.198406  -17.180072  581.09310604 1.592806e-01       
+## am   -235.789718 -437.517547   13.80315000 7.084922e-02      .
+## gear   52.646721    6.427697   94.54115818 4.386846e-02      *
+## carb  -17.100561  -69.147781   45.17009752 5.720359e-01       
+## 
+## $codes
+## [1] &quot;Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1&quot;
 ## 
 ## $effects
 ## ── Data Summary ────────────────────────
@@ -1532,11 +1568,11 @@ Boston</h1>
 ##  9 ▂▅▅▅▇
 ## 10 ▇▂▁▁▂</code></pre>
 <div class="sourceCode" id="cb188"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb188-1"><a href="#cb188-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.397 s</code></pre>
+<pre><code>## Elapsed:  2.81 s</code></pre>
 <div class="sourceCode" id="cb190"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb190-1"><a href="#cb190-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb190-2"><a href="#cb190-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">fit</span>(X_train, y_train)</span>
 <span id="cb190-3"><a href="#cb190-3" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.005 s</code></pre>
+<pre><code>## Elapsed:  0.055 s</code></pre>
 <div class="sourceCode" id="cb192"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb192-1"><a href="#cb192-1" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">set_level</span>(<span class="dv">95</span>)</span>
 <span id="cb192-2"><a href="#cb192-2" tabindex="-1"></a>res <span class="ot">&lt;-</span> obj<span class="sc">$</span><span class="fu">predict</span>(<span class="at">X =</span> X_test)</span>
 <span id="cb192-3"><a href="#cb192-3" tabindex="-1"></a></span>
@@ -1564,7 +1600,7 @@ Boston</h1>
 <span id="cb196-7"><a href="#cb196-7" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb196-8"><a href="#cb196-8" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">update</span>(newx, newy)</span>
 <span id="cb196-9"><a href="#cb196-9" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.007 s</code></pre>
+<pre><code>## Elapsed:  0.025 s</code></pre>
 <div class="sourceCode" id="cb198"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb198-1"><a href="#cb198-1" tabindex="-1"></a><span class="fu">summary</span>(previous_coefs)</span></code></pre></div>
 <pre><code>##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
 ## -0.68212 -0.26567 -0.05157  0.00700  0.21046  2.19222</code></pre>
@@ -1602,6 +1638,9 @@ Boston</h1>
 ## gear   57.7630332  -18.934712  134.4607782 1.206459e-01       
 ## carb  -42.9572292 -108.690903   22.7764447 1.702409e-01       
 ## 
+## $codes
+## [1] &quot;Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1&quot;
+## 
 ## $effects
 ## ── Data Summary ────────────────────────
 ##                            Values 
@@ -1638,7 +1677,7 @@ Boston</h1>
 ##  9 ▃▇▇▇▇
 ## 10 ▇▅▁▁▂</code></pre>
 <div class="sourceCode" id="cb205"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb205-1"><a href="#cb205-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> start, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.264 s</code></pre>
+<pre><code>## Elapsed:  0.516 s</code></pre>
 <div class="sourceCode" id="cb207"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb207-1"><a href="#cb207-1" tabindex="-1"></a>start <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb207-2"><a href="#cb207-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">summary</span>(new_X_test, <span class="at">y=</span>new_y_test, <span class="at">show_progress=</span><span class="cn">FALSE</span>, <span class="at">type_ci=</span><span class="st">&quot;bootstrap&quot;</span>)</span></code></pre></div>
 <pre><code>## $R_squared
@@ -1655,17 +1694,20 @@ Boston</h1>
 ## [1] 100
 ## 
 ## $citests
-##          estimate       lower        upper
-## cyl   111.6701473   56.594459  201.0414388
-## disp   -1.7983224   -3.653135   -0.7503408
-## hp     -0.4167545   -1.276126    0.2910989
-## drat  569.9102780  332.259718  964.1132085
-## wt   -504.1496696 -578.789199 -452.5053839
-## qsec -107.9102921 -129.483384  -82.5423190
-## vs    145.0280002  -28.272020  432.6517253
-## am   -319.6910568 -475.989615  -90.6464455
-## gear   57.7630332    1.751775  117.2749634
-## carb  -42.9572292  -84.450432   16.1551891
+##          estimate       lower        upper      p-value signif
+## cyl   111.6701473   56.594459  201.0414388 1.629833e-02      *
+## disp   -1.7983224   -3.653135   -0.7503408 4.130189e-02      *
+## hp     -0.4167545   -1.276126    0.2910989 3.277078e-01       
+## drat  569.9102780  332.259718  964.1132085 7.668526e-03     **
+## wt   -504.1496696 -578.789199 -452.5053839 2.773501e-07    ***
+## qsec -107.9102921 -129.483384  -82.5423190 1.836083e-05    ***
+## vs    145.0280002  -28.272020  432.6517253 2.524377e-01       
+## am   -319.6910568 -475.989615  -90.6464455 1.166475e-02      *
+## gear   57.7630332    1.751775  117.2749634 8.565636e-02      .
+## carb  -42.9572292  -84.450432   16.1551891 1.327138e-01       
+## 
+## $codes
+## [1] &quot;Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1&quot;
 ## 
 ## $effects
 ## ── Data Summary ────────────────────────
@@ -1703,7 +1745,7 @@ Boston</h1>
 ##  9 ▃▇▇▇▇
 ## 10 ▇▅▁▁▂</code></pre>
 <div class="sourceCode" id="cb209"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb209-1"><a href="#cb209-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> start, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.376 s</code></pre>
+<pre><code>## Elapsed:  1.691 s</code></pre>
 <div class="sourceCode" id="cb211"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb211-1"><a href="#cb211-1" tabindex="-1"></a>res <span class="ot">&lt;-</span> obj<span class="sc">$</span><span class="fu">predict</span>(<span class="at">X =</span> new_X_test)</span>
 <span id="cb211-2"><a href="#cb211-2" tabindex="-1"></a> </span>
 <span id="cb211-3"><a href="#cb211-3" tabindex="-1"></a>new_y_train <span class="ot">&lt;-</span> <span class="fu">c</span>(y_train, newy)</span>
@@ -1730,7 +1772,7 @@ Boston</h1>
 <div class="sourceCode" id="cb215"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb215-1"><a href="#cb215-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb215-2"><a href="#cb215-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">update</span>(newx, newy)</span>
 <span id="cb215-3"><a href="#cb215-3" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.007 s</code></pre>
+<pre><code>## Elapsed:  0.012 s</code></pre>
 <div class="sourceCode" id="cb217"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb217-1"><a href="#cb217-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb217-2"><a href="#cb217-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">summary</span>(new_X_test, <span class="at">y=</span>new_y_test, <span class="at">show_progress=</span><span class="cn">FALSE</span>)</span></code></pre></div>
 <pre><code>## $R_squared
@@ -1758,6 +1800,9 @@ Boston</h1>
 ## am   -395.7216847 -562.762331 -228.6810387 8.143911e-04    ***
 ## gear   53.0732573  -59.833653  165.9801679 3.030574e-01       
 ## carb  -25.9448064  -63.759959   11.8703467 1.487567e-01       
+## 
+## $codes
+## [1] &quot;Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1&quot;
 ## 
 ## $effects
 ## ── Data Summary ────────────────────────
@@ -1795,7 +1840,7 @@ Boston</h1>
 ##  9 ▂▅▅▁▇
 ## 10 ▂▅▇▁▅</code></pre>
 <div class="sourceCode" id="cb219"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb219-1"><a href="#cb219-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.237 s</code></pre>
+<pre><code>## Elapsed:  0.352 s</code></pre>
 <div class="sourceCode" id="cb221"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb221-1"><a href="#cb221-1" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">proc.time</span>()[<span class="dv">3</span>]</span>
 <span id="cb221-2"><a href="#cb221-2" tabindex="-1"></a>obj<span class="sc">$</span><span class="fu">summary</span>(new_X_test, <span class="at">y=</span>new_y_test, <span class="at">show_progress=</span><span class="cn">FALSE</span>, <span class="at">type_ci=</span><span class="st">&quot;bootstrap&quot;</span>)</span></code></pre></div>
 <pre><code>## $R_squared
@@ -1812,17 +1857,20 @@ Boston</h1>
 ## [1] 75
 ## 
 ## $citests
-##          estimate       lower        upper
-## cyl    40.8981137   13.611534   65.5300212
-## disp   -0.7335494   -1.115045   -0.4043467
-## hp     -0.8233606   -1.910531    0.1687140
-## drat  549.7206897  443.074920  626.9047838
-## wt   -469.9351032 -516.601161 -418.4594690
-## qsec -116.6183871 -145.417748  -84.7362399
-## vs   -194.4213942 -267.427325 -127.3499666
-## am   -395.7216847 -515.026287 -273.6581298
-## gear   53.0732573  -37.486884  134.4552153
-## carb  -25.9448064  -53.884043    2.7424530
+##          estimate       lower        upper      p-value signif
+## cyl    40.8981137   13.611534   65.5300212 1.761953e-02      *
+## disp   -0.7335494   -1.115045   -0.4043467 4.895727e-03     **
+## hp     -0.8233606   -1.910531    0.1687140 1.645431e-01       
+## drat  549.7206897  443.074920  626.9047838 7.440063e-06    ***
+## wt   -469.9351032 -516.601161 -418.4594690 3.026569e-07    ***
+## qsec -116.6183871 -145.417748  -84.7362399 1.335105e-04    ***
+## vs   -194.4213942 -267.427325 -127.3499666 9.655321e-04    ***
+## am   -395.7216847 -515.026287 -273.6581298 3.580841e-04    ***
+## gear   53.0732573  -37.486884  134.4552153 2.655631e-01       
+## carb  -25.9448064  -53.884043    2.7424530 1.155572e-01       
+## 
+## $codes
+## [1] &quot;Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1&quot;
 ## 
 ## $effects
 ## ── Data Summary ────────────────────────
@@ -1860,7 +1908,7 @@ Boston</h1>
 ##  9 ▂▅▅▁▇
 ## 10 ▂▅▇▁▅</code></pre>
 <div class="sourceCode" id="cb223"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb223-1"><a href="#cb223-1" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">&quot;Elapsed: &quot;</span>, <span class="fu">proc.time</span>()[<span class="dv">3</span>] <span class="sc">-</span> t0, <span class="st">&quot;s </span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
-<pre><code>## Elapsed:  0.344 s</code></pre>
+<pre><code>## Elapsed:  1.112 s</code></pre>
 <div class="sourceCode" id="cb225"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb225-1"><a href="#cb225-1" tabindex="-1"></a>res <span class="ot">&lt;-</span> obj<span class="sc">$</span><span class="fu">predict</span>(<span class="at">X =</span> new_X_test)</span>
 <span id="cb225-2"><a href="#cb225-2" tabindex="-1"></a> </span>
 <span id="cb225-3"><a href="#cb225-3" tabindex="-1"></a>new_y_train <span class="ot">&lt;-</span> <span class="fu">c</span>(y_train, y_test[<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>)])</span>

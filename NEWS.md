@@ -1,3 +1,7 @@
+# version 2.5.0 (2024-09-20)
+
+- tests for nonparametric confidence intervals of average effects (based on rescaled winkler scores)
+
 # version 2.4.0 (2024-08-29)
 
 - add bootstrapped confidence intervals for average effects
