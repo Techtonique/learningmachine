@@ -2,10 +2,10 @@
 % Please edit documentation in R/Base.R
 \name{Base}
 \alias{Base}
-\title{`Base` class}
+\title{\code{Base} class}
 \description{
-the `Base` class used by other objects; useful 
-for extensions of the package, not for basic 
+the \code{Base} class used by other objects; useful
+for extensions of the package, not for basic
 interactions with the package
 }
 \section{Methods}{
@@ -93,25 +93,25 @@ Create a new object.
 \item{\code{nb_hidden}}{number of nodes in the hidden layer, for construction of a quasi-
 randomized network}
 
-\item{\code{nodes_sim}}{type of 'simulations' for hidden nodes, if \code{nb_hidden} > 0; 
+\item{\code{nodes_sim}}{type of 'simulations' for hidden nodes, if \code{nb_hidden} > 0;
 takes values in c("sobol", "halton", "unif")}
 
-\item{\code{activ}}{activation function's name for the hidden layer, in the construction 
+\item{\code{activ}}{activation function's name for the hidden layer, in the construction
 of a quasi-randomized network; takes values in c("relu", "sigmoid", "tanh", "
 leakyrelu", "elu", "linear")}
 
-\item{\code{engine}}{contains fit and predict lower-level methods for the given \code{method}; 
+\item{\code{engine}}{contains fit and predict lower-level methods for the given \code{method};
 do not modify by hand}
 
 \item{\code{params}}{additional parameters passed to \code{method} when calling \code{fit}}
 
-\item{\code{seed}}{an integer; reproducibility seed for methods that include 
+\item{\code{seed}}{an integer; reproducibility seed for methods that include
 randomization}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A new `Base` object.
+A new \code{Base} object.
 }
 }
 \if{html}{\out{<hr>}}
@@ -332,7 +332,7 @@ A new `Base` object.
   class_name = NULL,
   class_index = NULL,
   y = NULL,
-  type_ci = c("student", "nonparametric", "bootstrap"),
+  type_ci = c("student", "nonparametric", "bootstrap", "conformal"),
   cl = NULL
 )}\if{html}{\out{</div>}}
 }

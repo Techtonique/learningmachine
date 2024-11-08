@@ -58,6 +58,10 @@ print(obj$predict(X_test))
 obj$summary(X_test, y=y_test, show_progress=FALSE)
 ```
 
+```{r}
+obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="conformal")
+```
+
 ```{r fig.width=7.2}
 t0 <- proc.time()[3]
 obj$fit(X_train, y_train)
@@ -109,6 +113,10 @@ abline(h = 0, lty=2, col="red")
 obj$summary(new_X_test, y=new_y_test, show_progress=FALSE)
 ```
 
+```{r}
+obj$summary(new_X_test, y=new_y_test, show_progress=FALSE, type_ci="conformal")
+```
+
 ```{r fig.width=7.2}
 res <- obj$predict(X = new_X_test)
  
@@ -146,6 +154,10 @@ cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 
 ```{r eval=TRUE}
 obj$summary(new_X_test, y=new_y_test, show_progress=FALSE)
+```
+
+```{r eval=TRUE}
+obj$summary(new_X_test, y=new_y_test, show_progress=FALSE, type_ci="conformal")
 ```
 
 ```{r fig.width=7.2, eval=TRUE}
@@ -211,6 +223,10 @@ abline(h = 0, lty=2, col="red")
 obj$summary(new_X_test, y=new_y_test, show_progress=FALSE)
 ```
 
+```{r eval=TRUE}
+obj$summary(new_X_test, y=new_y_test, show_progress=FALSE, type_ci="conformal")
+```
+
 ```{r fig.width=7.2}
 res <- obj$predict(X = new_X_test)
  
@@ -248,6 +264,10 @@ cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 
 ```{r eval=TRUE}
 obj$summary(new_X_test, y=new_y_test, show_progress=FALSE)
+```
+
+```{r eval=TRUE}
+obj$summary(new_X_test, y=new_y_test, show_progress=FALSE, type_ci="conformal")
 ```
 
 ```{r fig.width=7.2, eval=TRUE}

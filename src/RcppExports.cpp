@@ -153,6 +153,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// fastSampleCpp
+NumericVector fastSampleCpp(NumericVector resids, int n);
+RcppExport SEXP _learningmachine_fastSampleCpp(SEXP residsSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type resids(residsSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(fastSampleCpp(resids, n));
+    return rcpp_result_gen;
+END_RCPP
+}
 // empirical_quantile_cpp
 double empirical_quantile_cpp(Rcpp::NumericVector x, double q);
 RcppExport SEXP _learningmachine_empirical_quantile_cpp(SEXP xSEXP, SEXP qSEXP) {
@@ -217,6 +229,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_learningmachine_inters2", (DL_FUNC) &_learningmachine_inters2, 5},
     {"_learningmachine_solve_eigen", (DL_FUNC) &_learningmachine_solve_eigen, 4},
     {"_learningmachine_find_lam_eigen", (DL_FUNC) &_learningmachine_find_lam_eigen, 4},
+    {"_learningmachine_fastSampleCpp", (DL_FUNC) &_learningmachine_fastSampleCpp, 2},
     {"_learningmachine_empirical_quantile_cpp", (DL_FUNC) &_learningmachine_empirical_quantile_cpp, 2},
     {"_learningmachine_row_quantiles_cpp", (DL_FUNC) &_learningmachine_row_quantiles_cpp, 2},
     {"_learningmachine_calculate_quantiles_cpp", (DL_FUNC) &_learningmachine_calculate_quantiles_cpp, 3},

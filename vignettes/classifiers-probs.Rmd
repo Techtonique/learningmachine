@@ -79,7 +79,7 @@ obj$summary(X_test, y=y_test,
 print(head(X_test))
 obj$summary(X_test, y=y_test, 
             class_name = "setosa",
-            show_progress=FALSE, type_ci="nonparametric")
+            show_progress=FALSE, type_ci="conformal")
 ```
 
 # 2 - `ranger` classification
@@ -117,7 +117,7 @@ obj$summary(X_test, y=y_test,
 ```{r}
 obj$summary(X_test, y=y_test, 
             class_index = 2,
-            show_progress=FALSE, type_ci="nonparametric")
+            show_progress=FALSE, type_ci="conformal")
 ```
 
 # 3 - `extratrees` classification
@@ -156,7 +156,7 @@ obj$summary(X_test, y=y_test,
 ```{r}
 obj$summary(X_test, y=y_test, 
             class_name = "setosa",
-            show_progress=FALSE, type_ci="nonparametric")
+            show_progress=FALSE, type_ci="conformal")
 ```
 
 # 4 - Penguins dataset

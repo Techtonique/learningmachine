@@ -1,4 +1,4 @@
-.PHONY: build buildsite check clean coverage docs getwd initialize install installcranpkg installgithubpkg installedpkgs load removepkg render setwd start test usegit
+.PHONY: build buildsite check clean cleanvars coverage docs getwd initialize install installcranpkg installgithubpkg installedpkgs load removepkg render setwd start test usegit
 .DEFAULT_GOAL := help
 
 # The directory where R files are stored
@@ -44,8 +44,21 @@ check: clean setwd ## check package
 clean: ## remove all build, and artifacts
 	rm -f .Rhistory
 	rm -f *.RData
-	rm -f *.Rproj
+	rm -f *.Rproj	
 	rm -rf .Rproj.user
+	rm -f src/*.o
+	rm -f src/*.so
+	rm -f src/*.tmp
+	rm -f vignettes/*.html
+
+cleanvars: setwd ## remove all local variables
+	@read -p "Do you want to remove all local variables in R? (1-yes, 2-no): " choice; \
+	if [ $$choice -eq 1 ]; then \
+		echo "Removing all local variables..."; \
+		Rscript -e "rm(list=ls())"; \
+	else \
+		echo "Keeping the variables."; \
+	fi
 
 coverage: ## get test coverage
 	Rscript -e "devtools::test_coverage('.')"
@@ -60,8 +73,12 @@ docs: clean setwd ## generate docs
 getwd: ## get current directory
 	Rscript -e "getwd()"
 
-install: clean setwd ## install current package
+install: clean setwd docs ## install current package
 	Rscript -e "try(devtools::install('.'), silent = FALSE)"
+	@read -p "Start R session? (y/n): " choice; \
+	if [ "$$choice" = "y" ]; then \
+		$(MAKE) start; \
+	fi
 
 installcranpkg: setwd ## install a package
 	@read -p "Enter the name of package to be installed: " pckg; \
@@ -88,10 +105,14 @@ initialize: setwd ## initialize: install packages devtools, usethis, pkgdown and
 help: ## print menu with all options
 	@python3 -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
 
-load: clean setwd ## load all (when developing the package)
+load: clean setwd docs ## load all and restart (when developing the package)
 	Rscript -e "devtools::load_all('.')"
+	@read -p "Start R session? (y/n): " choice; \
+	if [ "$$choice" = "y" ]; then \
+		$(MAKE) start; \
+	fi
 
-removepkg: ## remove package
+removepkg: clean ## remove package
 	@read -p "Enter the name of package to be removed: " pckg; \
 	if [ -z "$$pckg" ]; then \
 		echo "Package name cannot be empty."; \

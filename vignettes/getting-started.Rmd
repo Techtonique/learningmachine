@@ -195,6 +195,12 @@ obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="bootstrap")
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
+```{r}
+t0 <- proc.time()[3]
+obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="conformal")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
 **`ranger`**
 
 ```{r}
@@ -223,6 +229,12 @@ cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```{r}
 t0 <- proc.time()[3]
 obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="bootstrap")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r}
+t0 <- proc.time()[3]
+obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="conformal")
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
@@ -314,6 +326,12 @@ obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="bootstrap")
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
+```{r}
+t0 <- proc.time()[3]
+obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="conformal")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
 ```{r fig.width=7.2}
 obj$set_pi_method("kdejackknifeplus")
 t0 <- proc.time()[3]
@@ -347,6 +365,13 @@ obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="bootstrap")
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
+```{r}
+t0 <- proc.time()[3]
+obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="conformal")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+
 **`xgboost`**
 
 ```{r}
@@ -376,6 +401,13 @@ t0 <- proc.time()[3]
 obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="bootstrap")
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
+
+```{r}
+t0 <- proc.time()[3]
+obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="conformal")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
 
 ```{r fig.width=7.2}
 t0 <- proc.time()[3]
@@ -476,6 +508,12 @@ obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="bootstrap")
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 
+```{r}
+t0 <- proc.time()[3]
+obj$summary(X_test, y=y_test, show_progress=FALSE, type_ci="conformal")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
 ```{r fig.width=7.2}
 t0 <- proc.time()[3]
 obj$fit(X_train, y_train)
@@ -535,6 +573,12 @@ obj$summary(new_X_test, y=new_y_test, show_progress=FALSE, type_ci="bootstrap")
 cat("Elapsed: ", proc.time()[3] - start, "s \n")
 ```
 
+```{r}
+start <- proc.time()[3]
+obj$summary(new_X_test, y=new_y_test, show_progress=FALSE, type_ci="conformal")
+cat("Elapsed: ", proc.time()[3] - start, "s \n")
+```
+
 ```{r fig.width=7.2}
 res <- obj$predict(X = new_X_test)
  
@@ -579,6 +623,12 @@ cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```{r eval=TRUE}
 t0 <- proc.time()[3]
 obj$summary(new_X_test, y=new_y_test, show_progress=FALSE, type_ci="bootstrap")
+cat("Elapsed: ", proc.time()[3] - t0, "s \n")
+```
+
+```{r eval=TRUE}
+t0 <- proc.time()[3]
+obj$summary(new_X_test, y=new_y_test, show_progress=FALSE, type_ci="conformal")
 cat("Elapsed: ", proc.time()[3] - t0, "s \n")
 ```
 

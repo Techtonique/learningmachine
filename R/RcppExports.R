@@ -45,6 +45,10 @@ find_lam_eigen <- function(Eigenvectors, Eigenvalues, y, reg_lambda_vector) {
     .Call(`_learningmachine_find_lam_eigen`, Eigenvectors, Eigenvalues, y, reg_lambda_vector)
 }
 
+fastSampleCpp <- function(resids, n) {
+    .Call(`_learningmachine_fastSampleCpp`, resids, n)
+}
+
 empirical_quantile_cpp <- function(x, q) {
     .Call(`_learningmachine_empirical_quantile_cpp`, x, q)
 }

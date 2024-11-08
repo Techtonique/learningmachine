@@ -748,6 +748,13 @@ t_test_from_ci <- function(mean_estimate, lower_bound, upper_bound, df, conf_lev
   return(p_value)
 }
 
+# Non-parametric test using Wilcoxon Signed-Rank Test
+wilcoxon_test <- function(x, mu_0 = 0) {
+  # Perform a one-sample Wilcoxon signed-rank test
+  test_result <- wilcox.test(x, mu = mu_0)
+  return(test_result$p.value)
+}
+
 compute_ci_mean <- function(xx, 
                             type_split = c("random", 
                                            "sequential"), 
@@ -793,12 +800,7 @@ compute_ci_mean <- function(xx,
   estimate <- stats::median(pseudo_means_x)
   lower <- quantile(pseudo_means_x, probs = 1 - upper_prob)
   upper <- quantile(pseudo_means_x, probs = upper_prob)
-  pvalue <- t_test_from_ci(mean_estimate = estimate, 
-                           lower_bound = lower, 
-                           upper_bound = upper, 
-                           df = length(pseudo_means_x) - 1,
-                           conf_level = level/100, 
-                           mu_0 = 0)
+  pvalue <- wilcoxon_test(pseudo_means_x)
 
   return(list(
     estimate = estimate,
@@ -813,7 +815,7 @@ compute_ci_mean <- function(xx,
 bootstrap_ci_mean <- function(xx, level = 95, seed = 123) {
 
   set.seed(seed)
-  B <- 500L
+  B <- 1000L
   alpha <- 1 - level / 100
 
   bootstrap_means <- rep(0, B)  
@@ -824,19 +826,58 @@ bootstrap_ci_mean <- function(xx, level = 95, seed = 123) {
   }
   
   # Step 2: Calculate the confidence interval
-  estimate <- mean(xx)
+  estimate <- median(bootstrap_means)
   lower_bound <- quantile(bootstrap_means, alpha / 2)
   upper_bound <- quantile(bootstrap_means, 1 - alpha / 2)  
-  pvalue <- t_test_from_ci(mean_estimate = estimate, 
-                           lower_bound = lower_bound, 
-                           upper_bound = upper_bound, 
-                           df = length(xx) - 1,
-                           conf_level = level/100, 
-                           mu_0 = 0)
+  pvalue <- wilcoxon_test(bootstrap_means)
 
   return(list(
     estimate = estimate,
     lower = lower_bound,
     upper = upper_bound,    
     pvalue = pvalue))
+}
+
+
+boot_means_matrix <- function(B, mean_estimate, resids, seed) {
+  set.seed(seed)
+  n <- length(resids)
+  # Add mean_estimate to each resampled residual and compute means
+  colMeans(matrix(resids[matrix(sample(n, size = n * B, replace = TRUE), nrow = n, ncol = B)], 
+  nrow = n, ncol = B) + mean_estimate)
+}
+
+conformal_ci_mean <- function(xx, level = 95, seed = 123, cpp=TRUE) {
+  set.seed(seed)
+  alpha <- 1 - (level / 100)
+  n_xx <- length(xx)
+  half_n_xx <- n_xx %/% 2
+  idx_train <- sample(seq_len(n_xx), replace = FALSE, size = half_n_xx)
+
+  # Calculate the mean estimate on the sampled training set
+  mean_estimate <- mean(xx[idx_train])
+
+  # Calculate residuals from the remaining data points
+  resids <- xx[-idx_train] - mean_estimate
+
+  # Bootstrap the residuals to estimate the variability
+  B <- 500L  # Number of bootstrap samples
+
+  if (cpp)
+  {
+    boot_samples <- matrix(fastSampleCpp(resids, B * length(resids)), ncol = B)
+  } else {
+    boot_samples <- matrix(sample(resids, size = B * length(resids), replace = TRUE), ncol = B)
+  }
+  boot_means <- colMeans(mean_estimate + boot_samples)
+
+  # Derive the confidence interval from the bootstrap distribution of means
+  lower <- as.numeric(quantile(boot_means, alpha / 2))
+  upper <- as.numeric(quantile(boot_means, 1 - alpha / 2))
+ 
+  return(list(
+    estimate = median(boot_means),
+    lower = lower,
+    upper =  upper,
+    pvalue = wilcoxon_test(boot_means)))
 }

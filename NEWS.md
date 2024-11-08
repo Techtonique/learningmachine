@@ -1,3 +1,8 @@
+# version 2.6.0 (2024-11-08)
+
+- conformal confidence intervals for average effects
+- use Wilcoxon signed-rank test for nonparametric test on average effects
+
 # version 2.5.0 (2024-09-20)
 
 - tests for nonparametric confidence intervals of average effects (based on rescaled winkler scores)

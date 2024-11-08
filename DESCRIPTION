@@ -1,8 +1,8 @@
 Package: learningmachine
 Type: Package
 Title: Machine Learning with Explanations and Uncertainty Quantification
-Version: 2.6.0
-Date: 2024-09-20
+Version: 2.7.0
+Date: 2024-11-08
 Author: T. Moudiki
 Maintainer: T. Moudiki <thierry.moudiki@gmail.com>
 Description: Regression-based Machine Learning with explanations and uncertainty quantification.
@@ -29,5 +29,6 @@ Suggests:
     roxygen2,
     testthat (>= 3.0.0),
     xgboost
+Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
 Config/testthat/edition: 3

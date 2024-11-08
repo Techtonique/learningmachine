@@ -2,12 +2,12 @@
 % Please edit documentation in R/Regressor.R
 \name{Regressor}
 \alias{Regressor}
-\title{`Regressor` class}
+\title{\code{Regressor} class}
 \description{
-The `Regressor` class contains supervised regression models
+The \code{Regressor} class contains supervised regression models
 }
 \details{
-This class implements models: 
+This class implements models:
 
 \describe{
 \item{lm}{Linear model}
@@ -34,8 +34,8 @@ This class implements models:
 
 \item{\code{model}}{fitted model}
 
-\item{\code{method}}{supervised learning method in c('lm', 'ranger', 
-'extratrees', 'ridge', 'bcn', 'glmnet', 'krr', 
+\item{\code{method}}{supervised learning method in c('lm', 'ranger',
+'extratrees', 'ridge', 'bcn', 'glmnet', 'krr',
 'xgboost', 'svm')}
 
 \item{\code{X_train}}{training set features; do not modify by hand}
@@ -55,20 +55,20 @@ for prediction intervals}
 \item{\code{nb_hidden}}{number of nodes in the hidden layer, for construction of a quasi-
 randomized network}
 
-\item{\code{nodes_sim}}{type of 'simulations' for hidden nodes, if \code{nb_hidden} > 0; 
+\item{\code{nodes_sim}}{type of 'simulations' for hidden nodes, if \code{nb_hidden} > 0;
 takes values in c("sobol", "halton", "unif")}
 
-\item{\code{activ}}{activation function's name for the hidden layer, in the construction 
+\item{\code{activ}}{activation function's name for the hidden layer, in the construction
 of a quasi-randomized network; takes values in c("relu", "sigmoid", "tanh", "
 leakyrelu", "elu", "linear")}
 
-\item{\code{engine}}{contains fit and predic lower-level methods for the given \code{method}; 
+\item{\code{engine}}{contains fit and predic lower-level methods for the given \code{method};
 do not modify by hand}
 
 \item{\code{params}}{additional parameters passed to \code{method} when calling \code{fit}
 do not modify by hand}
 
-\item{\code{seed}}{an integer; reproducibility seed for methods that include 
+\item{\code{seed}}{an integer; reproducibility seed for methods that include
 randomization}
 }
 \if{html}{\out{</div>}}
@@ -142,7 +142,7 @@ Create a new object.
 }
 
 \subsection{Returns}{
-A new `Regressor` object.
+A new \code{Regressor} object.
 }
 }
 \if{html}{\out{<hr>}}
@@ -161,8 +161,8 @@ Fit model to training set
 
 \item{\code{y}}{a vector, the response (i.e variable to be explained)}
 
-\item{\code{type_split}}{type of data splitting for split conformal prediction: 
-"stratify" (for classical supervised learning) "sequential" (when 
+\item{\code{type_split}}{type of data splitting for split conformal prediction:
+"stratify" (for classical supervised learning) "sequential" (when
 the data sequential ordering matters)}
 
 \item{\code{...}}{additional parameters to learning algorithm (see vignettes)}
@@ -229,7 +229,7 @@ update model in an online fashion (for now, only implemented for 'rvfl' models")
 
 \item{\code{newy}}{a numeric, the new response's observation (i.e variable to be explained)}
 
-\item{\code{...}}{additional parameters to be passed to the underlying model's method `update`}
+\item{\code{...}}{additional parameters to be passed to the underlying model's method \code{update}}
 }
 \if{html}{\out{</div>}}
 }

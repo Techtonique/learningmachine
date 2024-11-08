@@ -2,12 +2,12 @@
 % Please edit documentation in R/Classifier.R
 \name{Classifier}
 \alias{Classifier}
-\title{`Classifier` class}
+\title{\code{Classifier} class}
 \description{
-The `Classifier` class contains supervised classification models
+The \code{Classifier} class contains supervised classification models
 }
 \details{
-This class implements models: 
+This class implements models:
 
 \describe{
 \item{lm}{Linear model}
@@ -33,7 +33,7 @@ This class implements models:
 
 \item{\code{model}}{fitted model}
 
-\item{\code{method}}{supervised learning method in c('lm', 'ranger', 
+\item{\code{method}}{supervised learning method in c('lm', 'ranger',
 'extratrees', 'ridge', 'bcn', 'glmnet', 'krr', 'xgboost')}
 
 \item{\code{X_train}}{training set features; do not modify by hand}
@@ -41,7 +41,7 @@ This class implements models:
 \item{\code{y_train}}{training set response; do not modify by hand}
 
 \item{\code{pi_method}}{type of prediction set in c("splitconformal",
-"kdesplitconformal", "bootsplitconformal", 
+"kdesplitconformal", "bootsplitconformal",
 "surrsplitconformal")}
 
 \item{\code{level}}{an integer; the level of confidence (default is 95, for 95 per cent)
@@ -54,20 +54,20 @@ for prediction sets}
 \item{\code{nb_hidden}}{number of nodes in the hidden layer, for construction of a quasi-
 randomized network}
 
-\item{\code{nodes_sim}}{type of 'simulations' for hidden nodes, if \code{nb_hidden} > 0; 
+\item{\code{nodes_sim}}{type of 'simulations' for hidden nodes, if \code{nb_hidden} > 0;
 takes values in c("sobol", "halton", "unif")}
 
-\item{\code{activ}}{activation function's name for the hidden layer, in the construction 
+\item{\code{activ}}{activation function's name for the hidden layer, in the construction
 of a quasi-randomized network; takes values in c("relu", "sigmoid", "tanh", "
 leakyrelu", "elu", "linear")}
 
-\item{\code{engine}}{contains fit and predic lower-level methods for the given \code{method}; 
+\item{\code{engine}}{contains fit and predic lower-level methods for the given \code{method};
 do not modify by hand}
 
 \item{\code{params}}{additional parameters passed to \code{method} when calling \code{fit}
 do not modify by hand}
 
-\item{\code{seed}}{an integer; reproducibility seed for methods that include 
+\item{\code{seed}}{an integer; reproducibility seed for methods that include
 randomization}
 }
 \if{html}{\out{</div>}}
@@ -141,7 +141,7 @@ Create a new object.
 }
 
 \subsection{Returns}{
-A new `Classifier` object.
+A new \code{Classifier} object.
 }
 }
 \if{html}{\out{<hr>}}

@@ -197,7 +197,7 @@ Base <-
                          class_name = NULL,
                          class_index = NULL, 
                          y = NULL,
-                         type_ci = c("student", "nonparametric", "bootstrap"),
+                         type_ci = c("student", "nonparametric", "bootstrap", "conformal"),
                          cl = NULL) {
         if (is.null(self$engine) || is.null(self$model) || is.null(self$type))
           stop(paste0(self$name, " must be fitted first (use ", self$name, "$fit())"))
@@ -331,6 +331,23 @@ Base <-
             return(c(0, NA, NA, NA))
           }                    
         }
+
+        foo_conformal_tests <- function(x)
+        {
+          res <- try(conformal_ci_mean(x), 
+                     silent = TRUE)
+          if (!inherits(res, "try-error"))
+          {
+            return(c(
+            as.numeric(res$estimate),
+            res$lower,
+            res$upper,
+            res$pvalue
+          ))
+          } else {
+            return(c(0, NA, NA, NA))
+          }                    
+        }
         
         lower_signif_codes <- c(0, 0.001, 0.01, 0.05, 0.1)
         upper_signif_codes <- c(0.001, 0.01, 0.05, 0.1, 1)
@@ -348,6 +365,9 @@ Base <-
         if (identical(type_ci, "bootstrap"))
           citests <- try(data.frame(t(apply(effects, 2, foo_bootstrap_tests))), silent = TRUE)
         
+        if (identical(type_ci, "conformal"))
+          citests <- try(data.frame(t(apply(effects, 2, foo_conformal_tests))), silent = TRUE)
+        
         #misc::debug_print(citests)
 
         if (!inherits(citests, "try-error"))
@@ -363,9 +383,11 @@ Base <-
               if (self$type == "regression")
               {
                 coverage_rate <- 100 * mean((y >= as.numeric(preds$lower)) * (y <= as.numeric(preds$upper)))
+
                 R_squared <- 1 - sum((y - preds$preds) ^ 2) / sum((y - mean(y)) ^ 2)
                 R_squared_adj <-
                   1 - (1 - R_squared) * (length(y) - 1) / (length(y) - ncol(X) - 1)
+
                 Residuals <- y - preds$preds
                 return(list(
                   R_squared = R_squared,
