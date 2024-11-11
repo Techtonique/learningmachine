@@ -311,10 +311,6 @@ my_scale <- function(x, xm = NULL, xsd = NULL) {
 my_scale <- compiler::cmpfun(my_scale)
 
 # prettify summary -----
-if (is_package_available("skimr") == FALSE)
-{
-  utils::install.packages("skimr")
-}
 my_skim <- skimr::skim_with(numeric = skimr::sfl(),
                             base = skimr::sfl(),
                             append = TRUE)

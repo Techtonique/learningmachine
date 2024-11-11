@@ -386,27 +386,7 @@ fit_multitaskregressor <- function(x,
   n_classes <- length(unique(y))
   class_names <- as.character(levels(unique(y)))
   regressor_choice <- match.arg(method)
-  package_name <- switch(regressor_choice,
-                         ranger="ranger",
-                         extratrees="ranger",
-                         bcn="bcn",
-                         glmnet="glmnet",
-                         xgboost="xgboost",
-                         svm="e1071", 
-                         rvfl="bayesianrvfl")
-  if (identical(is_package_available(package_name), FALSE)) {
-    if (package_name %in% c("bcn", "bayesianrvfl"))
-    {
-      utils::install.packages(package_name, 
-        repos = c('https://techtonique.r-universe.dev', 
-                  'https://cloud.r-project.org'), 
-        dependencies = TRUE)
-    } else {
-      utils::install.packages(package_name, 
-        repos = "https://cran.rstudio.com/",
-        dependencies = TRUE)
-    }
-  }
+  
   Y <- as.matrix(one_hot(y))
   if (ncol(Y) != n_classes)
     stop("The number classes in y must be equal to the number of classes")

@@ -281,12 +281,7 @@ Regressor <-
                 )
               )
             }
-            
-            if (is_package_available("doSNOW") == FALSE)
-            {
-              utils::install.packages("doSNOW", repos = "https://cran.rstudio.com/")
-            }
-            
+                        
             residuals_init <- rep(0, 2 * n_train)
             residuals_vec <- parfor(what = loofunc,
                                     args = seq_len(n_train),
@@ -565,27 +560,6 @@ fit_regressor <- function(x,
                           ...) {
   
   regressor_choice <- match.arg(method)
-  package_name <- switch(regressor_choice,
-                         ranger="ranger",
-                         extratrees="ranger",
-                         bcn="bcn",
-                         glmnet="glmnet",
-                         xgboost="xgboost",
-                         svm="e1071",
-                         rvfl="bayesianrvfl")
-  if (identical(is_package_available(package_name), FALSE)) {
-    if (package_name %in% c("bcn", "bayesianrvfl"))
-    {
-      utils::install.packages(package_name, 
-        repos = c('https://techtonique.r-universe.dev', 
-                  'https://cloud.r-project.org'), 
-        dependencies = TRUE)
-    } else {
-      utils::install.packages(package_name, 
-        repos = "https://cran.rstudio.com/",
-        dependencies = TRUE)
-    }    
-  }
   obj <- switch(
     regressor_choice,
     lm = function(x, y, ...)

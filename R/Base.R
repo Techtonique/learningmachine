@@ -204,11 +204,6 @@ Base <-
         
         type_ci <- match.arg(type_ci)
         
-        if (is_package_available("skimr") == FALSE)
-        {
-          utils::install.packages("skimr")
-        }
-        
         if (self$type == "regression")
         {
           deriv_column <- function(ix)
