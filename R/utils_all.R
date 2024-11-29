@@ -53,7 +53,7 @@ create_new_predictors <- function(x, nb_hidden = 5,
   }
   g <- switch(match.arg(activ),
               "relu" = function(x) x*(x>0),
-              "sigmoid" = function(x) 1/(1 + exp(-x)),
+              "sigmoid" = function(x) (1/(1 + exp(-x)))*(x >= 0) + (exp(x)/(1 + exp(x)))*(x < 0),
               "tanh" = function(x) tanh(x),
               "leakyrelu" = function(x) x*(x > 0) + 0.01*x*(x <= 0),
               "elu" = function(x) x*(x >= 0) + 0.01*(exp(x)-1)*(x < 0),
@@ -205,7 +205,8 @@ get_classes_idx <- function(new_probs, q_threshold, level) {
 
 # get expit probs -----
 expit_probs <- function(x) {
-  temp <- 1 / (1 + exp(-x))
+  temp <- (1 / (1 + exp(-x)))*(x >= 0)
+  temp <- temp + (exp(x)/(1 + exp(x)))*(x < 0)  
   return(sweep(x=temp, MARGIN=1, FUN="/", 
                STATS=rowSums(temp)))
 }
