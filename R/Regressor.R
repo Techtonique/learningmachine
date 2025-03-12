@@ -75,7 +75,7 @@ Regressor <-
       #' leakyrelu", "elu", "linear")
       activ = c("relu", "sigmoid", "tanh",
                 "leakyrelu", "elu", "linear"),
-      #' @field engine contains fit and predic lower-level methods for the given \code{method}; 
+      #' @field engine contains fit and predict lower-level methods for the given \code{method}; 
       #' do not modify by hand
       engine = NULL,
       #' @field params additional parameters passed to \code{method} when calling \code{fit}

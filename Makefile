@@ -75,10 +75,6 @@ getwd: ## get current directory
 
 install: clean setwd docs ## install current package
 	Rscript -e "try(devtools::install('.'), silent = FALSE)"
-	@read -p "Start R session? (y/n): " choice; \
-	if [ "$$choice" = "y" ]; then \
-		$(MAKE) start; \
-	fi
 
 installcranpkg: setwd ## install a package
 	@read -p "Enter the name of package to be installed: " pckg; \
