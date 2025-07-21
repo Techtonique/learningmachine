@@ -28,8 +28,9 @@ Suggests:
     rmarkdown,
     roxygen2,
     testthat (>= 3.0.0),
-    xgboost
+    xgboost,
+    misc 
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
-Remotes: thierrymoudiki/bayesianrvfl
+Remotes: thierrymoudiki/bayesianrvfl, thierrymoudiki/misc
