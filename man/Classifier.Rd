@@ -56,14 +56,22 @@ Create a classifier object for Probabilistic Machine Learning
 }
 \examples{
 
-X <- iris[, -5]
+set.seed(43)
+X <- as.matrix(iris[, 1:4])
 y <- iris$Species
-X_train <- X[1:100, ]
-y_train <- y[1:100]
-X_test <- X[101:150, ]
-y_test <- y[101:150]
-clf <- classifier(X_train, y_train, pi_method = "kdesplitconformal", level = 95)
-predict(clf, newx = X_test)
-print(mean(y_test == predict(clf, newx = X_test)))
+
+index_train <- base::sample.int(n = nrow(X),
+                               size = floor(0.8*nrow(X)),
+                               replace = FALSE)
+X_train <- X[index_train, ]
+y_train <- y[index_train]
+X_test <- X[-index_train, ]
+y_test <- y[-index_train]
+dim(X_train)
+dim(X_test)
+
+obj <- classifier(X_train, y_train)
+
+preds <- predict(obj, X_test) 
 
 }

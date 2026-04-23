@@ -1,8 +1,8 @@
 ---
-title: "Getting updates"
+title: "Getting updates Bayesian RVFL"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Getting updates}
+  %\VignetteIndexEntry{Getting updates Bayesian RVFL}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

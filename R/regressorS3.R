@@ -28,7 +28,7 @@
 #' y_test <- y[26:32]
 #' reg <- regressor(X_train, y_train, pi_method = "splitconformal", level = 95)
 #' 
-#' print(sqrt(mean((y_test - predict(reg, newx = X_test))^2)))
+#' print(predict(reg, newx = X_test))
 #' 
 regressor <- function(x, y, model = c('ranger', 
        'extratrees', 'ridge', 'bcn', 'glmnet', 'krr', 
