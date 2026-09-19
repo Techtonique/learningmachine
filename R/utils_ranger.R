@@ -1,5 +1,6 @@
 
 fit_func_ranger_regression <- function(x, y, ...) {
+  check_suggested("ranger")
   df <-
     data.frame(y = y, x)  # naming of columns is mandatory for `predict`
   ranger::ranger(y ~ ., data = df, ...)

@@ -569,16 +569,16 @@ fit_regressor <- function(x,
     ridge = function(x, y, ...)
       fit_ridge_regression(x, y, ...),
     bcn = function(x, y, ...)
-      bcn::bcn(x, y, ...),
+      {check_suggested("bcn"); bcn::bcn(x, y, ...)},
     glmnet = function(x, y, ...)
-      glmnet::glmnet(x, y, ...),
+      {check_suggested("glmnet"); glmnet::glmnet(x, y, ...)},
     krr = function(x, y, ...)
       fit_matern32_regression(x, y,
                               ...),
     xgboost = function(x, y, ...)
       fit_xgboost_regression(x, y, ...),
     svm = function(x, y, ...)
-      e1071::svm(x = x, y = y, ...),
+      {check_suggested("e1071"); e1071::svm(x = x, y = y, ...)},
     rvfl = function(x, y, ...) fit_rvfl_regression(x, y, ...),
     bayesianrvfl = function(x, y, ...) fit_bayesianrvfl_regression(x, y, ...)
   )

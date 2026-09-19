@@ -1,6 +1,7 @@
 fit_xgboost_regression <- function(x, y, ...) {
   f_xgboost <- function(x, y, ...)
   {
+    check_suggested("xgboost")
     xgboost::xgboost(data = x,
                      label = y,
                      ...)

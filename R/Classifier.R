@@ -402,9 +402,9 @@ fit_multitaskregressor <- function(x,
       fit_ridge_regression(x, y,
                            reg_lambda = 0.01, ...),
     bcn = function(x, y, ...)
-      bcn::bcn(x, y, ...),
+      {check_suggested("bcn"); bcn::bcn(x, y, ...)},
     glmnet = function(x, y, ...)
-      glmnet::glmnet(x, y, ...),
+      {check_suggested("glmnet"); glmnet::glmnet(x, y, ...)},
     krr = function(x, y, ...)
       fit_matern32_regression(x, y,
                               ...),

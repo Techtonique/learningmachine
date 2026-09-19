@@ -2,6 +2,7 @@
 fit_rvfl_regression <- function(x, y,
                                  ...)
 {
+  check_suggested("bayesianrvfl")
   x <- as.matrix(x)
   y <- as.vector(y)
   input_list <- list(...)
@@ -25,6 +26,7 @@ fit_rvfl_regression <- function(x, y,
 fit_bayesianrvfl_regression <- function(x, y,
                                  ...)
 {
+  check_suggested("bayesianrvfl")
   x <- as.matrix(x)
   y <- as.vector(y)
   input_list <- list(...)
@@ -47,6 +49,7 @@ fit_bayesianrvfl_regression <- function(x, y,
 
 predict_rvfl_regression <- function(object, newx, ...)
 {
+  check_suggested("bayesianrvfl")
   return (bayesianrvfl::predict_rvfl(fit_obj = object, 
                                             newx = newx, 
                                             ...))
@@ -54,6 +57,7 @@ predict_rvfl_regression <- function(object, newx, ...)
 
 predict_bayesianrvfl_regression <- function(object, newx, level = 95, ...)
 {
+  check_suggested("bayesianrvfl")
   res <- bayesianrvfl::predict_rvfl(fit_obj = object, 
                                     newx = newx, 
                                     ...)
@@ -68,5 +72,6 @@ predict_bayesianrvfl_regression <- function(object, newx, level = 95, ...)
 
 update_rvfl_regressor <- function(object, newx, newy, ...)
 {
+  check_suggested("bayesianrvfl")
   bayesianrvfl::update_params(fit_obj=object, newx=newx, newy=newy, ...)
 }

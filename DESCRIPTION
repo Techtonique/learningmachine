@@ -1,8 +1,8 @@
 Package: learningmachine
 Type: Package
 Title: Machine Learning with Explanations and Uncertainty Quantification
-Version: 2.9.0
-Date: 2026-04-23
+Version: 2.10.0
+Date: 2026-09-19
 Author: T. Moudiki
 Maintainer: T. Moudiki <thierry.moudiki@gmail.com>
 Description: Regression-based Machine Learning with explanations and uncertainty quantification.
@@ -16,15 +16,7 @@ Imports:
     randtoolbox,
     tseries,
     memoise,
-    foreach,
-    skimr,
-    snow,
-    doSNOW,
-    ranger,
-    glmnet,
-    xgboost,
-    e1071,
-    MASS
+    foreach
 Suggests:
     caret,
     ggplot2,
@@ -37,7 +29,15 @@ Suggests:
     rmarkdown,
     roxygen2,
     testthat (>= 3.0.0),
-    misc
+    misc,
+    skimr,
+    snow,
+    doSNOW,
+    ranger,
+    glmnet,
+    xgboost,
+    e1071,
+    MASS
 LinkingTo: Rcpp
 VignetteBuilder: knitr
 Config/testthat/edition: 3

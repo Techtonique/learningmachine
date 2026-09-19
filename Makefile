@@ -35,7 +35,7 @@ buildsite: setwd ## create a website for the package
 	Rscript -e "pkgdown::build_site('.')"
 	cp -rf docs/* ~/Documents/Pro_Website/Techtonique.github.io/learningmachine/
 
-check: clean setwd ## check package 
+check: clean setwd docs ## check package 
 	@read -p "Enter options (e.g: --no-tests --no-examples) or leave empty: " pckgcheckoptions; \
 	if [ -z "$$pckgcheckoptions" ]; then \
 		Rscript -e "try(devtools::check('.'), silent=TRUE)" && exit 0; \
@@ -45,11 +45,8 @@ check: clean setwd ## check package
 clean: ## remove all build, and artifacts
 	rm -f .Rhistory
 	rm -f *.RData
-	rm -f *.Rproj	
-	rm -rf .Rproj.user
 	rm -f src/*.o
 	rm -f src/*.so
-	rm -f src/*.tmp
 	rm -f vignettes/*.html
 
 cleanvars: setwd ## remove all local variables
@@ -76,6 +73,10 @@ getwd: ## get current directory
 
 install: clean setwd docs ## install current package
 	Rscript -e "try(devtools::install('.'), silent = FALSE)"
+	@read -p "Start R session? (y/n): " choice; \
+	if [ "$$choice" = "y" ]; then \
+		$(MAKE) start; \
+	fi
 
 installcranpkg: setwd ## install a package
 	@read -p "Enter the name of package to be installed: " pckg; \
@@ -109,7 +110,7 @@ load: clean setwd docs ## load all and restart (when developing the package)
 		$(MAKE) start; \
 	fi
 
-removepkg: clean ## remove package
+removepkg: ## remove package
 	@read -p "Enter the name of package to be removed: " pckg; \
 	if [ -z "$$pckg" ]; then \
 		echo "Package name cannot be empty."; \
